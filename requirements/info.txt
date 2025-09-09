@@ -1,0 +1,942 @@
+User: Это приложение будет использовать онлайн-школа английского языка. Принцип ее работы такой - компания находит преподавателя, которого берет на работу, после чего выступает посредником между ним и учеником. Для организации данного процесса требуется система, где у преподавателя есть личный кабинет, в котором у него есть календарь, на котором можно разместить свободные слоты (промежуток времени в пределах дня, недели, месяца), список уже назначенных менеджером учеников, назначенные уроки в тех слотах, которые он указал как рабочие. Уроки могут быть групповые и индивидуальные. Менеджер компании, в которой работает преподаватель, со своей стороны, добавляет в приложение данные об учениках, личная информация, контактные данные, ведет учет их занятий, добавляет им различные пакеты занятий, управляет количеством занятий. После того как ученик добавлен, менеджер связывается с ним и уточняет в какое время он бы хотел заниматься и по каким дням (постоянный график или плавающий). Когда ученик сообщает менеджеру подходящее ему время занятий, менеджер осуществляет подбор подходящего преподавателя (механизм еще не до конца продуман), добавляет ученику сведения о преподавателе в приложении и ставит его в свободные слоты преподавателю, преподаватель, в свою очередь видит что у него в календаре появился урок и ученик. Преподаватель также добавляется только менеджером, после создания преподавателю аккаунта, тот уже сам может зайти и посмотреть какой у него график занятий, исходя из назначенных менеджером учеников. У преподавателя и менеджера должна быть разная область видимости, менеджер видит все приложение, календарь и все данные о преподавателях и учениках, а преподаватель видит только свой личный календарь, в котором у него указаны уроки и ученики, с датой и временем их проведения. При назначении урока и незадолго до него планируется реализовать механизм уведомлений в телеграм-боте, напоминания о приближающемся уроке преподавателю и ученику, возможно механизм подтверждения присутствия на уроке от обеих сторон. Почтовые уведомления на своем почтовом сервере. Пока это все что я вспомнил, можешь задавать вопросы.
+Model: **Framing the Inquiry**
+
+I'm structuring my line of questioning around the user roles and the system functionalities to get a clearer picture. I'm focusing on eliciting precise details regarding user needs to inform the overall system design.
+
+
+**Refining the Questioning**
+
+I've got a clearer handle on the system's core aspects: user roles (Teacher, Manager, Student) and functionalities (user management, scheduling, student/teacher management, notifications). Now, I'm focusing on "Matching," the key element yet to be fully defined. My next step involves developing tailored questions to explore the specific matching process to meet those identified requirements.
+
+
+**Analyzing System Needs**
+
+I've outlined the user roles and functionalities, including how each role interacts with the system. My focus now is on understanding "Matching," the system's key feature. I've formulated detailed questions to refine my grasp of the specific requirements.  I'm aiming to identify gaps, and design questions. I will delve into the details of the matching process, and confirm student access. My goal is clarity.
+
+
+**Mapping System Details**
+
+I've categorized the information on user roles (Teacher, Manager, Student) and functionalities (user management, scheduling, student/teacher management, matching, notifications) based on the provided details. I've developed a detailed list of questions to gain a clearer understanding of the core system requirements and the intricacies of the matching process. I'm focusing on clarifying details like student account access, manager levels, and granular slot management to ensure all functionalities meet user needs.
+
+
+**Structuring The Questions**
+
+I've outlined the user roles and functionalities, breaking down my queries to focus on specific needs. I've built a list around user management, scheduling, and matching. Now I'll prioritize these to develop a clearer plan of what's necessary to fully flesh out the system's design, concentrating on students' access and the system's core functionality to ensure that all requirements are clearly understood.
+
+
+**Formulating the Question Set**
+
+I've assembled a detailed set of questions, categorized for clarity. I'll focus on how students will access the system and how the matching process will operate. I will examine how lessons are booked and managed. I've also formulated questions around system notifications. My goal is to understand and account for every aspect of the system's needs and functionalities.
+
+
+**Expanding the Inquiry**
+
+I've formulated a comprehensive set of questions, categorized for clarity, to explore the system's needs and functionalities. This includes high-level system goals, user role management, scheduling and calendars, student-teacher matching, lesson packages, payment handling, and system notifications. My current focus is on understanding the nuances of how the different parts work together. I'm prioritizing the questions about students, teachers, managers, and the matching mechanism, and plan to clarify payment processing.
+Model: Отлично, это очень хорошее описание! Уже вырисовывается ядро системы. Чтобы мы могли составить действительно полезную дорожную карту и эффективные промпты для Codex, мне нужно уточнить несколько моментов.
+
+Я разделил вопросы по категориям для удобства:
+
+**I. Пользователи и Роли:**
+
+1.  **Студенты:**
+    *   Будет ли у студентов свой личный кабинет в приложении, где они смогут видеть свое расписание, информацию о преподавателе, оставшиеся занятия и т.д.? Или вся коммуникация и информирование студентов идет через менеджера и уведомления?
+    *   Если у студентов будет личный кабинет, как они будут получать доступ (самостоятельная регистрация, создание аккаунта менеджером)?
+2.  **Менеджеры:**
+    *   Планируется ли несколько уровней менеджеров с разными правами (например, главный менеджер/администратор и обычные менеджеры)?
+    *   Кто и как добавляет самих менеджеров в систему?
+3.  **Преподаватели:**
+    *   Кроме календаря и списка уроков/учеников, какая еще информация может быть полезна преподавателю в его личном кабинете (например, контактные данные ученика (с его согласия), заметки по прогрессу ученика, история проведенных уроков)?
+
+**II. Календарь и Расписание:**
+
+1.  **Слоты Преподавателя:**
+    *   Насколько гранулированными будут "слоты" доступности, которые выставляет преподаватель (например, по 30 минут, по 1 часу, или преподаватель сам задает длительность каждого слота)?
+    *   Может ли преподаватель при создании слота указать, что он предназначен только для индивидуальных или только для групповых занятий? Или это определяется менеджером в момент назначения урока?
+    *   Что происходит, если преподавателю нужно изменить свою доступность уже после того, как слоты опубликованы или даже уроки назначены? Есть ли какой-то процесс для этого (например, запрос на изменение к менеджеру)?
+2.  **Назначение Уроков Менеджером:**
+    *   Когда менеджер ставит урок ученику в слот преподавателя, это автоматически списывает одно занятие из "пакета занятий" ученика?
+    *   Как будет выглядеть процесс для "плавающего графика" ученика? Менеджер будет искать свободные слоты у конкретного преподавателя или по всем доступным преподавателям, подходящим под какие-то критерии?
+3.  **Групповые Уроки:**
+    *   Как именно будут администрироваться групповые уроки? Менеджер создает "групповой урок" в определенном слоте преподавателя и затем добавляет туда нескольких учеников?
+    *   Есть ли ограничение на максимальное количество учеников в группе?
+    *   Как преподаватель будет видеть состав группы на конкретный урок?
+4.  **Отмены и Переносы Уроков:**
+    *   Как будут обрабатываться отмены или переносы уроков (со стороны ученика, преподавателя, менеджера)?
+    *   Будет ли система отслеживать правила отмен (например, "отмена не позднее чем за 24 часа")?
+
+**III. Подбор Преподавателя (Матчинг):**
+
+1.  Вы упомянули, что "механизм еще не до конца продуман". Есть ли какие-то первоначальные идеи или критерии?
+    *   Это будет просто поиск по доступности преподавателя?
+    *   Или будут учитываться другие параметры: специализация преподавателя (например, бизнес-английский, подготовка к IELTS), уровень ученика, возрастная группа, возможно, даже отзывы или рейтинг преподавателя (если планируется)?
+    *   Это будет ручной поиск менеджером по списку преподавателей или вы видите какую-то помощь от системы (например, фильтры, автоматические предложения)?
+
+**IV. Управление Учениками и Пакетами Занятий:**
+
+1.  **Пакеты Занятий:**
+    *   Что именно представляет собой "пакет занятий"? (например, N количество уроков, срок действия пакета, тип уроков - индивидуальные/групповые).
+    *   Как система будет сигнализировать менеджеру (или ученику), что пакет занятий подходит к концу?
+2.  **Финансы:**
+    *   Будет ли приложение как-то связано с оплатой? Например, нужно ли отмечать, что пакет оплачен, прежде чем ученик сможет посещать занятия? Или финансовые вопросы полностью за рамками этой системы?
+
+**V. Уведомления:**
+
+1.  **Telegram-бот:**
+    *   Как система будет получать идентификаторы Telegram для преподавателей и учеников? Потребуется ли им как-то "привязать" свой Telegram к профилю в приложении?
+    *   Какие еще события, кроме назначения урока и напоминаний, могут вызывать уведомления? (например, отмена урока, изменение времени).
+    *   "Механизм подтверждения присутствия": как это будет работать? Ученик/преподаватель получают сообщение с кнопками "Подтверждаю"/"Не смогу"? Что происходит дальше в зависимости от ответа?
+2.  **Почтовые Уведомления:**
+    *   Какие типы почтовых уведомлений планируются и для кого? Будут ли они дублировать Telegram или нести какую-то другую информацию?
+
+**VI. Прочее:**
+
+1.  **Часовые Пояса:** Критически важный момент для онлайн-школы. Как планируется учитывать часовые пояса преподавателей и учеников при отображении расписания и назначении уроков?
+2.  **История и Отчетность:**
+    *   Нужна ли будет какая-то отчетность? Например, для менеджера: количество проведенных уроков за период, загрузка преподавателей, посещаемость учеников. Для преподавателя: его история уроков.
+3.  **Перспективы Развития (если есть мысли):**
+    *   Есть ли какие-то функции, которые хотелось бы добавить в будущем, даже если они не войдут в первую версию (например, загрузка учебных материалов, интеграция с видео-платформами, система обратной связи после урока)?
+
+Не торопитесь, ответьте, когда будет удобно. Чем детальнее будут ответы, тем точнее мы сможем спланировать дальнейшие шаги. Мы можем пройтись по каждому блоку вопросов отдельно, если так будет удобнее.
+User: давай по блокам, вопросы по одному, по-порядку, вдруг тебе еще что-то потребуется уточнить
+Model: **Focusing on Student Queries**
+
+I'm currently honing in on the initial question related to students from the "I. Пользователи и Роли:" section. My primary focus right now is understanding the nuances of that first query. I'm carefully analyzing its details to establish a clear foundation for future inquiries.
+Model: Отлично, давай так. Начнем с первого блока: **I. Пользователи и Роли**.
+
+**Первый вопрос по студентам:**
+
+1.  Будет ли у студентов свой личный кабинет в приложении, где они смогут видеть свое расписание, информацию о преподавателе, оставшиеся занятия и т.д.? Или вся коммуникация и информирование студентов идет через менеджера и уведомления?
+User: У студентов не будет личного кабинета, по крайней мере не на первоначальном этапе. Сейчас это приложение планируется как внутреннее для замены Excel таблиц, в которых ведется учет, нужно что-то более удобное и практичное,  максимально автоматизирующее работу. Вся коммуникация идет через менеджера и уведомления.
+Model: Понял. Это существенно упрощает начальную разработку.
+
+**Следующий вопрос, все еще по студентам:**
+
+2.  Раз у студентов не будет личного кабинета, как менеджер будет идентифицировать студента для отправки уведомлений (например, в Telegram)? Достаточно ли будет номера телефона/Telegram ID, которые менеджер внесет в систему при создании карточки студента?
+User: Студент будет предоставлять необходимый набор уникальных персональных сведений, таких как фио, электронная почта, возможно дата рождения, номер телефона, никнэйм в телеграмме. На первоначальном этапе, после добавления студента в систему, планируется направлять студенту письмо по электронной почте, в котором давать ссылку на телеграмм бота и инструкцию, дальше студент пишет в бота, и ему далее можно будет направлять уведомления. Бот и почтовый сервер еще не реализованы, это часть с которой нужна будет помощь.
+Model: **Defining Student Identification**
+
+I've been grappling with how students will be identified for notifications, now that we've established they won't have individual accounts at first. The focus is now on Telegram integration. I'm exploring the implications of this approach.
+
+
+**Confirming Telegram Integration**
+
+I've confirmed that student identification for Telegram will occur when they initiate contact with the bot after receiving an email. This involves the system likely storing the `chat_id`. Now, I'm pivoting to the next question within the "I. Пользователи и Роли" block, focusing on the role of Managers.
+Model: Отлично, это понятная и рабочая схема для подключения студентов к уведомлениям. Зафиксировали: email для первоначального контакта и инструкции, затем студент сам инициирует диалог с ботом, что позволит боту получить его `chat_id` для последующих уведомлений.
+
+Переходим к **Менеджерам**.
+
+**Первый вопрос по менеджерам:**
+
+1.  Планируется ли несколько уровней менеджеров с разными правами (например, главный менеджер/администратор, который может управлять другими менеджерами, и обычные менеджеры, которые работают только с учениками и преподавателями)? Или на данном этапе будет только один тип менеджера с полным доступом ко всем функциям управления учениками и преподавателями?
+User: Планируется два уровня, администратор и его подчиненные. Администратор обладает абсолютными правами, менеджеры - ограниченными, он же создает для них аккаунты и выдает им права.
+Model: Понятно. Двухуровневая система администратор/менеджер.
+
+**Следующий вопрос по менеджерам (он связан с предыдущим):**
+
+2.  Кто и как добавляет самих менеджеров в систему? Верно ли я понимаю, что "Администратор" будет создавать учетные записи для "Менеджеров" внутри приложения? Будет ли у Администратора специальный интерфейс для управления пользователями-менеджерами (создание, редактирование прав, блокировка/удаление)?
+User: Да, администратор будет создавать учетные записи менеджеров самостоятельно, внутри приложения, нужен специальный интерфейс с доступом только администратору, внутри приложения, в котором будет реализовано управление пользователями-менеджерами (создание, редактирование прав, блокировка/удаление).
+Model: **Establishing Admin Access**
+
+I've confirmed the need for an admin interface. This is crucial for managing manager accounts, allowing robust role-based access control to be implemented. I'm now transitioning my focus to the section on *Преподаватели* (Teachers).
+
+
+**Confirming Admin Interface Role**
+
+I've clarified the need for an admin interface to manage manager accounts for role-based access. I'm now transitioning focus to the *Преподаватели* (Teachers) section of *I. Пользователи и Роли* (Users and Roles).
+Model: Отлично, это важное уточнение для проектирования системы прав доступа.
+
+Теперь перейдем к **Преподавателям**.
+
+**Первый вопрос по преподавателям:**
+
+1.  Кроме календаря и списка уроков/учеников, какая еще информация может быть полезна преподавателю в его личном кабинете? Например:
+    *   Контактные данные ученика (с его согласия и с учетом того, что коммуникация идет через менеджера – возможно, только для экстренной связи или для информации)?
+    *   Заметки по прогрессу ученика (возможность для преподавателя вести свои записи по каждому ученику/уроку)?
+    *   История проведенных уроков (архив)?
+    *   Какие-то учебные материалы или ссылки на них (если это централизованно предоставляется школой)?
+User: контактные данные они могут получить самостоятельно друг у друга при первом общении на уроке, этого преподавателю не требуется. в уведомлении будет направляться ссылка на индивидуальный урок в специализированном по для видеосвязи (стороннее, не имеет отношения к нашему приложению). Заметки можно добавить, будет полезно знать своих учеников в лицо. история проведенных уроков - да, с датами, временем и продолжительностью, общее количество проведенных уроков, может какие-то дашборды с метриками в дальнейшем. Ссылка наверное одна в профиле преподавателя, это будет ссылка на его видеоурок, она формируется один раз менеджером и добавляется преподавателю в профиль, многоразовая, при входе по ней начинается видеоконференция.
+Model: **Reviewing User Feedback**
+
+I've processed the user's responses regarding the teachers' profiles. Key takeaways include the consensus that student contact information isn't necessary in the teacher's profile. I'm focusing on incorporating these insights, particularly the emphasis on the significance of notes, for the teachers' section.
+
+
+**Revising Teacher Profile**
+
+I've refined the teacher profile structure based on user input. Student contact information is out; emphasis is on notes and lesson history. The refined profile will feature a calendar, student list with note capabilities, lesson history, and a non-editable video conference link. Further down the line, I'll explore integrating dashboards with metrics.
+
+
+**Integrating User Insights**
+
+I've integrated the user's feedback, moving forward with a refined teacher profile. I'm prioritizing the removal of student contact details and focusing on incorporating notes and lesson history. The profile will now consist of a calendar, a student list with note capabilities, lesson history, and a non-editable video conference link. I'll proceed to the next module.
+Model: Хорошо, это делает картину ЛК преподавателя более ясной.
+
+Итак, в личном кабинете преподавателя будет:
+*   Календарь с расписанием.
+*   Список назначенных учеников (с возможностью делать заметки по каждому).
+*   История проведенных уроков (дата, время, продолжительность, возможно общее количество).
+*   Его персональная многоразовая ссылка на видеоконференцию (добавляется менеджером, отображается для информации).
+
+У меня больше нет уточняющих вопросов по блоку **I. Пользователи и Роли**.
+
+Переходим к следующему блоку: **II. Календарь и Расписание**.
+
+**Первый вопрос по слотам преподавателя:**
+
+1.  Насколько гранулированными будут "слоты" доступности, которые выставляет преподаватель (например, по 30 минут, по 1 часу, или преподаватель сам задает длительность каждого слота)? И какова типичная длительность урока?
+User: по 1 часу
+Model: Понятно, часовые слоты. Это упрощает логику.
+
+**Следующий вопрос по слотам преподавателя:**
+
+2.  Может ли преподаватель при создании слота указать, что он предназначен только для индивидуальных или только для групповых занятий? Или тип урока (индивидуальный/групповой) определяется исключительно менеджером в момент назначения урока в этот слот?
+User: нет, преподаватель будет вести то, что ему поставит менеджер. Разделение на групповой и индивидуальный предполагается у сущности урока, не у слота.
+Model: Отлично, это важное различие. Слот — это просто доступное время, а тип урока определяется уже при его создании менеджером.
+
+**Следующий вопрос по слотам преподавателя:**
+
+3.  Что происходит, если преподавателю нужно изменить свою доступность (добавить новые слоты, удалить еще не занятые слоты, или, что сложнее, изменить/удалить слоты, на которые уже назначены уроки)?
+    *   Может ли он сам редактировать свои свободные слоты?
+    *   Что происходит, если нужно отменить слот, на который уже назначен урок? Есть ли какой-то процесс для этого (например, запрос на изменение к менеджеру, который затем связывается с учеником)?
+User: поскольку у преподавателя есть доступ, то он может корректировать самостоятельно СВОИ текущие свободные слоты, но только если в них нет назначенных студентов. в случае если студент есть в слоте, то преподаватель может отправить уведомление внутри приложения менеджеру (нужно придумать механизм) о необходимости смены урока и менеджер переносит урок на добавленный преподавателем слот.
+Model: Понял.
+
+Значит:
+*   Преподаватель может свободно управлять (добавлять/удалять/изменять) своими **свободными** (без назначенных уроков) слотами.
+*   Если на слот уже назначен урок, преподаватель не может его изменить/удалить сам. Он должен инициировать запрос менеджеру через систему (например, кнопка "Запросить перенос/отмену урока" рядом с уроком). Менеджер уже решает вопрос с учеником и при необходимости переносит урок в другой свободный слот, который преподаватель мог заранее указать или добавить.
+
+Это логичный подход.
+
+Переходим к **Назначению Уроков Менеджером**.
+
+**Первый вопрос по назначению уроков:**
+
+1.  Когда менеджер ставит урок ученику в слот преподавателя, это автоматически списывает одно занятие из "пакета занятий" ученика? Или учет использованных занятий ведется как-то иначе (например, по факту проведения урока)?
+User: по факту проведения урока. предполагается что у урока может быть 4 статуса (можешь предложить иную концепцию, если есть более подходящие идеи), это назначен, перенесен, проведен, отменен. когда только назначается урок, то он считается назначенным, перенесен он может быть при вмешательстве менеджера, по просьбе ученика или преподавателя, проведен это все уроки, которые не были отменены или перенесены и дата их проведения уже прошла, отмена урока допускается не менее чем за 8 часов до его начала, в случае если времени до урока меньше, то он считается проведенным, даже если фактически не проходит (преподавателю оплачивается со стороны компании, у студента сгорает 1 урок), нужно добавить функционал для менеджера по переводу таких уроков в статус перенесен, если перенос состоялся позже не по вине ученика (предупредил менеджера за несколько часов, а то не отреагировал и не перенес урок).
+Model: **Clarifying Lesson States**
+
+I'm currently focused on the relationship between lesson statuses and student packages.  I've been meticulously examining the business logic around lesson decrements and how they integrate with different lesson states. I am mapping out all the potential scenarios to make sure the process is clear and robust.
+
+
+**Refining Status Interactions**
+
+I'm now diving deeper into the nuances of how lesson statuses interact with lesson deduction. I've pinpointed the key rules: deduction occurs after "Проведен," which covers both completed and late-cancelled lessons. Late cancellations trigger a lesson loss for the student and payment for the teacher. A manager's intervention can revert this by changing the status to "Перенесен," implying the need for package adjustments.
+
+
+**Mapping Deduction Logic**
+
+I'm now zeroing in on the precise moments for deduction, focusing on the conditional logic. "Проведен" clearly signals deduction, but I need to consider scenarios where "Перенесен" invalidates that. I'm building a robust flowchart of states and transitions to ensure accurate lesson tracking and deduction. My focus is on clarifying the logic to prevent erroneous deductions.
+
+
+**Mapping Status Transitions**
+
+I've carefully reviewed the logic. The proposed statuses cover the core scenarios. My immediate focus is the automated flow; how does "Проведен" get assigned? If it's time-based, I need confirmation. I'm also examining the implications of a manager's "Перенесен," specifically if it invalidates a prior "Проведен" state, requiring package restitution. The flow should be defined in detail.
+
+
+**Confirming Deduction Logic**
+
+I've grasped the fundamental interplay of lesson statuses and deduction rules. It seems the proposed system uses "Проведен" to trigger package deductions, encompassing both completed lessons and late cancellations. The manual override via "Перенесен" offers a vital safety net for managing exceptions. My current focus is to verify the automated trigger for "Проведен" status. Does this occur automatically post-lesson, or is there a manual component? I'll also clarify how the system handles lessons that are re-scheduled multiple times.
+
+
+**Validating Status Logic**
+
+I have a solid understanding of the lesson statuses and the deduction rules. "Проведен" clearly triggers a lesson package deduction, including late cancellations. Managerial "Перенесен" overrides are a key safeguard. My current focus is to confirm the automated mechanics. Does the system automatically mark a lesson "Проведен" post-lesson if no cancellation or rescheduling occurs, or is manual confirmation required? Also, I am clarifying how multiple reschedules are managed in the system.
+Model: Это очень детально и продуманно! Концепция с четырьмя статусами урока ("Назначен", "Перенесен", "Проведен", "Отменен") выглядит абсолютно логичной и покрывает описанные вами сценарии. Мне нравится, что списание урока из пакета ученика привязано к статусу "Проведен", и четко определены условия, когда урок считается таковым (включая поздно отмененные).
+
+**Уточняющий момент по статусу "Проведен" и списанию:**
+
+*   Вы сказали: *"проведен это все уроки, которые не были отменены или перенесены и дата их проведения уже прошла"*.
+    Это означает, что система должна автоматически изменять статус урока на "Проведен" по прошествии его запланированного времени окончания, если он не был "Отменен" (с соблюдением срока в 8 часов) или "Перенесен"? Или же требуется какое-то подтверждение от преподавателя или менеджера, что урок действительно состоялся, прежде чем он станет "Проведен" и произойдет списание?
+
+И сразу связанный вопрос по процессу переноса:
+*   Когда менеджер переносит урок: существующий урок меняет свой статус на "Перенесен", а для новой даты/времени создается новый урок со статусом "Назначен"? Или же у существующей записи урока просто изменяются дата/время, а статус остается "Назначен" (или меняется на "Перенесен" и потом обратно на "Назначен" при установке в новый слот)? Это важно для отслеживания истории и корректного списания.
+User: Можно запрашивать у преподавателя подтверждение в телеграмм боте после проведения урока и дополнительно дать возможность преподавателю подтверждать что урок действительно был проведен в его личном кабинете, если он забыл или не увидел в боте. Но здесь нужно будет еще подумать над реализацией наверное. Можем вернуться к этому вопросу на чуть более поздних этапах.
+
+По процессу переноса - я бы хотел чтобы урок можно было просто перетащить функцией драг н дроп в нужный свободный слот другого дня у этого преподавателя. После переноса у урока статус меняется на перенесен.
+Model: **Analyzing Lesson States**
+
+I've been focusing on how to mark a lesson as "Conducted." The initial thought was an automatic update if the lesson's time had passed and it wasn't cancelled or rescheduled. Now, the plan is to use a Telegram bot to prompt the user for confirmation on lesson completion before changing the status.
+
+
+**Refining Transfer & Status**
+
+Now, I'm focusing on the lesson transfer process. The drag-and-drop feature for managers to move lessons within the same teacher's schedule is the key. When a transfer occurs, the lesson's date/time should update, and its status changes to "Перенесен" (Rescheduled). I'm also considering the implications of this status change on the user interface.
+
+
+**Addressing Lesson Rescheduling**
+
+I've clarified the core mechanics of lesson rescheduling via drag-and-drop.  The focus is on updating the existing lesson record with the new date/time and marking its status as "Перенесен" (Rescheduled).  A key question arises: what happens if a lesson is rescheduled multiple times? Does the status remain "Перенесен," or are there limits or a different status to indicate multiple moves? I'm also confirming the feature should be limited to moving a lesson to another slot of the *same* teacher.
+
+
+**Elaborating Transfer Mechanics**
+
+I've clarified the drag-and-drop mechanics. When a manager moves a lesson, the existing record is updated with the new date/time and status set to "Перенесен."  I'm now contemplating what happens if a lesson needs to be rescheduled *again*. Does the "Перенесен" status persist, or are there limits or a different status to reflect multiple moves? Also, confirming the drag-and-drop only applies to moving within the *same* teacher's schedule. A separate process would be needed for transferring to a different teacher.
+Model: Окей, предложение по подтверждению урока преподавателем через Telegram-бота или личный кабинет принимается. Мы действительно можем вернуться к деталям реализации этого механизма позже, когда будем прорабатывать логику уведомлений и интерфейс преподавателя.
+
+**По процессу переноса drag-and-drop:**
+
+Вы сказали: *"После переноса у урока статус меняется на перенесен."*
+
+Это немного отличается от того, как я понял ранее (что "Перенесен" – это один из финальных статусов, как "Проведен" или "Отменен", и что перенесенный урок – это тот, который *уже был* перенесен, а новый назначенный урок будет просто "Назначен").
+
+Давайте уточним:
+Если менеджер перетаскивает урок из слота А (сегодня в 10:00) в слот Б (завтра в 12:00):
+1.  Урок, который был в слоте А, меняет свой статус на "Перенесен"?
+2.  А в слоте Б появляется новый урок со статусом "Назначен"? Или это тот же самый объект урока, у которого просто изменились дата/время, а статус стал "Назначен" (или остался "Назначен", если он был таким)?
+
+Или вы имеете в виду, что должен быть промежуточный статус? Например:
+*   Урок 1 (статус "Назначен") -> менеджер переносит -> Урок 1 теперь в новом слоте (статус все еще "Назначен", но где-то фиксируется, что был факт переноса для истории).
+*   Или: Урок 1 (статус "Назначен") -> менеджер переносит -> Урок 1 получает статус "Перенесен" и становится неактивным/архивным, а в новом слоте создается Урок 2 (статус "Назначен") как копия Урока 1, но с новыми датой/временем.
+
+Это важно для понимания жизненного цикла урока и как мы будем отслеживать его историю и финальный исход для списания из пакета.
+
+По поводу вашего предыдущего вопроса о плавающем графике и переносе к другому преподавателю – давайте сначала разберемся с жизненным циклом одного урока и его статусами при переносе, а потом вернемся к этим двум моментам.
+User: наверное статус перенесен не требуется в такой логике, он как был назначен, так и остается назначен, просто можно добавлять например информационный тег, что урок переносился. то есть если у меня сегодня урок в 20.00, а сейчас 10.00, я могу обратиться к менеджеру, и он просто перенесет мне урок на следующий свободный слот у преподавателя, когда мне тоже будет удобно, либо может отменить его.
+Model: **Analyzing Rescheduling Logic**
+
+I'm currently working to clarify the 'Rescheduled' status. It seems logical that even when a lesson is moved, its primary status should remain as 'Scheduled'. I'm leaning toward implementing an informational tag or flag to track the rescheduling history. This would offer a clear audit trail. This approach keeps the core logic simple and clean.
+
+
+**Defining Rescheduling Functionality**
+
+I've clarified the 'Rescheduled' status. Lessons, even when moved, should generally retain their 'Scheduled' status. I'm now exploring using a flag or history record to track reschedulings. This maintains a clean status flow and offers a clear audit trail. This direction feels simpler and more maintainable. Next, I'm considering the implications for students with flexible schedules.
+Model: Отлично, это значительно упрощает логику статусов!
+
+Итак, мы приходим к тому, что:
+*   Урок имеет основные статусы: **"Назначен"**, **"Проведен"**, **"Отменен"**.
+*   Когда менеджер переносит урок (например, drag-and-drop'ом), урок сохраняет статус **"Назначен"**, но у него меняются дата/время.
+*   Мы можем добавить информационный флаг или запись в историю урока, что он был перенесен (например, `is_rescheduled: true` или поле `rescheduled_count: N`). Это полезно для аналитики и понимания контекста.
+
+Это выглядит гораздо чище.
+
+Теперь, возвращаясь к вопросам по **Назначению Уроков Менеджером**, следующий был:
+
+2.  Как будет выглядеть процесс для **"плавающего графика"** ученика?
+    *   Когда ученик с плавающим графиком сообщает менеджеру желаемое время/день для следующего урока, менеджер будет искать свободные слоты у **конкретного, уже назначенного этому ученику преподавателя**?
+    *   Или менеджер будет осуществлять поиск по слотам **всех доступных преподавателей**, которые могли бы подойти ученику (например, по уровню, специализации, если такие критерии будут)? Этот вопрос частично пересекается с будущим блоком "Подбор Преподавателя", но важен здесь в контексте текущего назначения.
+User: Сначала у уже назначенного преподавателя, но если слотов нет, то менеджер может сменить преподавателя и выбрать из всех имеющихся нового, назначить ему ученика и поставить урок в слот.
+Model: **Analyzing Flexible Schedules**
+
+I'm focusing on clarifying the process for students with flexible schedules. First, I'm checking the teacher's availability for a given student. If slots are unavailable, I can then change the student's schedule.
+
+
+**Developing Schedule Reassignment**
+
+I've outlined steps for reassigning a student when their primary teacher is unavailable. It involves checking availability, then either switching teachers or selecting a new one, and scheduling accordingly. This clarifies the need for a system to view all available teachers and their slots. My focus will be on the best implementation.
+Model: Понятно. Это гибкий подход, который позволяет менеджеру найти решение для ученика.
+
+Значит, процесс для ученика с плавающим графиком будет таким:
+1.  Менеджер сначала проверяет свободные слоты у **текущего (основного) преподавателя** этого ученика.
+2.  Если у текущего преподавателя нет подходящих слотов, менеджер имеет возможность:
+    *   Поискать свободные слоты у **других преподавателей**.
+    *   При нахождении подходящего слота у другого преподавателя, **переназначить ученика этому новому преподавателю** (на этот урок или на постоянной основе – это мы можем уточнить позже, если нужно).
+    *   Поставить урок в найденный слот нового преподавателя.
+
+Это подразумевает, что у менеджера должен быть удобный интерфейс для просмотра доступности как конкретного преподавателя, так и сводной доступности по нескольким/всем преподавателям, а также функция смены "основного" преподавателя для ученика.
+
+Теперь перейдем к **Групповым Урокам**.
+
+**Первый вопрос по групповым урокам:**
+
+1.  Как именно будут администрироваться групповые уроки?
+    *   Менеджер сначала создает "групповой урок" в определенном слоте преподавателя (например, выбирает слот и помечает его как "групповой")?
+    *   Или менеджер создает некую "группу" как отдельную сущность, привязывает к ней преподавателя, расписание, а затем добавляет учеников в эту группу?
+    *   Или какой-то другой механизм?
+User: У студентов подразумевается признак группы, при покупке определенных пакетов (продуктов). Данный продукт выбирается при создании урока для конкретного ученика. Если выбран групповой продукт, то урок проходит у всей группы.
+Model: **Define Grouping Criteria**
+
+I'm currently focused on defining the "group attribute" assigned to students and its connection to course packages. It seems this attribute plays a key role in the selection of a "group product" during lesson creation, specifically tailored for individual students. I'm exploring how this relationship influences the overall course structure.
+
+
+**Investigate Group Dynamics**
+
+I'm now delving into the mechanics of group lessons. It appears that the "group product" selection doesn't create a separate "group lesson" entity, but rather individual lesson assignments linked through shared characteristics. The user data suggests that students enrolled in a "group package" receive individual lesson assignments, potentially grouped by their "group product" and scheduling details. This approach warrants further investigation.
+
+
+**Clarify Group Assignment**
+
+I'm revisiting the interpretation of "group lessons." It seems the system might treat group lessons not as a distinct entity, but as a collection of individual assignments. Students with the same "group product" and schedule are linked, creating a "group lesson" effect. To be more clear, I'm trying to decide if there is a separate "group lesson" that I assign the students to, or if the individual lesson assignments are what creates the "group". I want to make sure I am understanding this properly.
+
+
+**Reconcile Group Concepts**
+
+It seems I'm still clarifying the nuances of "group lessons." It's appearing more likely that instead of a distinct "group lesson" entity, the system clusters individual lesson assignments based on shared "group product" and scheduling details. This approach creates the *effect* of a group lesson. I need to resolve the interpretations of how the "group product" influences individual lesson assignments versus a dedicated group lesson instance. The "whole group" phrasing is now confusing me, do I mean that the individual students are added to a particular existing "group product" and get lessons assigned to them there?
+
+
+**Analyze Group Lesson Composition**
+
+I'm now focusing on the composition of group lessons. It appears that a student's "group attribute" and associated "group product" play a key role. My understanding is that when a group product is selected, the system assigns individual lessons, but links them together based on shared characteristics like the "group product" and schedule. However, I am still trying to clarify if "group lessons" are a distinct entity that is created, or if they are a representation of a collection of individual assignments, for the purposes of assignment and organization.
+Model: Это интересный подход. Давайте попробуем его разложить, чтобы я правильно понял.
+
+Вы говорите: *"Если выбран групповой продукт, то урок проходит у всей группы."*
+
+Это означает, что:
+1.  Существует некий "групповой продукт" или "пакет", который покупают ученики. Этот продукт как-то идентифицирует группу? (например, "Группа Pre-Intermediate, ПН/СР 18:00").
+2.  Когда менеджер создает урок для **одного ученика** (например, Васи) с таким "групповым продуктом" в определенный слот преподавателя:
+    *   Как система понимает, кто еще из учеников относится к "всей группе", которая должна посетить этот урок? Они автоматически "подтягиваются" на этот урок, если у них тот же "групповой продукт" и он подразумевает занятие в это время?
+    *   Или менеджер должен будет для каждого ученика из этой группы вручную создать отдельное назначение урока в этот же самый слот преподавателя, указав для каждого этот "групповой продукт"?
+
+По сути, вопрос сводится к тому:
+*   Является ли "групповой урок" одним объектом в календаре преподавателя, к которому привязано несколько учеников?
+*   Или это несколько индивидуальных назначений уроков разным ученикам, которые просто попадают на одно и то же время к одному преподавателю, и система (или преподаватель) их воспринимает как группу из-за типа их "продукта"?
+
+Как преподаватель увидит в своем календаре, что это групповой урок и кто на нем будет?
+User: Давай пока не будем реализовывать механизм группового урока, позже.
+Model: Хорошо, принято. Откладываем детализацию групповых уроков на более поздний этап. Это разумно, чтобы сосредоточиться на ядре индивидуальных занятий.
+
+Тогда мы пропускаем остальные вопросы по групповым урокам и переходим к **Отменам и Переносам Уроков** (хотя часть этого мы уже затронули).
+
+**Первый (и, возможно, основной оставшийся) вопрос по отменам и переносам:**
+
+1.  Мы уже обсудили правило отмены "не менее чем за 8 часов" и что происходит, если урок отменен позже.
+    *   **Кто и как инициирует отмену урока?**
+        *   Может ли ученик сам отменить урок (например, через Telegram-бота, если мы такой функционал предусмотрим)? Если да, то как система будет проверять правило "8 часов"?
+        *   Или отмены всегда проходят через менеджера (ученик сообщает менеджеру, менеджер отменяет урок в системе)?
+        *   Может ли преподаватель инициировать отмену урока (например, по болезни)? Если да, то как это обрабатывается (уведомление менеджеру, ученикам)?
+    *   **Что происходит в системе при отмене?**
+        *   Урок получает статус "Отменен".
+        *   Слот преподавателя, в котором был этот урок, становится снова свободным? (Это важно, если отмена произошла заблаговременно).
+        *   Уведомляются ли заинтересованные стороны (ученик, преподаватель, менеджер)?
+User: ученик может отменить через телеграмм бота, занятия идут по московскому времени, за 8 часов по московскому времени студент должен отменить его в боте (нужно придумать механизм такой отмены). Приложение получает по апи команду на отмену урока (возможно у студента будет возможность в боте посмотреть ближайший назначенный урок), когда студент выбирает соответствующий пункт в боте.
+
+ученик может сообщить менеджеру что не придет, и менеджер может отменить урок, преподаватель может отменить урок через менеджера, но без штрафных санкций для себя, при этом ему отмененный урок не оплачивается.
+
+урок получает статус отменен, слот преподавателя становится свободным если отмена произошла не по инициативе преподавателя (у менеджера должна быть возможность как-то обозначить кто инициировал отмену). Все стороны уведомляются после смены статуса на отменен.
+Model: **Reviewing Cancellation Process**
+
+I'm currently focused on confirming my understanding of the cancellation process, especially as it relates to student cancellations via the bot. I'm drilling down into the mechanics of how a student initiates a cancellation through the bot, the subsequent API calls, and the implications of this action. I want to make sure I grasp every detail of how this works.
+
+
+**Examining Cancellation Details**
+
+I'm now diving into the specifics of cancellation methods. My focus is on confirming the mechanics of student-initiated cancellations through the bot, the role of the 8-hour rule, and the various methods for cancellation. I'm also investigating the system actions triggered by different cancellation scenarios, like updating lesson statuses, freeing up slots, and sending notifications. I need to clarify why teacher-initiated cancellations prevent slots from becoming available.
+
+
+**Deconstructing Cancellation Logic**
+
+I'm now carefully dissecting the cancellation processes, specifically concentrating on differentiating between student, manager, and teacher initiated cancellations. I'm focusing on how the system handles slot availability based on who initiated the cancellation.  The core question I'm trying to answer is the rationale behind teacher-initiated cancellations *not* freeing up slots, and what the implications are.
+Model: Отлично, это очень подробное описание процесса отмены!
+
+Давайте я резюмирую, чтобы убедиться, что все понял правильно, и задам пару уточняющих моментов.
+
+**Сценарии отмены:**
+
+1.  **Ученик через Telegram-бота:**
+    *   Ученик видит в боте свой предстоящий урок.
+    *   У ученика есть опция "Отменить урок" в боте.
+    *   При выборе этой опции бот отправляет API-запрос в ваше основное веб-приложение.
+    *   Веб-приложение проверяет, соблюдено ли правило "8 часов до начала урока по московскому времени".
+        *   Если правило соблюдено: урок получает статус "Отменен", слот преподавателя освобождается, стороны уведомляются. Занятие из пакета ученика не списывается.
+        *   Если правило НЕ соблюдено (меньше 8 часов): урок НЕ меняет статус на "Отменен" (или меняет на какой-то специальный "Отменен поздно учеником"?), но считается "Проведенным" для целей списания занятия у ученика и оплаты преподавателю. Слот преподавателя не освобождается (так как преподаватель должен быть готов). Стороны уведомляются о результате (успешная отмена или поздняя отмена).
+2.  **Ученик через Менеджера:**
+    *   Ученик сообщает менеджеру.
+    *   Менеджер в приложении отменяет урок. Здесь также должно действовать правило 8 часов, и менеджер должен видеть, приведет ли эта отмена к списанию урока у ученика.
+3.  **Преподаватель через Менеджера (например, по болезни):**
+    *   Преподаватель сообщает менеджеру.
+    *   Менеджер отменяет урок в приложении.
+    *   Урок получает статус "Отменен".
+    *   Преподавателю этот урок не оплачивается.
+    *   Ученику этот урок не засчитывается как проведенный, занятие из пакета не списывается.
+    *   **Важный момент:** Вы сказали *"слот преподавателя становится свободным если отмена произошла не по инициативе преподавателя"*. Это означает, что если преподаватель инициировал отмену (через менеджера), то его слот на это время **не становится свободным** для назначения другого урока? Это чтобы он не мог отменить одного ученика и тут же взять другого на это же время, или есть другая причина?
+    *   Все стороны уведомляются.
+
+**Общие моменты при отмене:**
+
+*   В системе нужно будет фиксировать, кто был инициатором отмены (Ученик, Преподаватель (через менеджера), Менеджер по просьбе ученика). Это повлияет на логику освобождения слота и, возможно, на аналитику.
+*   Уведомления отправляются всем заинтересованным сторонам (ученику, преподавателю, менеджеру, который курирует ученика/преподавателя) при любой смене статуса урока на "Отменен" или при фиксации "поздней отмены".
+
+**Мои уточняющие вопросы:**
+
+1.  **Поздняя отмена учеником (менее 8 часов):** Какой статус получает такой урок? Он остается "Назначен", но с пометкой о поздней отмене? Или есть отдельный статус типа "Отменен поздно" / "Пропущен"? Главное, чтобы система однозначно понимала, что занятие должно быть списано у ученика и оплачено преподавателю.
+2.  **Освобождение слота при отмене по инициативе преподавателя:** Не могли бы вы пояснить логику, почему слот не освобождается, если отмена инициирована преподавателем? Обычно, если преподаватель отменяет (например, заболел), то он действительно недоступен в это время. Или имеется в виду, что менеджер должен вручную решить, освобождать этот слот для других или нет?
+
+По остальным пунктам все кажется ясным и логичным.
+User: Важный момент: Вы сказали "слот преподавателя становится свободным если отмена произошла не по инициативе преподавателя". Это означает, что если преподаватель инициировал отмену (через менеджера), то его слот на это время не становится свободным для назначения другого урока? Это чтобы он не мог отменить одного ученика и тут же взять другого на это же время, или есть другая причина?
+
+Если он болеет, то это для того, чтобы ему не поставили нового ученика в этот слот.
+
+Поздняя отмена учеником (менее 8 часов): Какой статус получает такой урок? Он остается "Назначен", но с пометкой о поздней отмене? Или есть отдельный статус типа "Отменен поздно" / "Пропущен"? Главное, чтобы система однозначно понимала, что занятие должно быть списано у ученика и оплачено преподавателю.
+
+Наверное пропущен.
+
+Освобождение слота при отмене по инициативе преподавателя: Не могли бы вы пояснить логику, почему слот не освобождается, если отмена инициирована преподавателем? Обычно, если преподаватель отменяет (например, заболел), то он действительно недоступен в это время. Или имеется в виду, что менеджер должен вручную решить, освобождать этот слот для других или нет?
+
+Ответ выше после первого вопроса.
+Model: **Understanding Cancellation Impacts**
+
+I've clarified the ramifications of late student cancellations. Specifically, when a lesson is canceled late, its status is designated as "Пропущен" (Missed). This has financial implications, as it means the lesson is counted and paid for by the student.
+
+
+**Analyzing Cancellation Logic**
+
+I've solidified my understanding of the cancellation logic. If a student cancels late, the lesson is marked "Пропущен" (Missed). This means the teacher is paid, and the student's package is debited.  A teacher-initiated cancellation does not free up the slot. I'm now certain of the process.
+
+
+**Confirming Cancellation Process**
+
+I've reviewed and confirmed my understanding of the complete cancellation process. I'm satisfied that the logic now aligns with the user's clarified points regarding late student cancellations and teacher-initiated cancellations. My understanding is clear on the varying statuses, slot availability, and financial implications. Now, I'm ready to move on.
+Model: Отлично, теперь все встало на свои места!
+
+**По поводу "Поздней отмены учеником":**
+Статус **"Пропущен"** (Missed) отлично подходит. Он ясно дает понять, что урок не состоялся по вине ученика (из-за поздней отмены) и должен быть засчитан/оплачен.
+
+**По поводу "Освобождения слота при отмене по инициативе преподавателя":**
+Логика "слот не освобождается, чтобы ему не поставили нового ученика в этот слот, если он болеет" совершенно разумна. То есть слот остается как бы "заблокированным" на это время из-за недоступности преподавателя.
+
+Давайте я еще раз кратко суммирую обновленную логику отмен, чтобы убедиться в полном совпадении понимания:
+
+**1. Ученик инициирует отмену (через бота или менеджера):**
+    *   **Более чем за 8 часов до урока:**
+        *   Статус урока: **"Отменен"**.
+        *   Слот преподавателя: **ОСВОБОЖДАЕТСЯ**.
+        *   Пакет ученика: Занятие **НЕ списывается**.
+        *   Оплата преподавателю: **НЕ производится**.
+        *   Уведомления: Отправляются.
+    *   **Менее чем за 8 часов до урока (поздняя отмена):**
+        *   Статус урока: **"Пропущен"**.
+        *   Слот преподавателя: **ОСТАЕТСЯ ЗАНЯТЫМ** (преподаватель был готов).
+        *   Пакет ученика: Занятие **СПИСЫВАЕТСЯ**.
+        *   Оплата преподавателю: **ПРОИЗВОДИТСЯ**.
+        *   Уведомления: Отправляются.
+
+**2. Преподаватель инициирует отмену (через менеджера, например, по болезни):**
+    *   Статус урока: **"Отменен"**.
+    *   Слот преподавателя: **НЕ ОСВОБОЖДАЕТСЯ** (остается заблокированным, т.к. преподаватель недоступен).
+    *   Пакет ученика: Занятие **НЕ списывается**.
+    *   Оплата преподавателю: **НЕ производится**.
+    *   Уведомления: Отправляются.
+
+**3. Менеджер отменяет урок (например, по техническим причинам со стороны школы):**
+    *   Статус урока: **"Отменен"**.
+    *   Слот преподавателя: (Нужно решить, освобождается ли. Вероятно, да, если проблема решаема и можно успеть назначить другого).
+    *   Пакет ученика: Занятие **НЕ списывается**.
+    *   Оплата преподавателю: (Нужно решить. Если отмена по вине школы, преподаватель может ожидать компенсацию, если был готов).
+    *   Уведомления: Отправляются.
+    *   *Этот сценарий мы явно не проговаривали, но он может возникнуть.*
+
+Кажется, теперь все основные моменты по отменам и статусам уроков ("Назначен", "Проведен", "Отменен", "Пропущен") мы прояснили.
+
+Если по этому блоку больше нет дополнений, переходим к следующему: **III. Подбор Преподавателя (Матчинг)**.
+
+**Первый вопрос по подбору преподавателя:**
+
+1.  Вы упомянули, что "механизм еще не до конца продуман". Когда менеджер подбирает преподавателя для нового ученика (или при необходимости смены преподавателя для существующего ученика):
+    *   Это будет просто просмотр списка всех преподавателей и их текущей доступности (свободных слотов)?
+    *   Или менеджер хотел бы иметь возможность фильтровать/искать преподавателей по каким-то критериям? Если да, то по каким? Например:
+        *   Уровень языка, который может преподавать (Beginner, Intermediate, Advanced).
+        *   Специализация (Общий английский, Бизнес-английский, Подготовка к экзаменам - TOEFL, IELTS и т.д.).
+        *   Возрастная группа учеников, с которыми работает (дети, подростки, взрослые).
+        *   Возможно, какие-то внутренние теги или характеристики (например, "очень терпеливый", "носитель языка", "опыт работы с корпоративными клиентами").
+User: и то и другое, критерии на твой вкус на текущем этапе, если что можно будет поправить в дальнейшем. первоначально менеджеру предлагаются преподаватели, у которых слоты совпадают с указанными учеником. если таких нет, то выбираются из всех, с возможностью задать параметры поиска по интервалам доступности у преподавателей и дням в которые они доступны.
+Model: **Considering matching criteria**
+
+I'm currently fleshing out the automatic suggestion aspect. My focus is on matching teachers' and students' availability first.  I need to clarify how to handle potential overlaps and conflicts between time slots.  The next step will be to explore how to incorporate other matching criteria beyond availability into the suggestions.
+
+
+**Expanding Search Filters**
+
+I've been further refining the search filter criteria. Building upon the automatic suggestion, I'm now focusing on manual search functionalities. I've outlined initial filters: level, specialization, age group, and specific availability by days and time ranges. It's a solid framework, but I anticipate future considerations like an internal rating system. My next step involves fleshing out how the system will display teachers, especially if no precise matches are found. The manager will need a clear view to broaden their search manually.
+
+
+**Outlining Filter Structure**
+
+I'm now focused on the detailed filter options for manual teacher searches. I've broken down the availability criteria into specific days and time ranges, as requested. Beyond that, I'm proposing filters for level, specialization, and age group. While I considered an internal rating or "preferred" tag, I've prioritized the more concrete attributes for now. My immediate next step is to strategize the presentation of the search results and determine how the system will handle partial matches or no matches.
+Model: Понял! Это хороший комбинированный подход: сначала автоматический подбор по доступности, а затем, при необходимости, ручной поиск с фильтрами.
+
+**Предлагаемые критерии для фильтрации/поиска преподавателей (помимо прямой проверки свободных слотов):**
+
+1.  **Уровень преподаваемого языка:** (например, A1, A2, B1, B2, C1, C2 или Beginner, Intermediate, Advanced) - чтобы соответствовать уровню ученика.
+2.  **Специализация:** (например, Общий английский, Деловой английский, Подготовка к IELTS/TOEFL, Английский для IT, Разговорная практика). Это позволит точнее подобрать преподавателя под цели ученика.
+3.  **Возрастная категория учеников:** (например, Дети (6-10), Подростки (11-17), Взрослые (18+)).
+4.  **Дни недели доступности:** (фильтр по дням, когда преподаватель в принципе готов работать, например, "доступен по ПН, СР, ПТ").
+5.  **Время суток доступности:** (фильтр по временным интервалам, например, "утренние часы (9-12)", "вечерние часы (18-21)"). Это поможет, если у ученика есть общие предпочтения, но нет жестких слотов.
+6.  *(Опционально, на будущее)* **Теги/Ключевые слова:** (например, "носитель языка", "опыт с корпоративными клиентами", "игровые методики").
+
+**Процесс подбора тогда может выглядеть так:**
+
+1.  Ученик сообщает менеджеру свои предпочтения по времени/дням.
+2.  Менеджер вводит эти предпочтения в систему.
+3.  **Этап 1 (Авто-предложение):** Система показывает преподавателей, у которых есть **свободные слоты**, точно совпадающие или максимально близкие к запросу ученика.
+4.  **Этап 2 (Ручной поиск с фильтрами):** Если на первом этапе нет подходящих вариантов или менеджер хочет расширить поиск:
+    *   Менеджер может просмотреть список всех преподавателей.
+    *   Использовать фильтры (уровень, специализация, дни/время доступности и т.д.) для сужения списка.
+    *   Просмотреть календари отфильтрованных преподавателей для поиска подходящих слотов.
+
+**Следующий вопрос по подбору преподавателя:**
+
+2.  Когда менеджер подбирает преподавателя (особенно если это новый преподаватель для ученика или происходит смена):
+    *   Предполагается ли, что ученик всегда занимается с **одним и тем же** преподавателем на постоянной основе, пока не возникнет необходимость смены?
+    *   Или возможна ситуация, когда ученик для разных уроков (или по разным темам/навыкам) может быть назначен к **разным** преподавателям, если это будет удобнее по расписанию или по специализации преподавателей?
+User: предпочтительно всегда занимается с одним и тем же преподавателем на постоянной основе, пока не возникнет необходимость смены
+Model: **Considering the Dynamic**
+
+I'm focusing on the nature of the student-teacher bond, particularly in one-on-one settings. My current thinking leans towards a stable, enduring relationship. I'm visualizing necessary transitions as exceptions, not the rule.  I need to clarify what triggers these rare changes and how to frame them.
+
+
+**Analyzing the Matching Parameters**
+
+I'm now zeroing in on the dynamics of initial and subsequent matches. I've broken it down to three key points: the initial assignment process, the expectation of a primary teacher relationship, and the flexibility for changes managed by the manager. My current task is to ensure this covers all nuances. I am nearing completion of the matching phase.
+Model: Понял. Это стандартная и логичная модель для большинства онлайн-школ — один основной преподаватель для ученика для обеспечения последовательности и построения отношений. Смена преподавателя происходит по необходимости.
+
+У меня больше нет уточняющих вопросов по блоку **III. Подбор Преподавателя (Матчинг)**. Мы обсудили критерии поиска/фильтрации и характер назначения преподавателя ученику.
+
+Переходим к следующему блоку: **IV. Управление Учениками и Пакетами Занятий**.
+
+**Первый вопрос по Пакетам Занятий:**
+
+1.  Что именно представляет собой "пакет занятий" (или "продукт", как вы его еще называли)?
+    *   Это просто N количество уроков (например, "10 индивидуальных уроков")?
+    *   Или пакет может иметь дополнительные атрибуты, такие как:
+        *   Срок действия (например, "10 уроков, использовать в течение 3 месяцев")?
+        *   Тип уроков (мы пока отложили групповые, но если бы они были, то "10 индивидуальных" vs "10 групповых" или "смешанный пакет")?
+        *   Возможно, привязка к определенному уровню или интенсивности? (хотя это скорее характеристики ученика/курса, чем самого пакета).
+User: Это просто N количество уроков
+Model: Хорошо, простое количество уроков. Это упрощает учет.
+
+**Следующий вопрос по Пакетам Занятий:**
+
+2.  Как система будет сигнализировать менеджеру (или, если бы был ЛК студента, то и студенту), что пакет занятий подходит к концу? Например:
+    *   Уведомление менеджеру, когда у ученика остается X уроков (например, 2 или 1)?
+    *   Визуальное выделение учеников с заканчивающимися пакетами в списке учеников у менеджера?
+    *   Автоматическое уведомление ученику (через Telegram-бота) о том, что занятия заканчиваются и пора приобрести новый пакет?
+User: при остатке 3 уроков, все три вида уведомлений
+Model: Отлично, комплексное информирование — это хорошо.
+
+Значит, когда у ученика остается 3 урока в пакете:
+1.  Менеджер получает уведомление в системе (и, возможно, по email/Telegram, если у менеджеров будут такие настройки уведомлений).
+2.  В интерфейсе менеджера (например, в списке учеников) ученики с остатком 3 и менее уроков как-то визуально выделяются (например, цветом, иконкой).
+3.  Ученик получает уведомление через Telegram-бота: "У вас осталось 3 занятия. Пожалуйста, свяжитесь с менеджером для продления." (или похожий текст).
+
+Теперь перейдем к **Финансам** в контексте пакетов.
+
+**Первый вопрос по Финансам:**
+
+1.  Будет ли приложение как-то связано с оплатой пакетов занятий? Например:
+    *   Нужно ли менеджеру в системе отмечать, что новый пакет **оплачен** учеником, прежде чем ученик сможет начать использовать уроки из этого пакета?
+    *   Или финансовые вопросы (выставление счетов, контроль оплаты) полностью за рамками разрабатываемого приложения, и менеджер просто добавляет новый пакет ученику, предполагая, что оплата урегулирована отдельно?
+User: финансы не затрагиваются, в этом приложении просто будет учет
+Model: Понятно, только учет количества занятий, без привязки к факту оплаты в рамках этого приложения. Это снимает целый пласт возможной сложности.
+
+У меня больше нет вопросов по блоку **IV. Управление Учениками и Пакетами Занятий**.
+
+Переходим к следующему блоку: **V. Уведомления**. Многое мы уже обсудили в контексте других блоков, но давайте соберем и уточним.
+
+**Первый вопрос по Telegram-боту (для учеников и преподавателей):**
+
+1.  Мы уже установили, что ученик сам инициирует диалог с ботом после получения ссылки от менеджера по email. Это дает нам `chat_id` ученика.
+    *   Как преподаватели будут "подключаться" к боту для получения уведомлений? Аналогичная схема (менеджер дает ссылку, преподаватель пишет боту)?
+    *   Какие именно уведомления будут получать **преподаватели** через Telegram-бота? Мы упоминали:
+        *   Назначение нового урока.
+        *   Напоминание о приближающемся уроке.
+        *   Отмена урока (и кем инициирована, если это важно для преподавателя).
+        *   Запрос на подтверждение проведения урока (если будем реализовывать).
+        *   Есть ли еще что-то?
+    *   Какие именно уведомления будут получать **ученики**? Мы упоминали:
+        *   Назначение нового урока (с информацией о преподавателе, дате, времени, ссылке на видео).
+        *   Напоминание о приближающемся уроке.
+        *   Отмена урока.
+        *   Информация о том, что пакет занятий подходит к концу (осталось 3 урока).
+        *   Возможность отменить урок через бота (с проверкой правила 8 часов).
+        *   Есть ли еще что-то?
+User: да, преподавателю так же будет письмо со ссылкой. виды уведомлений пока только те, которые ты обозначил, дополнительных пока не требуется
+Model: Отлично, схема подключения преподавателей к боту такая же, как у учеников. И список типов уведомлений для обеих ролей на данном этапе исчерпывающий.
+
+**Следующий вопрос по Telegram-боту, касающийся "Механизма подтверждения присутствия/проведения урока":**
+
+2.  Вы ранее упоминали: *"возможно механизм подтверждения присутствия на уроке от обеих сторон"* и позже *"Можно запрашивать у преподавателя подтверждение в телеграмм боте после проведения урока..."*.
+    *   Если мы будем реализовывать **подтверждение проведения урока преподавателем** (после его фактического окончания), то как это будет работать?
+        *   Бот через некоторое время после планового окончания урока присылает преподавателю сообщение с кнопками "Урок состоялся" / "Урок не состоялся (указать причину)"?
+        *   Что происходит в зависимости от ответа? Если "Урок состоялся", то он переходит в статус "Проведен" (если еще не перешел автоматически по времени) и занятие списывается у ученика. А если "Урок не состоялся"? Это должно инициировать разбирательство менеджером?
+    *   Что касается **подтверждения присутствия учеником** (до урока): это все еще актуально, или мы пока остановимся на подтверждении проведения урока преподавателем? Если актуально, как это могло бы выглядеть и на что влиять?
+
+И сразу связанный вопрос по **Почтовым Уведомлениям**:
+
+3.  Вы упомянули: *"Почтовые уведомления на своем почтовом сервере."*
+    *   Какие типы почтовых уведомлений планируются и для кого (ученики, преподаватели, менеджеры, администратор)?
+    *   Будут ли они дублировать Telegram-уведомления или нести какую-то другую, возможно, более формальную или подробную информацию (например, сводка расписания на неделю, информация о смене преподавателя, системные оповещения для администратора)?
+    *   Основное назначение почты – это первоначальная инструкция для подключения к Telegram-боту, или есть и другие регулярные сценарии?
+User: Вы ранее упоминали: "возможно механизм подтверждения присутствия на уроке от обеих сторон" и позже "Можно запрашивать у преподавателя подтверждение в телеграмм боте после проведения урока...".
+
+Если мы будем реализовывать подтверждение проведения урока преподавателем (после его фактического окончания), то как это будет работать?
+
+Бот через некоторое время после планового окончания урока присылает преподавателю сообщение с кнопками "Урок состоялся" / "Урок не состоялся (указать причину)"?
+
+Да, присылает сообщение.
+
+Что происходит в зависимости от ответа? Если "Урок состоялся", то он переходит в статус "Проведен" (если еще не перешел автоматически по времени) и занятие списывается у ученика. А если "Урок не состоялся"? Это должно инициировать разбирательство менеджером?
+
+Да, списывается, да, разбирательство менеджером.
+
+Что касается подтверждения присутствия учеником (до урока): это все еще актуально, или мы пока остановимся на подтверждении проведения урока преподавателем? Если актуально, как это могло бы выглядеть и на что влиять?
+
+пока только для преподавателя.
+Model: **Defining Notification Triggers**
+
+I've got the lesson confirmation mechanism clarified, thanks to the user's feedback. Right now, I am focusing on email notifications. I'm exploring when email alerts are generated.
+
+
+**Confirming Lesson Completion**
+
+I've got the lesson confirmation flow nailed down now, focusing on the teacher's Telegram bot confirmation. The student's confirmation is on hold. Right now, I'm waiting to hear back about email notifications, specifically when to trigger them.
+Model: Отлично, с подтверждением проведения урока преподавателем через Telegram-бота разобрались:
+*   После планового окончания урока бот отправляет преподавателю запрос.
+*   Кнопки: "Урок состоялся" / "Урок не состоялся".
+*   "Урок состоялся" -> статус "Проведен", списание у ученика.
+*   "Урок не состоялся" -> сигнал менеджеру для разбирательства (причину можно либо запрашивать у преподавателя в боте, либо менеджер уточняет лично).
+
+Подтверждение присутствия учеником до урока пока откладываем.
+
+Теперь давайте вернемся ко второй части моего предыдущего вопроса, касающейся **Почтовых Уведомлений**:
+
+3.  Вы упомянули: *"Почтовые уведомления на своем почтовом сервере."*
+    *   Какие типы почтовых уведомлений планируются и для кого (ученики, преподаватели, менеджеры, администратор)?
+    *   Будут ли они дублировать Telegram-уведомления или нести какую-то другую, возможно, более формальную или подробную информацию (например, сводка расписания на неделю, информация о смене преподавателя, системные оповещения для администратора)?
+    *   Основное назначение почты – это первоначальная инструкция для подключения к Telegram-боту для учеников и преподавателей, или есть и другие регулярные сценарии использования почты?
+User: стартовые при заведении аккаунта, с учетными данными и ссылкой на приложение. для менеджеров отправка только администратором, для преподавателей - и менеджерами и администратором. отправка производится автоматически, но возможна вручную в соответствующей карточке сущности (карточка преподавателя, карточка менеджера)
+
+пока других сценариев нет, только первоначальная инструкция
+Model: Понял. Значит, почтовые уведомления на данном этапе будут выполнять строго утилитарную функцию:
+
+*   **Для Менеджеров (отправляется Администратором):**
+    *   Письмо при создании аккаунта с учетными данными (логин, временный пароль) и ссылкой на вход в CRM-систему.
+*   **Для Преподавателей (отправляется Администратором или Менеджером):**
+    *   Письмо при создании аккаунта с учетными данными, ссылкой на вход в CRM-систему и ссылкой/инструкцией для подключения к Telegram-боту.
+*   **Для Учеников (отправляется Менеджером, после добавления ученика в систему):**
+    *   Письмо со ссылкой/инструкцией для подключения к Telegram-боту (как мы уже обсуждали). Учетных данных для входа в систему у них нет, так как нет ЛК.
+
+**Механизм отправки:**
+*   Автоматически при создании соответствующей учетной записи.
+*   Возможность ручной повторной отправки из карточки менеджера/преподавателя (например, если первое письмо не дошло или нужно напомнить учетные данные).
+
+Дублирования информации из Telegram-ботов (о назначении уроков, напоминаниях и т.д.) по почте на данном этапе не планируется. Основной канал оперативных уведомлений – Telegram.
+
+У меня больше нет вопросов по блоку **V. Уведомления**.
+
+Переходим к последнему блоку уточняющих вопросов: **VI. Прочее**.
+
+**Первый вопрос из этого блока, очень важный:**
+
+1.  **Часовые Пояса:**
+    *   Все уроки, как вы упомянули, проводятся "по московскому времени". Означает ли это, что все расписания в системе (и для преподавателей, и для менеджеров, и в уведомлениях для учеников) будут отображаться **только в московском времени (MSK)**, независимо от того, где физически находятся преподаватель или ученик?
+    *   Или система должна будет как-то учитывать реальный часовой пояс пользователя (если он известен) и показывать время в его локальном поясе, но с явным указанием, что исходное время – MSK? (Это сложнее, но удобнее для пользователей в других часовых поясах).
+    *   Для простоты на первом этапе, возможно, достаточно строгого отображения всего в MSK, но с четким информированием всех пользователей об этом?
+User: Для простоты на первом этапе, возможно, достаточно строгого отображения всего в MSK, но с четким информированием всех пользователей об этом
+Model: Согласен, для первого этапа использование единого часового пояса (MSK) для всех операций и отображений с четким информированием пользователей – самый простой и надежный вариант. Это снимает много потенциальных сложностей с конвертацией и отображением времени.
+
+**Следующий вопрос из блока "Прочее":**
+
+2.  **История и Отчетность:**
+    *   Нужна ли будет какая-то базовая отчетность на первом этапе? Например:
+        *   **Для Менеджера/Администратора:**
+            *   Количество проведенных уроков за период (день, неделя, месяц) по всей школе / по конкретному преподавателю.
+            *   Список учеников, у которых заканчиваются пакеты занятий (это мы уже обсуждали как функционал, но это и элемент отчетности).
+            *   Возможно, количество активных учеников/преподавателей.
+        *   **Для Преподавателя (в его ЛК):**
+            *   История проведенных им уроков с датами и учениками (это мы тоже обсуждали).
+            *   Общее количество проведенных им уроков (например, за месяц / за все время).
+    *   Или на первом этапе детальная отчетность не является приоритетом, и достаточно той информации, которая будет доступна через основные интерфейсы (списки уроков, учеников и т.д.)?
+User: на текущем этапе отчетность не принципиальна, можешь выбрать набор метрик для отслеживания на свой вкус, возможность добавить дашборды с выбранными метриками на основные страницы пользователей, выгрузить отчет в .xlsx
+Model: Хорошо, если детальная отчетность пока не в приоритете, но возможность видеть ключевые метрики и выгружать данные полезна, то предлагаю следующий минимальный, но полезный набор для начала:
+
+**Для Менеджера/Администратора (на главной странице или специальном дашборде):**
+
+1.  **Общее количество активных учеников.**
+2.  **Общее количество активных преподавателей.**
+3.  **Количество уроков, запланированных на сегодня.**
+4.  **Количество уроков, проведенных за текущую неделю/месяц.**
+5.  **Список учеников с <= 3 оставшимися уроками** (это мы уже утвердили, но это и есть метрика/отчет).
+6.  *Возможность выгрузить список всех учеников (ФИО, контакты, текущий преподаватель, остаток занятий) в .xlsx.*
+7.  *Возможность выгрузить список всех преподавателей (ФИО, контакты, специализации, если будут) в .xlsx.*
+8.  *Возможность выгрузить историю уроков за выбранный период (дата, время, ученик, преподаватель, статус урока) в .xlsx.*
+
+**Для Преподавателя (в его ЛК):**
+
+1.  **Количество уроков, запланированных на сегодня/завтра.**
+2.  **Количество уроков, проведенных за текущую неделю/месяц.**
+3.  **Общее количество учеников, назначенных ему в данный момент.**
+4.  *Ссылка на его историю проведенных уроков (с возможностью фильтрации по дате, если это несложно реализовать сразу).*
+
+Этот набор не перегружает систему на старте, но дает основное представление о состоянии дел и позволяет получить сырые данные для анализа при необходимости.
+
+**Последний вопрос из этого блока и, кажется, из всех наших уточнений:**
+
+3.  **Перспективы Развития (если есть какие-то мысли, даже самые общие):**
+    *   Есть ли какие-то функции или направления, которые вы точно видите в будущем для этого приложения, даже если они не войдут в первую версию? Например:
+        *   Личный кабинет студента (мы его пока отложили).
+        *   Интеграция с платежными системами.
+        *   Более сложная система отчетности и аналитики.
+        *   Механизм загрузки/обмена учебными материалами.
+        *   Интеграция с конкретными платформами для видеосвязи (кроме простого указания ссылки).
+        *   Система обратной связи/оценок после уроков (от ученика преподавателю и наоборот).
+        *   Групповые занятия (мы их отложили).
+
+    Это поможет мне при проектировании общей архитектуры и базы данных заложить возможность для будущего масштабирования, если это возможно без значительного усложнения текущей задачи. Если пока таких мыслей нет – тоже нормально.
+User: Система обратной связи/оценок после уроков (от ученика преподавателю и наоборот).
+
+Групповые занятия (мы их отложили).
+
+Более сложная система отчетности и аналитики.
+
+других пока не планируется, но это в далекой перспективе
+Model: **Expanding future features**
+
+I've been contemplating the implications of the user's feedback. I now recognize a clear path forward. The insights gleaned suggest concrete advancements: a feedback system post-lessons, group lesson options, and more sophisticated reporting and analytics. This information is key to refining the platform's overall strategy. I'm focusing on how these elements can improve user engagement and data-driven improvements.
+
+
+**Analyzing Feature Implications**
+
+I've been deeply analyzing the impact of these confirmed features: lesson feedback, group options, and advanced analytics. This leads to concerns and opportunities. The current architecture's ability to smoothly integrate these functions is in question. To avoid a complete redesign later, I must now focus on ensuring the data model and overall design can accommodate these without a complete redesign. The future roadmap and prompt generation will be my next focus.
+Model: Отлично! Зафиксировали эти три направления для будущих версий:
+1.  **Система обратной связи/оценок после уроков.**
+2.  **Групповые занятия.**
+3.  **Более сложная система отчетности и аналитики.**
+
+Это действительно полезно знать заранее.
+
+Что ж, мы прошли через все мои уточняющие вопросы по вашему первоначальному описанию. Кажется, у меня теперь есть достаточно полное и детальное представление о том, каким вы видите приложение на первом этапе.
+
+**Прежде чем я перейду к формированию дорожной карты и предложению промптов для Codex, хотели бы вы что-то добавить, скорректировать или уточнить на основе нашего диалога?**
+
+Если все текущие моменты вас устраивают, я готов приступить к следующему этапу:
+1.  Сначала я кратко резюмирую свое понимание всего проекта, чтобы мы еще раз синхронизировались.
+2.  Затем предложу высокоуровневую дорожную карту разработки.
+3.  И после этого мы сможем перейти к конкретным промптам для Codex для отдельных модулей/функций.
+
+Как вам такой план?
+User: Отлично, приступай
+Model: **Reiterating Key Functions**
+
+I've reviewed the clarifications and confirmed my understanding of the project's core functionalities, user roles, and critical decisions. This is the last sanity check before I begin crafting the roadmap and Codex prompts. I'm now certain I have a solid grasp on what's expected.
+
+
+**Refining Project Overview**
+
+I've distilled the core functionalities, user roles, and key decisions. My next step is to draft a high-level roadmap, breaking down the project into phases. Once the roadmap is approved, I'll dive into crafting specific Codex prompts. I'm focusing on synthesizing the gathered information.
+
+
+**Defining Core Project Aspects**
+
+My analysis indicates a need to streamline the core project aspects. I will provide a summary of project goal, including the user roles and the system entities, relationships and functionalities. Then I can propose a high-level roadmap and specific Codex prompts. I am confident I can complete this plan.
+
+
+**Synthesizing Initial Plan**
+
+I've crafted a comprehensive summary, including user roles, entities, relationships, and core functionalities based on the approved clarifications. This groundwork allows me to propose a high-level roadmap and specific Codex prompts. I'm now certain I have a solid understanding of the project's parameters.
+
+
+**Defining Immediate Steps**
+
+Having reviewed all clarifications and confirmed alignment, I'm ready to proceed. I have summarized the crucial functionalities, user roles, and system entities, providing a solid foundation. Now, my focus shifts towards proposing a high-level roadmap, breaking down the project into logical phases, ensuring a clear structure for development.  Following roadmap approval, I will initiate the crafting of specific Codex prompts.
+
+
+**Begin Building the Plan**
+
+I've crafted a comprehensive summary, including user roles, entities, relationships, and core functionalities. Based on this, I'm now developing a phased roadmap. The goal is to provide a logical structure for development and begin drafting Codex prompts.
+
+
+**Summarizing Key Details**
+
+I've distilled the confirmed clarifications into a concise summary, encapsulating the core functionalities, user roles, and key decisions. Now I will propose a phased roadmap for development, laying out a structured approach before diving into specific Codex prompts. I'm focusing on defining and prioritizing key elements.
+
+
+**Outlining the Immediate Path**
+
+I've crafted a comprehensive summary, encompassing core functionalities, user roles, entities, relationships, and key decisions. My detailed plan breaks the development into logical phases with specific features in each, establishing a structured roadmap and indicating the flow of development for generating Codex prompts. This clarity ensures each prompt addresses a concrete step.
+Model: Хорошо, приступаю!
+
+Сначала я кратко резюмирую свое понимание всего проекта, чтобы мы убедились, что находимся на одной волне.
+
+**Краткое Резюме Проекта "CRM для Онлайн-Школы" (MVP)**
+
+*   **Цель:** Создать внутреннюю CRM-систему для онлайн-школы английского языка для замены Excel-таблиц. Основные задачи: управление учениками, преподавателями, расписанием, пакетами занятий и автоматизация уведомлений.
+*   **Пользовательские Роли:**
+    *   **Администратор:** Полный доступ. Управляет менеджерами (создание, права). Может управлять преподавателями и учениками.
+    *   **Менеджер:** Основной пользователь. Управляет учениками (добавление, информация, пакеты занятий), преподавателями (добавление, просмотр календарей), составляет расписание уроков, обрабатывает запросы на отмену/перенос.
+    *   **Преподаватель:** Имеет личный кабинет. Управляет своими свободными слотами в календаре (1-часовые), видит назначенное расписание, список своих учеников, может добавлять заметки к ученикам, видит историю своих уроков и персональную ссылку на видеоконференцию.
+    *   **Ученик:** Не имеет личного кабинета. Взаимодействие через менеджера и Telegram-бота (уведомления, возможность отменить урок).
+*   **Основные Функции:**
+    *   **Управление пользователями:** Создание и управление аккаунтами администраторов, менеджеров, преподавателей.
+    *   **Управление учениками:** Добавление информации об учениках, ведение учета их пакетов занятий.
+    *   **Календарь и расписание:** Преподаватели выставляют доступные часовые слоты. Менеджеры назначают индивидуальные уроки ученикам в эти слоты. Все время отображается в MSK.
+    *   **Пакеты занятий:** Ученикам назначаются пакеты из N уроков. Уроки списываются по факту проведения или пропуска по вине ученика.
+    *   **Жизненный цикл урока:**
+        *   Статусы: "Назначен", "Проведен", "Отменен", "Пропущен".
+        *   Отмена учеником: >8 часов до урока – бесплатно, слот освобождается. <8 часов – урок считается "Пропущен", оплачивается, занятие списывается.
+        *   Отмена преподавателем (через менеджера): урок не оплачивается, занятие ученику не списывается, слот преподавателя на это время блокируется.
+        *   Подтверждение проведения: Преподаватель подтверждает через Telegram-бот или ЛК, что урок состоялся.
+    *   **Подбор преподавателя:** Менеджер ищет слоты у текущего преподавателя ученика. Если нет, ищет у других, фильтруя по доступности, уровню, специализации.
+    *   **Уведомления:**
+        *   **Email:** Для первоначальной отправки учетных данных (менеджерам, преподавателям) и ссылки на Telegram-бот (преподавателям, ученикам).
+        *   **Telegram-бот:** Назначение/изменение/отмена урока, напоминания, окончание пакета занятий (ученикам), запрос на подтверждение проведения урока (преподавателям), возможность отмены урока (ученикам).
+    *   **Базовая отчетность (MVP):** Ключевые метрики для менеджера/администратора (активные ученики/преподаватели, кол-во уроков) и преподавателя (его уроки). Возможность выгрузки списков (ученики, преподаватели, история уроков) в XLSX.
+*   **Отложенные на будущее функции:** Личный кабинет студента, групповые уроки, система обратной связи/оценок, продвинутая аналитика.
+
+Если это резюме соответствует вашему видению, переходим к дорожной карте.
+
+---
+
+**Высокоуровневая Дорожная Карта Разработки**
+
+Я разбил разработку на несколько логических фаз. Для каждой фазы (или для отдельных крупных функций внутри фазы) мы сможем затем формулировать промпты для Codex.
+
+**Фаза 0: Фундамент и Базовые Сущности (Backend)**
+
+1.  **Проектирование БД:** Схема для основных сущностей (Пользователи: Администратор, Менеджер, Преподаватель; Ученики; Уроки; Слоты доступности преподавателей; Пакеты занятий).
+2.  **Настройка проекта (Spring Boot):** Базовая структура, подключение к БД.
+3.  **Аутентификация и Авторизация (MVP):** Реализация входа для Админа, Менеджера, Преподавателя. Базовые роли и разграничение доступа.
+4.  **Управление Пользователями (API):**
+    *   Администратор: CRUD для Менеджеров.
+    *   Администратор/Менеджер: CRUD для Преподавателей.
+5.  **Управление Учениками (API):**
+    *   Менеджер: CRUD для Учеников (без пакетов пока).
+6.  **Настройка Email-отправки (базовая):** Для отправки учетных данных.
+
+**Фаза 1: Календарь, Расписание и Личный Кабинет Преподавателя (Backend + Frontend MVP)**
+
+1.  **Управление Слотами Доступности Преподавателя:**
+    *   API: Создание, просмотр, удаление свободных слотов преподавателем.
+    *   Frontend (ЛК Преподавателя): Интерфейс календаря для управления слотами.
+2.  **Просмотр Календарей и Назначение Уроков Менеджером:**
+    *   API: Получение календарей преподавателей, создание урока (связь ученика, преподавателя, слота). Статус урока по умолчанию "Назначен".
+    *   Frontend (Интерфейс Менеджера): Отображение календарей преподавателей, выбор ученика, назначение урока.
+3.  **Отображение Расписания в ЛК Преподавателя:**
+    *   API: Получение списка назначенных уроков для преподавателя.
+    *   Frontend (ЛК Преподавателя): Отображение своего расписания.
+
+**Фаза 2: Жизненный Цикл Урока и Пакеты Занятий (Backend + Frontend)**
+
+1.  **Реализация Статусов Урока:**
+    *   API: Логика для статусов "Проведен", "Отменен", "Пропущен".
+    *   API: Механизм отмены урока (с проверкой правила 8 часов). Инициаторы: ученик (через менеджера или API для бота), менеджер, преподаватель (через менеджера).
+2.  **Управление Пакетами Занятий Ученика:**
+    *   API: Добавление пакета ученику (N уроков). Логика списания урока при статусе "Проведен" или "Пропущен".
+    *   Frontend (Интерфейс Менеджера): Отображение остатка занятий у ученика, добавление пакетов.
+3.  **Уведомление о Заканчивающемся Пакете:**
+    *   Backend: Логика проверки остатка (<=3 урока).
+    *   Frontend (Интерфейс Менеджера): Визуальное выделение таких учеников.
+
+**Фаза 3: Интеграция Уведомлений (Telegram Бот и Email)**
+
+1.  **Разработка Telegram Бота (отдельный сервис или модуль):**
+    *   Регистрация пользователей бота (ученики, преподаватели).
+    *   API взаимодействия между основным бэкендом и ботом.
+2.  **Реализация Уведомлений для Ученика (через бота):** Назначение, изменение, отмена урока, напоминания, окончание пакета, возможность отменить урок.
+3.  **Реализация Уведомлений для Преподавателя (через бота):** Назначение, изменение, отмена урока, напоминания, запрос на подтверждение проведения урока.
+4.  **Реализация Email Уведомлений:** Автоматическая отправка учетных данных при создании аккаунтов. Ручная повторная отправка.
+
+**Фаза 4: Расширение Функционала и Отчетность (Backend + Frontend)**
+
+1.  **Подбор Преподавателя Менеджером:**
+    *   API: Фильтры для поиска преподавателей (доступность, уровень, специализация).
+    *   Frontend (Интерфейс Менеджера): Улучшенный интерфейс подбора.
+2.  **Доработки ЛК Преподавателя:**
+    *   API + Frontend: Возможность добавлять заметки к ученикам, просмотр истории проведенных уроков.
+3.  **Базовая Отчетность и Дашборды:**
+    *   API + Frontend: Отображение ключевых метрик для менеджера/администратора и преподавателя.
+    *   API: Функционал выгрузки данных (ученики, преподаватели, история уроков) в XLSX.
+4.  **Улучшения UX:** Например, drag-and-drop перенос уроков для менеджера.
+
+**Фаза 5: Тестирование, Развертывание и Итерации**
+
+1.  Комплексное тестирование всех модулей и пользовательских сценариев.
+2.  Настройка и проверка CI/CD для нового приложения.
+3.  Сбор обратной связи и внесение необходимых корректировок.
