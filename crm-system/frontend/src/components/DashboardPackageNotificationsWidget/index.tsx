@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -10,72 +10,176 @@ import {
   ListItemIcon,
   ListItemText,
   Chip,
-  Divider,
-  CircularProgress,
   Button,
+  CircularProgress,
   Alert,
+  Avatar,
 } from '@mui/material';
 import {
   Warning as WarningIcon,
+  Person as PersonIcon,
+  Phone as PhoneIcon,
+  Email as EmailIcon,
   Assignment as AssignmentIcon,
-  People as PeopleIcon,
+  TrendingDown as TrendingDownIcon,
 } from '@mui/icons-material';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../../store';
-import { setNotifications, setLoading, setError } from '../../store/notificationSlice';
-import NotificationService from '../../services/notificationService';
-import { Notification, NotificationType, NotificationStatus } from '../../types';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
+import { useNavigate } from 'react-router-dom';
+
+interface StudentPackage {
+  id: number;
+  studentId: number;
+  studentName: string;
+  studentEmail: string;
+  studentPhone: string;
+  packageName: string;
+  totalLessons: number;
+  remainingLessons: number;
+  expirationDate: string;
+  status: 'active' | 'expired' | 'warning';
+}
 
 const DashboardPackageNotificationsWidget: React.FC = () => {
-  const dispatch: AppDispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
-  const { notifications, loading, error } = useSelector((state: RootState) => state.notifications);
+  const navigate = useNavigate();
+  const [packages, setPackages] = useState<StudentPackage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user?.role === 'MANAGER' || user?.role === 'ADMIN') {
-      loadPackageNotifications();
+    if (user?.id) {
+      loadExpiringPackages();
     }
   }, [user?.id]);
 
-  const loadPackageNotifications = async () => {
-    if (!user?.id) return;
+  const loadExpiringPackages = async () => {
+    setLoading(true);
+    setError(null);
     
-    dispatch(setLoading(true));
     try {
-      // Load package-related notifications
-      const data = await NotificationService.getNotificationsByType(
-        user.id, 
-        user.role, 
-        NotificationType.PACKAGE_ENDING_SOON
-      );
+      // Simulate API call to fetch expiring packages
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      // Filter only unread notifications and sort by date
-      const packageNotifications = data
-        .filter(notification => notification.status === NotificationStatus.PENDING)
-        .sort((a, b) => 
-          new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
-        )
-        .slice(0, 5);
-      
-      dispatch(setNotifications(packageNotifications));
+      // Demo data - in real implementation, fetch from API
+      const demoPackages: StudentPackage[] = [
+        {
+          id: 1,
+          studentId: 101,
+          studentName: 'Иванов Петр',
+          studentEmail: 'ivanov@example.com',
+          studentPhone: '+7 (999) 123-45-67',
+          packageName: 'Стандартный пакет (20 уроков)',
+          totalLessons: 20,
+          remainingLessons: 2,
+          expirationDate: '2025-09-15',
+          status: 'warning',
+        },
+        {
+          id: 2,
+          studentId: 102,
+          studentName: 'Смирнова Анна',
+          studentEmail: 'smirnova@example.com',
+          studentPhone: '+7 (999) 234-56-78',
+          packageName: 'Премиум пакет (30 уроков)',
+          totalLessons: 30,
+          remainingLessons: 3,
+          expirationDate: '2025-09-20',
+          status: 'warning',
+        },
+        {
+          id: 3,
+          studentId: 103,
+          studentName: 'Кузнецов Дмитрий',
+          studentEmail: 'kuznetsov@example.com',
+          studentPhone: '+7 (999) 345-67-89',
+          packageName: 'Базовый пакет (10 уроков)',
+          totalLessons: 10,
+          remainingLessons: 1,
+          expirationDate: '2025-09-12',
+          status: 'warning',
+        },
+        {
+          id: 4,
+          studentId: 104,
+          studentName: 'Петрова Мария',
+          studentEmail: 'petrova@example.com',
+          studentPhone: '+7 (999) 456-78-90',
+          packageName: 'Стандартный пакет (20 уроков)',
+          totalLessons: 20,
+          remainingLessons: 5,
+          expirationDate: '2025-09-25',
+          status: 'active',
+        },
+      ];
+
+      // Filter packages with ≤3 remaining lessons
+      const expiringPackages = demoPackages.filter(pkg => pkg.remainingLessons <= 3);
+      setPackages(expiringPackages);
     } catch (err: any) {
-      dispatch(setError(err.message || 'Ошибка загрузки уведомлений о пакетах'));
+      setError(err.message || 'Ошибка загрузки информации о пакетах');
     } finally {
-      dispatch(setLoading(false));
+      setLoading(false);
     }
   };
 
+  const getStatusColor = (status: StudentPackage['status']) => {
+    switch (status) {
+      case 'warning':
+        return 'warning';
+      case 'expired':
+        return 'error';
+      default:
+        return 'success';
+    }
+  };
+
+  const getStatusIcon = (remainingLessons: number) => {
+    if (remainingLessons <= 1) {
+      return <WarningIcon color="error" />;
+    } else if (remainingLessons <= 3) {
+      return <WarningIcon color="warning" />;
+    }
+    return <AssignmentIcon color="success" />;
+  };
+
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU', { 
-      day: 'numeric', 
-      month: 'short', 
-      year: 'numeric' 
+    return new Date(dateString).toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
     });
   };
 
-  if (user?.role !== 'MANAGER' && user?.role !== 'ADMIN') {
-    return null;
+  const handleContactStudent = (student: StudentPackage) => {
+    // In real implementation, this would open contact dialog
+    console.log('Contact student:', student);
+  };
+
+  const handleRenewPackage = (student: StudentPackage) => {
+    navigate(`/manager/packages/renew?studentId=${student.studentId}`);
+  };
+
+  if (loading) {
+    return (
+      <Card elevation={3}>
+        <CardContent>
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+            <CircularProgress />
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card elevation={3}>
+        <CardContent>
+          <Alert severity="error">{error}</Alert>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -83,76 +187,137 @@ const DashboardPackageNotificationsWidget: React.FC = () => {
       <CardHeader
         avatar={<WarningIcon color="warning" />}
         title="Уведомления о пакетах"
-        subheader={`Требуют внимания: ${notifications.length}`}
+        subheader={`Студенты с заканчивающимися пакетами: ${packages.length}`}
+        action={
+          <Button 
+            size="small" 
+            startIcon={<AssignmentIcon />}
+            onClick={() => navigate('/manager/packages')}
+          >
+            Все пакеты
+          </Button>
+        }
       />
       
       <CardContent>
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-            <CircularProgress />
-          </Box>
-        ) : error ? (
-          <Alert severity="error">{error}</Alert>
-        ) : notifications.length === 0 ? (
-          <Typography variant="body2" color="textSecondary" align="center" sx={{ py: 2 }}>
-            Нет уведомлений о пакетах
-          </Typography>
+        {packages.length === 0 ? (
+          <Alert severity="success">
+            <Typography variant="body2">
+              Нет студентов с заканчивающимися пакетами уроков 🎉
+            </Typography>
+          </Alert>
         ) : (
           <>
-            <List disablePadding>
-              {notifications.map((notification, index) => (
-                <React.Fragment key={notification.id}>
-                  <ListItem alignItems="flex-start" sx={{ py: 1, px: 0 }}>
-                    <ListItemIcon sx={{ minWidth: 36, mr: 1 }}>
-                      <WarningIcon color="warning" fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={
-                        <Typography variant="subtitle2" noWrap>
-                          {notification.title}
-                        </Typography>
-                      }
-                      secondary={
-                        <Box sx={{ mt: 0.5 }}>
-                          <Typography
-                            component="span"
-                            variant="body2"
-                            color="textPrimary"
-                          >
-                            {notification.message}
-                          </Typography>
-                          <br />
-                          <Typography
-                            component="span"
-                            variant="caption"
-                            color="textSecondary"
-                          >
-                            {formatDate(notification.createdAt || '')}
-                          </Typography>
-                        </Box>
-                      }
-                    />
-                    <Chip 
-                      label="Внимание" 
-                      color="warning" 
-                      size="small" 
-                      variant="outlined"
-                    />
-                  </ListItem>
-                  {index < notifications.length - 1 && <Divider />}
-                </React.Fragment>
-              ))}
-            </List>
-            
-            <Alert severity="warning" sx={{ mt: 2 }}>
+            <Alert severity="warning" sx={{ mb: 2 }}>
               <Typography variant="body2">
-                У {notifications.length} студентов заканчиваются пакеты уроков
+                ⚠️ У следующих студентов осталось ≤3 занятий. Рекомендуется связаться для продления пакетов.
               </Typography>
             </Alert>
             
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-              <Button variant="outlined" size="small" startIcon={<PeopleIcon />}>
-                Управление студентами
+            <List disablePadding>
+              {packages.map((pkg, index) => (
+                <ListItem 
+                  key={pkg.id}
+                  sx={{ 
+                    py: 1.5, 
+                    px: 0,
+                    borderBottom: index < packages.length - 1 ? '1px solid' : 'none',
+                    borderColor: 'divider'
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 48 }}>
+                    <Avatar sx={{ bgcolor: pkg.remainingLessons <= 1 ? 'error.main' : 'warning.main' }}>
+                      {getStatusIcon(pkg.remainingLessons)}
+                    </Avatar>
+                  </ListItemIcon>
+                  
+                  <ListItemText
+                    primary={
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mr: 1 }}>
+                          {pkg.studentName}
+                        </Typography>
+                        <Chip 
+                          label={`${pkg.remainingLessons} из ${pkg.totalLessons}`}
+                          color={getStatusColor(pkg.status)}
+                          size="small"
+                          icon={<TrendingDownIcon />}
+                        />
+                      </Box>
+                    }
+                    secondary={
+                      <Box sx={{ mt: 0.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                          <Typography variant="body2" color="textSecondary" sx={{ mr: 2 }}>
+                            {pkg.packageName}
+                          </Typography>
+                          <Chip 
+                            label={`до ${formatDate(pkg.expirationDate)}`}
+                            color="info"
+                            size="small"
+                            variant="outlined"
+                          />
+                        </Box>
+                        
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                          <Button
+                            size="small"
+                            startIcon={<PhoneIcon />}
+                            onClick={() => handleContactStudent(pkg)}
+                            variant="outlined"
+                          >
+                            Позвонить
+                          </Button>
+                          
+                          <Button
+                            size="small"
+                            startIcon={<EmailIcon />}
+                            onClick={() => handleContactStudent(pkg)}
+                            variant="outlined"
+                          >
+                            Написать
+                          </Button>
+                          
+                          <Button
+                            size="small"
+                            startIcon={<AssignmentIcon />}
+                            onClick={() => handleRenewPackage(pkg)}
+                            variant="contained"
+                            color="primary"
+                          >
+                            Продлить
+                          </Button>
+                        </Box>
+                        
+                        <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <PhoneIcon fontSize="small" color="action" />
+                          <Typography variant="caption" color="textSecondary">
+                            {pkg.studentPhone}
+                          </Typography>
+                          
+                          <EmailIcon fontSize="small" color="action" sx={{ ml: 2 }} />
+                          <Typography variant="caption" color="textSecondary">
+                            {pkg.studentEmail}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    }
+                  />
+                </ListItem>
+              ))}
+            </List>
+            
+            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="caption" color="textSecondary">
+                Всего студентов с заканчивающимися пакетами: {packages.length}
+              </Typography>
+              
+              <Button 
+                variant="outlined" 
+                size="small"
+                onClick={loadExpiringPackages}
+              >
+                Обновить
               </Button>
             </Box>
           </>

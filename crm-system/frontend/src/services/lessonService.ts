@@ -1,5 +1,14 @@
 import httpClient from './httpClient';
-import { Lesson, GroupLesson, GroupLessonRegistration, LessonStatus, GroupLessonStatus } from '../types';
+import {
+  Lesson,
+  GroupLesson,
+  GroupLessonRegistration,
+  LessonStatus,
+  GroupLessonStatus,
+  LessonStatusHistory,
+  LessonStatusStats,
+  LessonStatusChangeRequest
+} from '../types';
 
 class LessonService {
   // Individual lessons
@@ -164,15 +173,100 @@ class LessonService {
     return response.data;
   }
 
+  // Lesson status management
+  public async changeLessonStatus(lessonId: number, statusChange: LessonStatusChangeRequest): Promise<Lesson> {
+    const response = await httpClient.put<Lesson>(`/lessons/${lessonId}/status`, statusChange);
+    return response.data;
+  }
+
+  public async getLessonStatusHistory(lessonId: number): Promise<LessonStatusHistory[]> {
+    const response = await httpClient.get<LessonStatusHistory[]>(`/lessons/${lessonId}/status-history`);
+    return response.data;
+  }
+
+  public async getTeacherLessonStats(teacherId: number, startDate?: string, endDate?: string): Promise<LessonStatusStats> {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const response = await httpClient.get<LessonStatusStats>(`/teachers/${teacherId}/lesson-stats`, { params });
+    return response.data;
+  }
+
+  public async getStudentLessonStats(studentId: number, startDate?: string, endDate?: string): Promise<LessonStatusStats> {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const response = await httpClient.get<LessonStatusStats>(`/students/${studentId}/lesson-stats`, { params });
+    return response.data;
+  }
+
+  public async getOverallLessonStats(startDate?: string, endDate?: string): Promise<LessonStatusStats> {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const response = await httpClient.get<LessonStatusStats>('/lessons/stats', { params });
+    return response.data;
+  }
+
+  public async checkLessonStatusAutomation(lessonId: number): Promise<{ shouldUpdate: boolean; newStatus?: LessonStatus }> {
+    const response = await httpClient.get<{ shouldUpdate: boolean; newStatus?: LessonStatus }>(`/lessons/${lessonId}/status-check`);
+    return response.data;
+  }
+
   // Helper methods
   public getLessonStatusText(status: LessonStatus): string {
     switch (status) {
       case LessonStatus.SCHEDULED: return 'Запланирован';
+      case LessonStatus.CONDUCTED: return 'Проведен';
       case LessonStatus.COMPLETED: return 'Завершен';
       case LessonStatus.CANCELLED: return 'Отменен';
       case LessonStatus.MISSED: return 'Пропущен';
       default: return 'Неизвестно';
     }
+  }
+
+  public getLessonStatusColor(status: LessonStatus): string {
+    switch (status) {
+      case LessonStatus.SCHEDULED: return '#1976d2'; // Blue
+      case LessonStatus.CONDUCTED: return '#2e7d32'; // Green
+      case LessonStatus.COMPLETED: return '#388e3c'; // Dark Green
+      case LessonStatus.CANCELLED: return '#d32f2f'; // Red
+      case LessonStatus.MISSED: return '#f57c00'; // Orange
+      default: return '#757575'; // Grey
+    }
+  }
+
+  public getLessonStatusIcon(status: LessonStatus): string {
+    switch (status) {
+      case LessonStatus.SCHEDULED: return 'event';
+      case LessonStatus.CONDUCTED: return 'play_circle';
+      case LessonStatus.COMPLETED: return 'check_circle';
+      case LessonStatus.CANCELLED: return 'cancel';
+      case LessonStatus.MISSED: return 'error';
+      default: return 'help';
+    }
+  }
+
+  public canChangeStatus(currentStatus: LessonStatus, newStatus: LessonStatus, userRole: string): boolean {
+    const allowedTransitions: Record<LessonStatus, LessonStatus[]> = {
+      [LessonStatus.SCHEDULED]: [LessonStatus.CONDUCTED, LessonStatus.CANCELLED, LessonStatus.MISSED],
+      [LessonStatus.CONDUCTED]: [LessonStatus.COMPLETED, LessonStatus.CANCELLED],
+      [LessonStatus.COMPLETED]: [],
+      [LessonStatus.CANCELLED]: [LessonStatus.SCHEDULED],
+      [LessonStatus.MISSED]: [LessonStatus.SCHEDULED],
+    };
+
+    const rolePermissions: Record<string, LessonStatus[]> = {
+      TEACHER: [LessonStatus.CONDUCTED, LessonStatus.COMPLETED],
+      MANAGER: [LessonStatus.SCHEDULED, LessonStatus.CONDUCTED, LessonStatus.COMPLETED, LessonStatus.CANCELLED, LessonStatus.MISSED],
+      ADMIN: [LessonStatus.SCHEDULED, LessonStatus.CONDUCTED, LessonStatus.COMPLETED, LessonStatus.CANCELLED, LessonStatus.MISSED],
+    };
+
+    return allowedTransitions[currentStatus].indexOf(newStatus) !== -1 &&
+           rolePermissions[userRole]?.indexOf(newStatus) !== -1;
   }
 
   public getGroupLessonStatusText(status: GroupLessonStatus): string {
@@ -184,6 +278,25 @@ class LessonService {
       case GroupLessonStatus.CANCELLED: return 'Отменен';
       case GroupLessonStatus.POSTPONED: return 'Перенесен';
       default: return 'Неизвестно';
+    }
+  }
+
+  public getGroupLessonStatusInfo(status: GroupLessonStatus): { color: string; text: string } {
+    switch (status) {
+      case GroupLessonStatus.SCHEDULED:
+        return { color: 'info', text: 'Запланирован' };
+      case GroupLessonStatus.CONFIRMED:
+        return { color: 'primary', text: 'Подтвержден' };
+      case GroupLessonStatus.IN_PROGRESS:
+        return { color: 'warning', text: 'В процессе' };
+      case GroupLessonStatus.COMPLETED:
+        return { color: 'success', text: 'Завершен' };
+      case GroupLessonStatus.CANCELLED:
+        return { color: 'error', text: 'Отменен' };
+      case GroupLessonStatus.POSTPONED:
+        return { color: 'default', text: 'Перенесен' };
+      default:
+        return { color: 'default', text: 'Неизвестно' };
     }
   }
 }

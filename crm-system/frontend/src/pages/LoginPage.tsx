@@ -34,9 +34,24 @@ const LoginPage: React.FC = () => {
       const response = await AuthService.login({ email, password });
       dispatch(loginSuccess({ user: response.user, token: response.token }));
       AuthService.setToken(response.token);
+      
+      // Сохраняем refresh token если он есть в ответе
+      if ((response as any).refreshToken) {
+        AuthService.setRefreshToken((response as any).refreshToken);
+      }
+      
       navigate('/dashboard');
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Ошибка входа в систему';
+      let errorMessage = 'Ошибка входа в систему';
+      
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      } else if (err.code === 'NETWORK_ERROR') {
+        errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
+      }
+      
       dispatch(loginFailure(errorMessage));
       setError(errorMessage);
     } finally {

@@ -4,6 +4,7 @@ import userReducer from './userSlice';
 import lessonReducer from './lessonSlice';
 import availabilityReducer from './availabilitySlice';
 import notificationReducer from './notificationSlice';
+import packageReducer from './packageSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     lessons: lessonReducer,
     availability: availabilityReducer,
     notifications: notificationReducer,
+    packages: packageReducer,
   },
 });
 

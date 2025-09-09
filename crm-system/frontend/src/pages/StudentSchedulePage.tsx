@@ -12,6 +12,7 @@ import { RootState } from '../store';
 import { setLessons, setLoading, setError } from '../store/lessonSlice';
 import LessonService from '../services/lessonService';
 import { Lesson, LessonStatus } from '../types';
+import { LessonStatusBadge } from '../components/LessonStatus';
 
 const StudentSchedulePage: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -44,25 +45,6 @@ const StudentSchedulePage: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: LessonStatus) => {
-    switch (status) {
-      case LessonStatus.SCHEDULED: return 'primary';
-      case LessonStatus.COMPLETED: return 'success';
-      case LessonStatus.CANCELLED: return 'error';
-      case LessonStatus.MISSED: return 'warning';
-      default: return 'default';
-    }
-  };
-
-  const getStatusText = (status: LessonStatus) => {
-    switch (status) {
-      case LessonStatus.SCHEDULED: return 'Запланирован';
-      case LessonStatus.COMPLETED: return 'Завершен';
-      case LessonStatus.CANCELLED: return 'Отменен';
-      case LessonStatus.MISSED: return 'Пропущен';
-      default: return 'Неизвестно';
-    }
-  };
 
   return (
     <Box sx={{ p: 3 }}>
@@ -107,11 +89,9 @@ const StudentSchedulePage: React.FC = () => {
                       Преподаватель: {teacher.firstName} {teacher.lastName}
                     </Typography>
                   )}
-                  <Chip 
-                    label={getStatusText(lesson.status)} 
-                    color={getStatusColor(lesson.status)}
-                    sx={{ mt: 1 }}
-                  />
+                  <Box sx={{ mt: 1 }}>
+                    <LessonStatusBadge status={lesson.status} />
+                  </Box>
                   {lesson.notes && (
                     <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
                       Заметки: {lesson.notes}

@@ -23,6 +23,14 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
+    public User findByTelegramChatId(Long chatId) {
+        return userRepository.findByTelegramChatId(chatId);
+    }
+
+    public boolean isUserRegisteredWithTelegram(Long chatId) {
+        return userRepository.existsByTelegramChatId(chatId);
+    }
+
     public User saveUser(User user) {
         return userRepository.save(user);
     }

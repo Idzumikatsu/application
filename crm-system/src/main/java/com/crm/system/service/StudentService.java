@@ -55,6 +55,14 @@ public class StudentService {
         return studentRepository.findByEmail(email);
     }
 
+    public Student findByTelegramChatId(Long chatId) {
+        return studentRepository.findByTelegramChatId(chatId);
+    }
+
+    public boolean isStudentRegisteredWithTelegram(Long chatId) {
+        return studentRepository.existsByTelegramChatId(chatId);
+    }
+
     public List<Student> findByAssignedTeacher(User teacher) {
         return studentRepository.findByAssignedTeacher(teacher);
     }

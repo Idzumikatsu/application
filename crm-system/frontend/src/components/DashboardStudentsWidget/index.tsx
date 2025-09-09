@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -7,156 +7,276 @@ import {
   Box,
   List,
   ListItem,
-  ListItemAvatar,
-  Avatar,
+  ListItemIcon,
   ListItemText,
   Chip,
-  Divider,
-  CircularProgress,
   Button,
+  CircularProgress,
+  Avatar,
 } from '@mui/material';
 import {
-  People as PeopleIcon,
+  Person as PersonIcon,
   School as SchoolIcon,
-  Assignment as AssignmentIcon,
+  Event as EventIcon,
+  TrendingUp as TrendingUpIcon,
+  Add as AddIcon,
 } from '@mui/icons-material';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../../store';
-import { setStudents, setLoading, setError } from '../../store/userSlice';
-import UserService from '../../services/userService';
-import { Student } from '../../types';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
+import { useNavigate } from 'react-router-dom';
+
+interface StudentSummary {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  assignedTeacher: string;
+  totalLessons: number;
+  completedLessons: number;
+  remainingLessons: number;
+  nextLessonDate?: string;
+  status: 'active' | 'inactive' | 'new';
+}
 
 const DashboardStudentsWidget: React.FC = () => {
-  const dispatch: AppDispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
-  const { students, loading, error } = useSelector((state: RootState) => state.users);
+  const navigate = useNavigate();
+  const [students, setStudents] = useState<StudentSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user?.role === 'MANAGER' || user?.role === 'ADMIN' || user?.role === 'TEACHER') {
-      loadStudents();
+    if (user?.id) {
+      loadRecentStudents();
     }
   }, [user?.id]);
 
-  const loadStudents = async () => {
-    if (!user?.id) return;
+  const loadRecentStudents = async () => {
+    setLoading(true);
+    setError(null);
     
-    dispatch(setLoading(true));
     try {
-      let data: Student[] = [];
+      // Simulate API call to fetch recent students
+      await new Promise(resolve => setTimeout(resolve, 600));
       
-      if (user.role === 'TEACHER') {
-        // For teachers, get their assigned students
-        data = await UserService.getTeacherStudents(user.id);
-      } else {
-        // For managers and admins, get all students
-        data = await UserService.getAllStudents();
-      }
-      
-      // Sort by name and take first 5
-      const sortedData = data
-        .sort((a, b) => 
-          `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
-        )
-        .slice(0, 5);
-      dispatch(setStudents(sortedData));
+      // Demo data - in real implementation, fetch from API
+      const demoStudents: StudentSummary[] = [
+        {
+          id: 1,
+          name: 'Иванов Петр',
+          email: 'ivanov@example.com',
+          phone: '+7 (999) 123-45-67',
+          assignedTeacher: 'Смирнова Анна',
+          totalLessons: 20,
+          completedLessons: 18,
+          remainingLessons: 2,
+          nextLessonDate: '2025-09-10',
+          status: 'active',
+        },
+        {
+          id: 2,
+          name: 'Петрова Мария',
+          email: 'petrova@example.com',
+          phone: '+7 (999) 234-56-78',
+          assignedTeacher: 'Кузнецов Дмитрий',
+          totalLessons: 30,
+          completedLessons: 25,
+          remainingLessons: 5,
+          nextLessonDate: '2025-09-11',
+          status: 'active',
+        },
+        {
+          id: 3,
+          name: 'Сидоров Алексей',
+          email: 'sidorov@example.com',
+          phone: '+7 (999) 345-67-89',
+          assignedTeacher: 'Смирнова Анна',
+          totalLessons: 10,
+          completedLessons: 8,
+          remainingLessons: 2,
+          nextLessonDate: '2025-09-12',
+          status: 'active',
+        },
+        {
+          id: 4,
+          name: 'Козлова Елена',
+          email: 'kozlova@example.com',
+          phone: '+7 (999) 456-78-90',
+          assignedTeacher: 'Кузнецов Дмитрий',
+          totalLessons: 15,
+          completedLessons: 12,
+          remainingLessons: 3,
+          nextLessonDate: '2025-09-13',
+          status: 'active',
+        },
+      ];
+
+      setStudents(demoStudents);
     } catch (err: any) {
-      dispatch(setError(err.message || 'Ошибка загрузки студентов'));
+      setError(err.message || 'Ошибка загрузки информации о студентах');
     } finally {
-      dispatch(setLoading(false));
+      setLoading(false);
     }
   };
 
-  // Simulate student stats for demo purposes
-  const getStudentStats = (student: Student) => {
-    return {
-      totalLessons: Math.floor(Math.random() * 20) + 10,
-      completedLessons: Math.floor(Math.random() * 15) + 5,
-      remainingLessons: Math.floor(Math.random() * 8) + 2,
-    };
+  const getStatusColor = (status: StudentSummary['status']) => {
+    switch (status) {
+      case 'active':
+        return 'success';
+      case 'inactive':
+        return 'error';
+      case 'new':
+        return 'info';
+      default:
+        return 'default';
+    }
   };
 
-  if (user?.role !== 'MANAGER' && user?.role !== 'ADMIN' && user?.role !== 'TEACHER') {
-    return null;
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Нет уроков';
+    return new Date(dateString).toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'short'
+    });
+  };
+
+  if (loading) {
+    return (
+      <Card elevation={3}>
+        <CardContent>
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+            <CircularProgress />
+          </Box>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card elevation={3}>
+        <CardContent>
+          <Typography color="error">{error}</Typography>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
     <Card elevation={3}>
       <CardHeader
-        avatar={<PeopleIcon />}
+        avatar={<PersonIcon color="primary" />}
         title="Студенты"
-        subheader={`Всего студентов: ${students.length}`}
+        subheader={`Активных студентов: ${students.length}`}
+        action={
+          <Button 
+            size="small" 
+            startIcon={<AddIcon />}
+            onClick={() => navigate('/manager/students/create')}
+          >
+            Добавить
+          </Button>
+        }
       />
       
       <CardContent>
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-            <CircularProgress />
-          </Box>
-        ) : error ? (
-          <Typography color="error">{error}</Typography>
-        ) : students.length === 0 ? (
-          <Typography variant="body2" color="textSecondary" align="center" sx={{ py: 2 }}>
-            Нет студентов
-          </Typography>
-        ) : (
-          <>
-            <List disablePadding>
-              {students.map((student, index) => {
-                const stats = getStudentStats(student);
-                
-                return (
-                  <React.Fragment key={student.id}>
-                    <ListItem alignItems="flex-start" sx={{ py: 1, px: 0 }}>
-                      <ListItemAvatar>
-                        <Avatar>
-                          {student.firstName?.charAt(0)}
-                          {student.lastName?.charAt(0)}
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="subtitle2">
-                            {student.firstName} {student.lastName}
-                          </Typography>
-                        }
-                        secondary={
-                          <Box sx={{ mt: 1 }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                              <Chip 
-                                icon={<SchoolIcon fontSize="small" />} 
-                                label={`${stats.completedLessons}/${stats.totalLessons}`} 
-                                size="small" 
-                                variant="outlined"
-                              />
-                              <Chip 
-                                icon={<AssignmentIcon fontSize="small" />} 
-                                label={`${stats.remainingLessons} осталось`} 
-                                size="small" 
-                                variant="outlined"
-                                color={stats.remainingLessons <= 3 ? "error" : "primary"}
-                              />
-                            </Box>
-                            {student.telegramUsername && (
-                              <Typography variant="caption" color="textSecondary">
-                                @{student.telegramUsername}
-                              </Typography>
-                            )}
-                          </Box>
-                        }
+        <List disablePadding>
+          {students.slice(0, 5).map((student, index) => (
+            <ListItem 
+              key={student.id}
+              sx={{ 
+                py: 1, 
+                px: 0,
+                borderBottom: index < Math.min(students.length, 5) - 1 ? '1px solid' : 'none',
+                borderColor: 'divider'
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 48 }}>
+                <Avatar sx={{ bgcolor: 'primary.main' }}>
+                  <PersonIcon />
+                </Avatar>
+              </ListItemIcon>
+              
+              <ListItemText
+                primary={
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mr: 1 }}>
+                      {student.name}
+                    </Typography>
+                    <Chip 
+                      label={student.status === 'active' ? 'Активен' : 'Неактивен'}
+                      color={getStatusColor(student.status) as any}
+                      size="small"
+                    />
+                  </Box>
+                }
+                secondary={
+                  <Box sx={{ mt: 0.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                      <SchoolIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
+                      <Typography variant="caption" color="textSecondary">
+                        Преподаватель: {student.assignedTeacher}
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                      <Chip 
+                        label={`${student.completedLessons}/${student.totalLessons}`}
+                        color="success"
+                        size="small"
+                        variant="outlined"
+                        icon={<TrendingUpIcon />}
                       />
-                    </ListItem>
-                    {index < students.length - 1 && <Divider />}
-                  </React.Fragment>
-                );
-              })}
-            </List>
-            
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-              <Button variant="outlined" size="small">
-                Все студенты
-              </Button>
-            </Box>
-          </>
+                      
+                      <Chip 
+                        label={`Осталось: ${student.remainingLessons}`}
+                        color="info"
+                        size="small"
+                        variant="outlined"
+                      />
+                      
+                      {student.nextLessonDate && (
+                        <Chip 
+                          label={`Следующий: ${formatDate(student.nextLessonDate)}`}
+                          color="primary"
+                          size="small"
+                          variant="outlined"
+                          icon={<EventIcon />}
+                        />
+                      )}
+                    </Box>
+                  </Box>
+                }
+              />
+            </ListItem>
+          ))}
+        </List>
+        
+        {students.length > 5 && (
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
+            <Button 
+              size="small" 
+              onClick={() => navigate('/manager/students')}
+            >
+              Показать всех ({students.length})
+            </Button>
+          </Box>
+        )}
+        
+        {students.length === 0 && (
+          <Box sx={{ textAlign: 'center', py: 2 }}>
+            <Typography variant="body2" color="textSecondary">
+              Нет активных студентов
+            </Typography>
+            <Button 
+              size="small" 
+              startIcon={<AddIcon />}
+              onClick={() => navigate('/manager/students/create')}
+              sx={{ mt: 1 }}
+            >
+              Добавить первого студента
+            </Button>
+          </Box>
         )}
       </CardContent>
     </Card>

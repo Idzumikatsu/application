@@ -58,6 +58,10 @@ public interface TelegramMessageRepository extends JpaRepository<TelegramMessage
            "AND tm.retryCount < :maxRetries " +
            "ORDER BY tm.createdAt ASC")
     List<TelegramMessage> findFailedMessagesWithRetriesBelow(@Param("maxRetries") Integer maxRetries);
+
+    List<TelegramMessage> findByDeliveryStatus(TelegramMessage.DeliveryStatus deliveryStatus);
+
+    List<TelegramMessage> findByDeliveryStatusAndCreatedAtBefore(TelegramMessage.DeliveryStatus deliveryStatus, LocalDateTime createdAt);
     
     @Query("SELECT tm FROM TelegramMessage tm WHERE tm.deliveryStatus = 'PENDING' " +
            "AND tm.createdAt <= :beforeDateTime " +

@@ -1,256 +1,140 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
+import { Notification as NotificationType, NotificationStatus, NotificationType as NType } from '../../types';
 import {
-  Drawer,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  ListItemSecondaryAction,
-  Divider,
-  Typography,
   Box,
+  Tabs,
+  Tab,
+  Typography,
+  Paper,
   IconButton,
   Badge,
-  CircularProgress,
+  Drawer
 } from '@mui/material';
-import {
-  Close as CloseIcon,
-  Check as CheckIcon,
-  Event as EventIcon,
-  Cancel as CancelIcon,
-  Warning as WarningIcon,
-  Info as InfoIcon,
-  School as SchoolIcon,
-  Group as GroupIcon,
-} from '@mui/icons-material';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../../store';
-import { 
-  setNotifications, 
-  markAsRead, 
-  markAllAsRead, 
-  setLoading, 
-  setError 
-} from '../../store/notificationSlice';
-import NotificationService from '../../services/notificationService';
-import { Notification, NotificationType, NotificationStatus } from '../../types';
+import { Notifications, Close } from '@mui/icons-material';
+import LessonStatusNotifications from './LessonStatusNotifications';
+import LessonStatusNotificationSettings from './LessonStatusNotificationSettings';
 
-interface NotificationPanelProps {
-  open: boolean;
-  onClose: () => void;
-  onNotificationClick?: (notification: Notification) => void;
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
 }
 
-const NotificationPanel: React.FC<NotificationPanelProps> = ({ 
-  open, 
-  onClose,
-  onNotificationClick 
-}) => {
-  const dispatch: AppDispatch = useDispatch();
-  const { notifications, loading, error } = useSelector((state: RootState) => state.notifications);
+const TabPanel: React.FC<TabPanelProps> = ({ children, value, index, ...other }) => {
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`notification-tabpanel-${index}`}
+      aria-labelledby={`notification-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ py: 2 }}>{children}</Box>}
+    </div>
+  );
+};
+
+const NotificationPanel: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
 
-  useEffect(() => {
-    if (open && user?.id) {
-      loadNotifications();
-    }
-  }, [open, user?.id]);
+  // Временные данные для демонстрации
+  const demoNotifications: NotificationType[] = [
+    {
+      id: 1,
+      recipientId: user?.id || 0,
+      recipientType: 'STUDENT',
+      notificationType: NType.LESSON_COMPLETED,
+      title: 'Статус урока изменен',
+      message: 'Статус вашего урока от 2024-01-15 изменен с "Проведен" на "Завершен"',
+      status: NotificationStatus.PENDING,
+      priority: 1,
+      relatedEntityId: 123,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    } as NotificationType,
+    {
+      id: 2,
+      recipientId: user?.id || 0,
+      recipientType: 'STUDENT',
+      notificationType: NType.LESSON_CANCELLED,
+      title: 'Урок отменен',
+      message: 'Ваш урок от 2024-01-16 был отменен. Причина: болезнь учителя',
+      status: NotificationStatus.PENDING,
+      priority: 2,
+      relatedEntityId: 124,
+      createdAt: new Date(Date.now() - 3600000).toISOString(),
+      updatedAt: new Date(Date.now() - 3600000).toISOString()
+    } as NotificationType
+  ];
 
-  useEffect(() => {
-    const unread = notifications.filter(n => n.status === NotificationStatus.PENDING).length;
-    setUnreadCount(unread);
-  }, [notifications]);
-
-  const loadNotifications = async () => {
-    if (!user?.id) return;
-    
-    dispatch(setLoading(true));
-    try {
-      const data = await NotificationService.getNotifications(user.id, user.role);
-      dispatch(setNotifications(data));
-    } catch (err: any) {
-      dispatch(setError(err.message || 'Ошибка загрузки уведомлений'));
-    } finally {
-      dispatch(setLoading(false));
-    }
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
   };
 
-  const handleMarkAsRead = async (id: number) => {
-    try {
-      const updatedNotification = await NotificationService.markAsRead(id);
-      dispatch(markAsRead(id));
-      
-      // Find the notification and trigger the click handler if provided
-      const notification = notifications.find(n => n.id === id);
-      if (notification && onNotificationClick) {
-        onNotificationClick(notification);
-      }
-    } catch (err: any) {
-      dispatch(setError(err.message || 'Ошибка при отметке уведомления'));
-    }
+  const toggleDrawer = () => {
+    setIsOpen(!isOpen);
   };
 
-  const handleMarkAllAsRead = async () => {
-    try {
-      await NotificationService.markAllAsRead(user!.id, user!.role);
-      dispatch(markAllAsRead());
-    } catch (err: any) {
-      dispatch(setError(err.message || 'Ошибка при отметке всех уведомлений'));
-    }
-  };
-
-  const getNotificationIcon = (type: NotificationType) => {
-    switch (type) {
-      case NotificationType.LESSON_SCHEDULED:
-        return <EventIcon color="primary" />;
-      case NotificationType.LESSON_CANCELLED:
-        return <CancelIcon color="error" />;
-      case NotificationType.LESSON_REMINDER:
-        return <WarningIcon color="warning" />;
-      case NotificationType.LESSON_COMPLETED:
-        return <CheckIcon color="success" />;
-      case NotificationType.GROUP_LESSON_SCHEDULED:
-        return <GroupIcon color="primary" />;
-      case NotificationType.GROUP_LESSON_CANCELLED:
-        return <CancelIcon color="error" />;
-      case NotificationType.GROUP_LESSON_REMINDER:
-        return <WarningIcon color="warning" />;
-      case NotificationType.PACKAGE_ENDING_SOON:
-        return <InfoIcon color="info" />;
-      case NotificationType.PAYMENT_DUE:
-        return <InfoIcon color="info" />;
-      case NotificationType.SYSTEM_MESSAGE:
-        return <InfoIcon color="action" />;
-      case NotificationType.FEEDBACK_REQUEST:
-        return <SchoolIcon color="secondary" />;
-      default:
-        return <InfoIcon color="action" />;
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60);
-    
-    if (diffInHours < 24) {
-      return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-    } else {
-      return date.toLocaleDateString('ru-RU');
-    }
-  };
+  if (!user) {
+    return null;
+  }
 
   return (
-    <Drawer anchor="right" open={open} onClose={onClose}>
-      <Box
-        sx={{
-          width: 400,
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
+    <>
+      <IconButton
+        color="inherit"
+        onClick={toggleDrawer}
+        sx={{ position: 'relative' }}
+      >
+        <Badge badgeContent={demoNotifications.length} color="error">
+          <Notifications />
+        </Badge>
+      </IconButton>
+
+      <Drawer
+        anchor="right"
+        open={isOpen}
+        onClose={toggleDrawer}
+        PaperProps={{
+          sx: {
+            width: 400,
+            maxWidth: '90vw',
+            p: 2
+          }
         }}
       >
-        <Box sx={{ p: 2, bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">
-              Уведомления
-            </Typography>
-            <Box>
-              {unreadCount > 0 && (
-                <IconButton onClick={handleMarkAllAsRead} size="small">
-                  <CheckIcon />
-                </IconButton>
-              )}
-              <IconButton onClick={onClose} size="small">
-                <CloseIcon />
-              </IconButton>
-            </Box>
-          </Box>
-          {unreadCount > 0 && (
-            <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-              Непрочитанных: {unreadCount}
-            </Typography>
-          )}
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography variant="h6" component="h2">
+            Уведомления
+          </Typography>
+          <IconButton onClick={toggleDrawer} size="small">
+            <Close />
+          </IconButton>
         </Box>
-        
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1, p: 2 }}>
-            <CircularProgress />
-          </Box>
-        ) : error ? (
-          <Box sx={{ p: 2 }}>
-            <Typography color="error">{error}</Typography>
-          </Box>
-        ) : (
-          <List sx={{ flex: 1, overflow: 'auto' }}>
-            {notifications.length === 0 ? (
-              <ListItem>
-                <ListItemText 
-                  primary="Уведомлений нет" 
-                  secondary="Здесь будут отображаться ваши уведомления" 
-                />
-              </ListItem>
-            ) : (
-              notifications.map((notification) => (
-                <React.Fragment key={notification.id}>
-                  <ListItem 
-                    alignItems="flex-start"
-                    sx={{ 
-                      bgcolor: notification.status === NotificationStatus.PENDING ? 'action.hover' : 'inherit',
-                      opacity: notification.status === NotificationStatus.READ ? 0.7 : 1,
-                    }}
-                  >
-                    <ListItemIcon>
-                      {getNotificationIcon(notification.notificationType)}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={
-                        <Typography variant="subtitle2" component="div">
-                          {notification.title}
-                        </Typography>
-                      }
-                      secondary={
-                        <React.Fragment>
-                          <Typography
-                            component="span"
-                            variant="body2"
-                            color="textPrimary"
-                          >
-                            {notification.message}
-                          </Typography>
-                          <br />
-                          <Typography
-                            component="span"
-                            variant="caption"
-                            color="textSecondary"
-                          >
-                            {formatDate(notification.createdAt || '')}
-                          </Typography>
-                        </React.Fragment>
-                      }
-                    />
-                    <ListItemSecondaryAction>
-                      {notification.status !== NotificationStatus.READ && (
-                        <IconButton 
-                          edge="end" 
-                          aria-label="mark as read"
-                          onClick={() => handleMarkAsRead(notification.id)}
-                          size="small"
-                        >
-                          <CheckIcon fontSize="small" />
-                        </IconButton>
-                      )}
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                  <Divider component="li" />
-                </React.Fragment>
-              ))
-            )}
-          </List>
-        )}
-      </Box>
-    </Drawer>
+
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          aria-label="notification tabs"
+          variant="fullWidth"
+        >
+          <Tab label="Уведомления" />
+          <Tab label="Настройки" />
+        </Tabs>
+
+        <TabPanel value={activeTab} index={0}>
+          <LessonStatusNotifications notifications={demoNotifications} />
+        </TabPanel>
+
+        <TabPanel value={activeTab} index={1}>
+          <LessonStatusNotificationSettings />
+        </TabPanel>
+      </Drawer>
+    </>
   );
 };
 

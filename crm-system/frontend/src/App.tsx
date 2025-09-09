@@ -11,6 +11,10 @@ import DashboardPage from './pages/DashboardPage';
 import TeacherPage from './pages/TeacherPage';
 import ManagerPage from './pages/ManagerPage';
 import StudentPage from './pages/StudentPage';
+import UnauthorizedPage from './pages/UnauthorizedPage';
+import AuthErrorHandler from './components/AuthErrorHandler';
+import LessonStatusAutomation from './components/LessonStatus/LessonStatusAutomation';
+import NotificationPanel from './components/NotificationPanel';
 import './App.css';
 
 const theme = createTheme({
@@ -83,6 +87,28 @@ function App() {
     }
   }, [dispatch]);
 
+  // Автоматическое обновление токена
+  useEffect(() => {
+    const checkTokenRefresh = async () => {
+      if (isAuthenticated && AuthService.shouldRefreshToken()) {
+        try {
+          const newToken = await AuthService.refreshToken();
+          AuthService.setToken(newToken);
+          dispatch(loginSuccess({ user: user!, token: newToken }));
+        } catch (error) {
+          console.warn('Не удалось обновить токен:', error);
+          // При ошибке обновления токена выходим из системы
+          dispatch(logout());
+          AuthService.logout();
+        }
+      }
+    };
+
+    // Проверяем каждые 30 секунд
+    const interval = setInterval(checkTokenRefresh, 30000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated, user, dispatch]);
+
   const renderProtectedRoute = (element: React.ReactElement) => {
     return isAuthenticated ? element : <Navigate to="/login" replace />;
   };
@@ -130,17 +156,36 @@ function App() {
           />
           
           {/* Admin routes */}
-          <Route 
-            path="/admin/*" 
-            element={renderRoleBasedRoute(['ADMIN'], <ManagerPage />)} 
+          <Route
+            path="/admin/*"
+            element={renderRoleBasedRoute(['ADMIN'], <ManagerPage />)}
+          />
+          
+          {/* Unauthorized route */}
+          <Route
+            path="/unauthorized"
+            element={<UnauthorizedPage />}
           />
           
           {/* Default route */}
-          <Route 
-            path="/" 
-            element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />} 
+          <Route
+            path="/"
+            element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />}
           />
         </Routes>
+        
+        {/* Global authentication error handler */}
+        <AuthErrorHandler />
+        
+        {/* Global lesson status automation */}
+        {isAuthenticated && (
+          <LessonStatusAutomation />
+        )}
+        
+        {/* Global notification panel */}
+        {isAuthenticated && (
+          <NotificationPanel />
+        )}
       </div>
     </ThemeProvider>
   );

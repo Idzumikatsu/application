@@ -50,6 +50,7 @@ export interface Teacher extends User {
 // Lesson statuses
 export enum LessonStatus {
   SCHEDULED = 'SCHEDULED',
+  CONDUCTED = 'CONDUCTED',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
   MISSED = 'MISSED',
@@ -70,6 +71,34 @@ export interface Lesson extends BaseEntity {
   confirmedByTeacher: boolean;
   student?: Student;
   teacher?: Teacher;
+}
+
+// Lesson status history interface
+export interface LessonStatusHistory extends BaseEntity {
+  lessonId: number;
+  oldStatus: LessonStatus;
+  newStatus: LessonStatus;
+  changedBy: string;
+  changedById: number;
+  changeReason?: string;
+  automated: boolean;
+}
+
+// Lesson status statistics interface
+export interface LessonStatusStats {
+  scheduled: number;
+  conducted: number;
+  completed: number;
+  cancelled: number;
+  missed: number;
+  total: number;
+}
+
+// Lesson status change request interface
+export interface LessonStatusChangeRequest {
+  newStatus: LessonStatus;
+  reason?: string;
+  deductPackage?: boolean;
 }
 
 // Group lesson statuses
@@ -182,6 +211,21 @@ export interface Notification extends BaseEntity {
   readAt?: string;
   relatedEntityId?: number;
   priority: number;
+}
+
+// Package notification interface
+export interface PackageNotification extends BaseEntity {
+  studentId: number;
+  packageId: number;
+  notificationType: 'PACKAGE_LOW_BALANCE' | 'PACKAGE_EXPIRING' | 'PACKAGE_EXPIRED';
+  title: string;
+  message: string;
+  status: NotificationStatus;
+  sentAt?: string;
+  readAt?: string;
+  student?: Student;
+  package?: LessonPackage;
+  priority: 'HIGH' | 'MEDIUM' | 'LOW';
 }
 
 // Authentication interfaces

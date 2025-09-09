@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Урок запланирован - CRM English School</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .greeting {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+        .lesson-info {
+            background-color: #e8f5e8;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .lesson-details {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .detail-item {
+            margin-bottom: 8px;
+            display: flex;
+        }
+        .detail-label {
+            font-weight: 600;
+            min-width: 120px;
+            color: #495057;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+        .reminder {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Урок запланирован</h1>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">
+                Здравствуйте, <span th:text="${recipientName}">Пользователь</span>!
+            </div>
+            
+            <div class="lesson-info">
+                <h3 style="margin-top: 0; color: #28a745;">Ваш урок успешно запланирован!</h3>
+                <p th:text="${lessonInfo}">Информация об уроке</p>
+            </div>
+            
+            <div class="lesson-details">
+                <h4 style="margin-top: 0;">Детали урока:</h4>
+                <div class="detail-item">
+                    <span class="detail-label">Статус:</span>
+                    <span>✅ Запланирован</span>
+                </div>
+                <!-- Дополнительные детали урока могут быть добавлены через переменные -->
+            </div>
+            
+            <div class="reminder">
+                <strong>💡 Не забудьте:</strong>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>Подготовить необходимые материалы</li>
+                    <li>Проверить подключение к интернету</li>
+                    <li>Прийти за 5 минут до начала урока</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="https://crm-english-school.com/lessons" class="button">Посмотреть расписание</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© <span th:text="${currentYear}">2024</span> CRM English School. Все права защищены.</p>
+            <p>Это автоматическое сообщение, пожалуйста, не отвечайте на него.</p>
+            <p>Если у вас есть вопросы, свяжитесь с поддержкой: support@crm-english-school.com</p>
+        </div>
+    </div>
+</body>
+</html>

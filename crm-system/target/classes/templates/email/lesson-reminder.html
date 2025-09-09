@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Напоминание об уроке - CRM English School</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .greeting {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+        .reminder-info {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #856404;
+        }
+        .lesson-details {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .detail-item {
+            margin-bottom: 8px;
+            display: flex;
+        }
+        .detail-label {
+            font-weight: 600;
+            min-width: 120px;
+            color: #495057;
+        }
+        .preparation-list {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #155724;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+        .urgent {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⏰ Напоминание об уроке</h1>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">
+                Здравствуйте, <span th:text="${recipientName}">Пользователь</span>!
+            </div>
+            
+            <div class="reminder-info">
+                <h3 style="margin-top: 0; color: #856404;">Напоминание о предстоящем уроке</h3>
+                <p th:text="${lessonInfo}">Информация об уроке</p>
+            </div>
+            
+            <div class="lesson-details">
+                <h4 style="margin-top: 0;">Детали урока:</h4>
+                <div class="detail-item">
+                    <span class="detail-label">Статус:</span>
+                    <span>✅ Запланирован</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Время до урока:</span>
+                    <span>Менее 24 часов</span>
+                </div>
+                <!-- Дополнительные детали урока могут быть добавлены через переменные -->
+            </div>
+            
+            <div class="preparation-list">
+                <strong>📚 Подготовка к уроку:</strong>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>Проверьте подключение к интернету</li>
+                    <li>Подготовьте учебные материалы</li>
+                    <li>Убедитесь, что микрофон и камера работают</li>
+                    <li>Заранее войдите в систему видеоконференций</li>
+                </ul>
+            </div>
+            
+            <div class="urgent">
+                <strong>🚨 Важно:</strong>
+                <p style="margin: 10px 0;">Если вы не сможете присутствовать на уроке, пожалуйста, отмените его как можно скорее через систему или свяжитесь с преподавателем.</p>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="https://crm-english-school.com/lessons" class="button">Посмотреть детали урока</a>
+                <a href="https://crm-english-school.com/lessons/cancel" class="button" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); margin-left: 10px;">Отменить урок</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© <span th:text="${currentYear}">2024</span> CRM English School. Все права защищены.</p>
+            <p>Это автоматическое сообщение, пожалуйста, не отвечайте на него.</p>
+            <p>Если у вас есть вопросы, свяжитесь с поддержкой: support@crm-english-school.com</p>
+        </div>
+    </div>
+</body>
+</html>

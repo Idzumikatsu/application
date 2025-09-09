@@ -1,18 +1,28 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import TeacherSchedulePage from './TeacherSchedulePage';
-import TeacherLessonsPage from './TeacherLessonsPage';
-import TeacherGroupLessonsPage from './TeacherGroupLessonsPage';
-import TeacherStudentsPage from './TeacherStudentsPage';
+import TeacherDashboardPage from '../pages/TeacherDashboardPage';
+import TeacherStatisticsPage from '../pages/TeacherStatisticsPage';
+import TeacherAvailabilityPage from '../pages/TeacherAvailabilityPage';
+import TeacherNotificationsPage from '../pages/TeacherNotificationsPage';
+import TeacherLessonsPage from '../pages/TeacherLessonsPage';
+import TeacherGroupLessonsPage from '../pages/TeacherGroupLessonsPage';
+import TeacherStudentsPage from '../pages/TeacherStudentsPage';
+import TeacherSchedulePage from '../pages/TeacherSchedulePage';
 
 const TeacherRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path="/schedule" element={<TeacherSchedulePage />} />
+      <Route path="/dashboard" element={<TeacherDashboardPage />} />
+      <Route path="/statistics" element={<TeacherStatisticsPage />} />
+      <Route path="/availability" element={<TeacherAvailabilityPage />} />
+      <Route path="/notifications" element={<TeacherNotificationsPage />} />
       <Route path="/lessons" element={<TeacherLessonsPage />} />
       <Route path="/group-lessons" element={<TeacherGroupLessonsPage />} />
       <Route path="/students" element={<TeacherStudentsPage />} />
-      <Route path="/" element={<TeacherSchedulePage />} />
+      <Route path="/schedule" element={<TeacherSchedulePage />} />
+      
+      {/* Перенаправление на dashboard по умолчанию */}
+      <Route path="/" element={<TeacherDashboardPage />} />
     </Routes>
   );
 };

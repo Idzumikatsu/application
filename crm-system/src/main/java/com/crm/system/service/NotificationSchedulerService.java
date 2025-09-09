@@ -6,13 +6,14 @@ import com.crm.system.model.User;
 import com.crm.system.model.Student;
 import com.crm.system.model.GroupLesson;
 import com.crm.system.model.GroupLessonRegistration;
+import com.crm.system.model.LessonPackage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
- java.time.LocalTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.logging.Logger;
@@ -39,6 +40,15 @@ public class NotificationSchedulerService {
 
     @Autowired
     private GroupLessonRegistrationService groupLessonRegistrationService;
+
+    @Autowired
+    private TelegramNotificationService telegramNotificationService;
+
+    @Autowired
+    private LessonPackageService lessonPackageService;
+
+    @Autowired
+    private TelegramMessageService telegramMessageService;
 
     /**
      * Планировщик для отправки уведомлений о предстоящих индивидуальных уроках
@@ -231,7 +241,9 @@ public class NotificationSchedulerService {
         logger.info("Starting package ending soon notices scheduler");
         
         try {
-            // TODO: Реализовать поиск студентов с пакетами, заканчивающимися через 3 урока
+            // Используем метод из TelegramNotificationService для проверки и отправки уведомлений
+            telegramNotificationService.checkAndSendPackageNotifications();
+            logger.info("Package notifications sent successfully");
             
         } catch (Exception e) {
             logger.severe("Error in sendPackageEndingSoonNotices: " + e.getMessage());

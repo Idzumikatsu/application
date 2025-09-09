@@ -8,213 +8,192 @@ import {
   Grid,
   Button,
   Chip,
-  Divider,
-  Alert,
 } from '@mui/material';
 import {
-  Speed as SpeedIcon,
-  Add as AddIcon,
-  Event as EventIcon,
-  Group as GroupIcon,
   Person as PersonIcon,
-  Assignment as AssignmentIcon,
   School as SchoolIcon,
-  CalendarToday as CalendarTodayIcon,
+  Event as EventIcon,
+  Assignment as AssignmentIcon,
+  Schedule as ScheduleIcon,
+  Group as GroupIcon,
+  Payment as PaymentIcon,
+  Assessment as AssessmentIcon,
   Notifications as NotificationsIcon,
-  Settings as SettingsIcon,
 } from '@mui/icons-material';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store';
 import { useNavigate } from 'react-router-dom';
 
 interface QuickAction {
-  id: number;
+  id: string;
   title: string;
   description: string;
   icon: React.ReactNode;
   path: string;
-  roles: string[];
-  color: 'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning';
-  size: 'small' | 'medium' | 'large';
+  color: 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'error';
+  badge?: string;
+  badgeColor?: 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
 }
 
 const DashboardQuickActionsWidget: React.FC = () => {
-  const { user } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
-  
+
   const quickActions: QuickAction[] = [
-    // Teacher actions
     {
-      id: 1,
-      title: 'Добавить слот доступности',
-      description: 'Создать новый слот для приема уроков',
-      icon: <AddIcon />,
-      path: '/teacher/availability/create',
-      roles: ['TEACHER'],
-      color: 'primary',
-      size: 'medium',
-    },
-    {
-      id: 2,
-      title: 'Запланировать урок',
-      description: 'Назначить индивидуальный урок студенту',
-      icon: <EventIcon />,
-      path: '/teacher/lessons/schedule',
-      roles: ['TEACHER'],
-      color: 'secondary',
-      size: 'medium',
-    },
-    {
-      id: 3,
-      title: 'Создать групповой урок',
-      description: 'Организовать новый групповой урок',
-      icon: <GroupIcon />,
-      path: '/teacher/group-lessons/create',
-      roles: ['TEACHER'],
-      color: 'info',
-      size: 'medium',
-    },
-    
-    // Manager actions
-    {
-      id: 4,
+      id: 'add-student',
       title: 'Добавить студента',
-      description: 'Зарегистрировать нового студента в системе',
+      description: 'Зарегистрировать нового студента',
       icon: <PersonIcon />,
       path: '/manager/students/create',
-      roles: ['MANAGER', 'ADMIN'],
       color: 'success',
-      size: 'medium',
+      badge: 'Новый',
+      badgeColor: 'success',
     },
     {
-      id: 5,
+      id: 'add-teacher',
       title: 'Добавить преподавателя',
       description: 'Зарегистрировать нового преподавателя',
       icon: <SchoolIcon />,
       path: '/manager/teachers/create',
-      roles: ['MANAGER', 'ADMIN'],
       color: 'warning',
-      size: 'medium',
     },
     {
-      id: 6,
-      title: 'Назначить пакет уроков',
-      description: 'Создать или продлить пакет уроков для студента',
-      icon: <AssignmentIcon />,
-      path: '/manager/packages/assign',
-      roles: ['MANAGER', 'ADMIN'],
-      color: 'info',
-      size: 'medium',
-    },
-    
-    // Student actions
-    {
-      id: 7,
-      title: 'Записаться на групповой урок',
-      description: 'Выбрать и зарегистрироваться на групповой урок',
-      icon: <GroupIcon />,
-      path: '/student/group-lessons/register',
-      roles: ['STUDENT'],
-      color: 'secondary',
-      size: 'medium',
-    },
-    {
-      id: 8,
-      title: 'Мое расписание',
-      description: 'Просмотреть свое расписание уроков',
-      icon: <CalendarTodayIcon />,
-      path: '/student/schedule',
-      roles: ['STUDENT'],
+      id: 'schedule-lesson',
+      title: 'Назначить урок',
+      description: 'Запланировать индивидуальный урок',
+      icon: <EventIcon />,
+      path: '/manager/scheduling/create',
       color: 'primary',
-      size: 'medium',
+      badge: '5+',
+      badgeColor: 'info',
     },
-    
-    // Common actions
     {
-      id: 9,
-      title: 'Уведомления',
-      description: 'Просмотреть и управлять уведомлениями',
-      icon: <NotificationsIcon />,
-      path: '/notifications',
-      roles: ['TEACHER', 'MANAGER', 'ADMIN', 'STUDENT'],
+      id: 'manage-packages',
+      title: 'Управление пакетами',
+      description: 'Создать или продлить пакет уроков',
+      icon: <AssignmentIcon />,
+      path: '/manager/packages',
       color: 'info',
-      size: 'small',
+      badge: '3',
+      badgeColor: 'warning',
     },
     {
-      id: 10,
-      title: 'Настройки',
-      description: 'Персонализировать настройки аккаунта',
-      icon: <SettingsIcon />,
-      path: '/settings',
-      roles: ['TEACHER', 'MANAGER', 'ADMIN', 'STUDENT'],
+      id: 'view-schedule',
+      title: 'Просмотр расписания',
+      description: 'Посмотреть расписание на неделю',
+      icon: <ScheduleIcon />,
+      path: '/manager/scheduling',
+      color: 'secondary',
+    },
+    {
+      id: 'group-lessons',
+      title: 'Групповые уроки',
+      description: 'Управление групповыми занятиями',
+      icon: <GroupIcon />,
+      path: '/manager/group-lessons',
+      color: 'primary',
+    },
+    {
+      id: 'payments',
+      title: 'Платежи',
+      description: 'Просмотр и управление платежами',
+      icon: <PaymentIcon />,
+      path: '/manager/payments',
+      color: 'success',
+    },
+    {
+      id: 'reports',
+      title: 'Отчеты',
+      description: 'Генерация отчетов и статистики',
+      icon: <AssessmentIcon />,
+      path: '/manager/reports',
+      color: 'info',
+    },
+    {
+      id: 'notifications',
+      title: 'Уведомления',
+      description: 'Настройка и отправка уведомлений',
+      icon: <NotificationsIcon />,
+      path: '/manager/notifications',
       color: 'warning',
-      size: 'small',
+      badge: '12',
+      badgeColor: 'error',
     },
   ];
-
-  const getFilteredActions = () => {
-    if (!user?.role) return [];
-    
-    return quickActions.filter(action => 
-      action.roles.includes(user.role)
-    );
-  };
-
-  const filteredActions = getFilteredActions();
 
   const handleActionClick = (path: string) => {
     navigate(path);
   };
 
-  if (filteredActions.length === 0) {
-    return null;
-  }
-
   return (
     <Card elevation={3}>
       <CardHeader
-        avatar={<SpeedIcon color="primary" />}
         title="Быстрые действия"
-        subheader={`Доступно действий: ${filteredActions.length}`}
+        subheader="Доступ к основным функциям системы"
       />
       
       <CardContent>
-        <Alert severity="info" sx={{ mb: 2 }}>
-          <Typography variant="body2">
-            Быстрые действия позволяют быстро выполнять часто используемые операции
-          </Typography>
-        </Alert>
-        
-        <Grid container spacing={2}>
-          {filteredActions.map((action) => (
-            <Grid item xs={12} sm={6} md={4} key={action.id}>
+        <Grid container spacing={1.5}>
+          {quickActions.map((action) => (
+            <Grid item xs={6} key={action.id}>
               <Button
                 fullWidth
                 variant="outlined"
-                size={action.size}
                 startIcon={action.icon}
                 onClick={() => handleActionClick(action.path)}
                 sx={{
-                  height: '100%',
+                  height: 80,
                   display: 'flex',
                   flexDirection: 'column',
-                  alignItems: 'flex-start',
-                  justifyContent: 'flex-start',
-                  textAlign: 'left',
-                  p: 2,
-                  textTransform: 'none',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  position: 'relative',
+                  borderColor: `${action.color}.main`,
+                  color: `${action.color}.main`,
+                  '&:hover': {
+                    borderColor: `${action.color}.dark`,
+                    backgroundColor: `${action.color}.light`,
+                  },
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                  <Chip 
-                    icon={action.icon} 
-                    label={action.title} 
-                    color={action.color as any}
+                {action.badge && (
+                  <Chip
+                    label={action.badge}
+                    color={action.badgeColor || 'default'}
                     size="small"
-                    variant="outlined"
+                    sx={{
+                      position: 'absolute',
+                      top: 4,
+                      right: 4,
+                      fontSize: '0.6rem',
+                      height: 18,
+                    }}
                   />
-                </Box>
-                <Typography variant="caption" color="textSecondary">
+                )}
+                
+                <Typography 
+                  variant="body2" 
+                  gutterBottom 
+                  sx={{ 
+                    fontWeight: 'bold',
+                    fontSize: '0.75rem',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {action.title}
+                </Typography>
+                
+                <Typography 
+                  variant="caption" 
+                  color="textSecondary"
+                  sx={{
+                    fontSize: '0.65rem',
+                    lineHeight: 1.1,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}
+                >
                   {action.description}
                 </Typography>
               </Button>
@@ -222,15 +201,10 @@ const DashboardQuickActionsWidget: React.FC = () => {
           ))}
         </Grid>
         
-        <Divider sx={{ my: 2 }} />
-        
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Chip 
-            label={`Всего доступных действий: ${filteredActions.length}`} 
-            color="primary" 
-            size="small" 
-            variant="outlined"
-          />
+        <Box sx={{ mt: 2, textAlign: 'center' }}>
+          <Typography variant="caption" color="textSecondary">
+            Используйте быстрые действия для эффективной работы с системой
+          </Typography>
         </Box>
       </CardContent>
     </Card>

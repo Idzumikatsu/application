@@ -12,6 +12,10 @@ import {
   Button,
 } from '@mui/material';
 import { RootState } from '../store';
+import TeacherDashboardPage from './TeacherDashboardPage';
+import TeacherStatisticsPage from './TeacherStatisticsPage';
+import TeacherAvailabilityPage from './TeacherAvailabilityPage';
+import TeacherNotificationsPage from './TeacherNotificationsPage';
 import TeacherSchedulePage from './TeacherSchedulePage';
 import TeacherLessonsPage from './TeacherLessonsPage';
 import TeacherGroupLessonsPage from './TeacherGroupLessonsPage';
@@ -26,15 +30,27 @@ const TeacherPage: React.FC = () => {
     setActiveTab(newValue);
     switch (newValue) {
       case 0:
-        navigate('/teacher/schedule');
+        navigate('/teacher/dashboard');
         break;
       case 1:
-        navigate('/teacher/lessons');
+        navigate('/teacher/statistics');
         break;
       case 2:
-        navigate('/teacher/group-lessons');
+        navigate('/teacher/availability');
         break;
       case 3:
+        navigate('/teacher/notifications');
+        break;
+      case 4:
+        navigate('/teacher/schedule');
+        break;
+      case 5:
+        navigate('/teacher/lessons');
+        break;
+      case 6:
+        navigate('/teacher/group-lessons');
+        break;
+      case 7:
         navigate('/teacher/students');
         break;
     }
@@ -53,13 +69,19 @@ const TeacherPage: React.FC = () => {
         </Toolbar>
       </AppBar>
       
-      <Tabs 
-        value={activeTab} 
+      <Tabs
+        value={activeTab}
         onChange={handleTabChange}
         indicatorColor="secondary"
         textColor="inherit"
-        variant="fullWidth"
+        variant="scrollable"
+        scrollButtons="auto"
+        sx={{ maxWidth: '100%' }}
       >
+        <Tab label="Главная" />
+        <Tab label="Статистика" />
+        <Tab label="Доступность" />
+        <Tab label="Уведомления" />
         <Tab label="Расписание" />
         <Tab label="Уроки" />
         <Tab label="Групповые уроки" />
@@ -68,11 +90,15 @@ const TeacherPage: React.FC = () => {
       
       <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
         <Routes>
+          <Route path="/dashboard" element={<TeacherDashboardPage />} />
+          <Route path="/statistics" element={<TeacherStatisticsPage />} />
+          <Route path="/availability" element={<TeacherAvailabilityPage />} />
+          <Route path="/notifications" element={<TeacherNotificationsPage />} />
           <Route path="/schedule" element={<TeacherSchedulePage />} />
           <Route path="/lessons" element={<TeacherLessonsPage />} />
           <Route path="/group-lessons" element={<TeacherGroupLessonsPage />} />
           <Route path="/students" element={<TeacherStudentsPage />} />
-          <Route path="/" element={<TeacherSchedulePage />} />
+          <Route path="/" element={<TeacherDashboardPage />} />
         </Routes>
       </Box>
     </Box>

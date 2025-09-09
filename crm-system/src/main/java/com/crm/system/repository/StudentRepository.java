@@ -27,4 +27,8 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     Page<Student> findUnassignedStudents(Pageable pageable);
     
     Boolean existsByEmail(String email);
+    
+    Student findByTelegramChatId(Long chatId);
+    
+    Boolean existsByTelegramChatId(Long chatId);
 }

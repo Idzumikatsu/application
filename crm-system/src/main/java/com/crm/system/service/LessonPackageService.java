@@ -6,6 +6,7 @@ import com.crm.system.repository.LessonPackageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -75,5 +76,17 @@ public class LessonPackageService {
         if (remainingToDeduct > 0) {
             throw new IllegalArgumentException("Not enough lessons available for deduction");
         }
+    }
+
+    public List<LessonPackage> findPackagesWithLowRemainingLessons(int threshold) {
+        return lessonPackageRepository.findPackagesWithLowRemainingLessons(threshold);
+    }
+
+    public List<LessonPackage> findExpiredPackages() {
+        return lessonPackageRepository.findExpiredPackages(LocalDateTime.now());
+    }
+
+    public List<LessonPackage> findAllActivePackages() {
+        return lessonPackageRepository.findByRemainingLessonsGreaterThan(0);
     }
 }

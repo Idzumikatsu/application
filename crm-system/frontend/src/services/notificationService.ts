@@ -1,12 +1,44 @@
 import httpClient from './httpClient';
-import { Notification, NotificationStatus, NotificationType } from '../types';
+import { Notification, PackageNotification, NotificationType, NotificationStatus } from '../types';
 
 class NotificationService {
-  public async getNotifications(recipientId: number, recipientType: string): Promise<Notification[]> {
-    const params = new URLSearchParams();
-    params.append('recipientType', recipientType);
-    
-    const response = await httpClient.get<Notification[]>(`/notifications/recipients/${recipientId}`, { params });
+  // Package notifications
+  public async getPackageNotifications(): Promise<PackageNotification[]> {
+    const response = await httpClient.get<PackageNotification[]>('/notifications/packages');
+    return response.data;
+  }
+
+  public async getPackageNotificationById(id: number): Promise<PackageNotification> {
+    const response = await httpClient.get<PackageNotification>(`/notifications/packages/${id}`);
+    return response.data;
+  }
+
+  public async createPackageNotification(notificationData: Partial<PackageNotification>): Promise<PackageNotification> {
+    const response = await httpClient.post<PackageNotification>('/notifications/packages', notificationData);
+    return response.data;
+  }
+
+  public async updatePackageNotification(id: number, notificationData: Partial<PackageNotification>): Promise<PackageNotification> {
+    const response = await httpClient.put<PackageNotification>(`/notifications/packages/${id}`, notificationData);
+    return response.data;
+  }
+
+  public async deletePackageNotification(id: number): Promise<void> {
+    await httpClient.delete(`/notifications/packages/${id}`);
+  }
+
+  public async markPackageNotificationAsRead(id: number): Promise<PackageNotification> {
+    const response = await httpClient.post<PackageNotification>(`/notifications/packages/${id}/read`);
+    return response.data;
+  }
+
+  public async markAllPackageNotificationsAsRead(): Promise<void> {
+    await httpClient.post('/notifications/packages/mark-all-read');
+  }
+
+  // General notifications
+  public async getAllNotifications(): Promise<Notification[]> {
+    const response = await httpClient.get<Notification[]>('/notifications');
     return response.data;
   }
 
@@ -15,132 +47,109 @@ class NotificationService {
     return response.data;
   }
 
-  public async markAsRead(id: number): Promise<Notification> {
-    const response = await httpClient.post<Notification>(`/notifications/${id}/mark-as-read`);
+  public async markNotificationAsRead(id: number): Promise<Notification> {
+    const response = await httpClient.post<Notification>(`/notifications/${id}/read`);
     return response.data;
   }
 
-  public async markAsUnread(id: number): Promise<Notification> {
-    const response = await httpClient.post<Notification>(`/notifications/${id}/mark-as-unread`);
+  public async markAllNotificationsAsRead(): Promise<void> {
+    await httpClient.post('/notifications/mark-all-read');
+  }
+
+  public async getUnreadNotificationsCount(): Promise<number> {
+    const response = await httpClient.get<number>('/notifications/unread-count');
     return response.data;
   }
 
-  public async markAllAsRead(recipientId: number, recipientType: string): Promise<void> {
-    const params = new URLSearchParams();
-    params.append('recipientType', recipientType);
-    
-    await httpClient.post(`/notifications/recipients/${recipientId}/mark-all-as-read`, null, { params });
+  // Email notifications
+  public async sendPackageEmailNotification(studentId: number, packageId: number): Promise<void> {
+    await httpClient.post(`/notifications/packages/${packageId}/email`, { studentId });
   }
 
-  public async deleteNotification(id: number): Promise<void> {
-    await httpClient.delete(`/notifications/${id}`);
+  public async sendPackageSmsNotification(studentId: number, packageId: number): Promise<void> {
+    await httpClient.post(`/notifications/packages/${packageId}/sms`, { studentId });
   }
 
-  public async deleteAllNotifications(recipientId: number, recipientType: string): Promise<void> {
-    const params = new URLSearchParams();
-    params.append('recipientType', recipientType);
-    
-    await httpClient.delete(`/notifications/recipients/${recipientId}`, { params });
+  public async sendPackageTelegramNotification(studentId: number, packageId: number): Promise<void> {
+    await httpClient.post(`/notifications/packages/${packageId}/telegram`, { studentId });
   }
 
-  public async getUnreadCount(recipientId: number, recipientType: string): Promise<number> {
-    const params = new URLSearchParams();
-    params.append('recipientType', recipientType);
-    
-    const response = await httpClient.get<number>(`/notifications/recipients/${recipientId}/unread-count`, { params });
+  // Notification settings
+  public async getNotificationSettings(): Promise<any> {
+    const response = await httpClient.get('/notifications/settings');
     return response.data;
   }
 
-  public async getPendingNotifications(recipientId: number, recipientType: string): Promise<Notification[]> {
-    const params = new URLSearchParams();
-    params.append('recipientType', recipientType);
-    
-    const response = await httpClient.get<Notification[]>(`/notifications/recipients/${recipientId}/pending`, { params });
+  public async updateNotificationSettings(settings: any): Promise<any> {
+    const response = await httpClient.put('/notifications/settings', settings);
     return response.data;
   }
 
-  public async getNotificationsByType(recipientId: number, recipientType: string, notificationType: NotificationType): Promise<Notification[]> {
-    const params = new URLSearchParams();
-    params.append('recipientType', recipientType);
-    params.append('notificationType', notificationType);
-    
-    const response = await httpClient.get<Notification[]>(`/notifications/recipients/${recipientId}/type/${notificationType}`, { params });
-    return response.data;
-  }
+  // Lesson status change notifications
+  public async createLessonStatusNotification(
+    studentId: number,
+    lessonId: number,
+    oldStatus: string,
+    newStatus: string,
+    reason?: string
+  ): Promise<Notification> {
+    const statusTextMap: Record<string, string> = {
+      'SCHEDULED': 'Запланирован',
+      'CONDUCTED': 'Проведен',
+      'COMPLETED': 'Завершен',
+      'CANCELLED': 'Отменен',
+      'MISSED': 'Пропущен'
+    };
 
-  public async getNotificationsByStatus(recipientId: number, recipientType: string, status: NotificationStatus): Promise<Notification[]> {
-    const params = new URLSearchParams();
-    params.append('recipientType', recipientType);
-    params.append('status', status);
+    const title = `Статус урока изменен`;
+    const message = `Статус вашего урока изменен с "${statusTextMap[oldStatus]}" на "${statusTextMap[newStatus]}".${reason ? ` Причина: ${reason}` : ''}`;
+
+    const notificationData = {
+      recipientId: studentId,
+      recipientType: 'STUDENT',
+      notificationType: 'LESSON_COMPLETED' as const,
+      title,
+      message,
+      status: 'PENDING' as const,
+      priority: 1,
+      relatedEntityId: lessonId
+    };
+
+    // В реальной реализации здесь будет вызов API
+    // const response = await httpClient.post<Notification>('/notifications/lesson-status', notificationData);
+    // return response.data;
     
-    const response = await httpClient.get<Notification[]>(`/notifications/recipients/${recipientId}/status/${status}`, { params });
-    return response.data;
+    // Временная реализация для демонстрации
+    return {
+      ...notificationData,
+      id: Date.now(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    } as Notification;
   }
 
   // Helper methods
-  public getNotificationTypeText(type: NotificationType): string {
+  public getNotificationTypeText(type: string): string {
     switch (type) {
-      case NotificationType.LESSON_SCHEDULED: return 'Урок запланирован';
-      case NotificationType.LESSON_CANCELLED: return 'Урок отменен';
-      case NotificationType.LESSON_REMINDER: return 'Напоминание об уроке';
-      case NotificationType.LESSON_COMPLETED: return 'Урок завершен';
-      case NotificationType.GROUP_LESSON_SCHEDULED: return 'Групповой урок запланирован';
-      case NotificationType.GROUP_LESSON_CANCELLED: return 'Групповой урок отменен';
-      case NotificationType.GROUP_LESSON_REMINDER: return 'Напоминание о групповом уроке';
-      case NotificationType.PACKAGE_ENDING_SOON: return 'Пакет уроков заканчивается';
-      case NotificationType.PAYMENT_DUE: return 'Оплата по расписанию';
-      case NotificationType.SYSTEM_MESSAGE: return 'Системное сообщение';
-      case NotificationType.FEEDBACK_REQUEST: return 'Запрос на обратную связь';
-      default: return 'Уведомление';
+      case 'PACKAGE_LOW_BALANCE': return 'Низкий баланс пакета';
+      case 'PACKAGE_EXPIRING': return 'Пакет истекает';
+      case 'PACKAGE_EXPIRED': return 'Пакет истек';
+      case 'LESSON_SCHEDULED': return 'Урок запланирован';
+      case 'LESSON_CANCELLED': return 'Урок отменен';
+      case 'LESSON_REMINDER': return 'Напоминание об уроке';
+      case 'LESSON_COMPLETED': return 'Урок завершен';
+      case 'PAYMENT_RECEIVED': return 'Платеж получен';
+      case 'SYSTEM_ALERT': return 'Системное уведомление';
+      default: return 'Неизвестный тип';
     }
   }
 
-  public getNotificationStatusText(status: NotificationStatus): string {
-    switch (status) {
-      case NotificationStatus.PENDING: return 'Ожидает отправки';
-      case NotificationStatus.SENT: return 'Отправлено';
-      case NotificationStatus.DELIVERED: return 'Доставлено';
-      case NotificationStatus.READ: return 'Прочитано';
-      case NotificationStatus.FAILED: return 'Ошибка отправки';
-      default: return 'Неизвестно';
-    }
-  }
-
-  public getNotificationStatusColor(status: NotificationStatus): string {
-    switch (status) {
-      case NotificationStatus.PENDING: return 'default';
-      case NotificationStatus.SENT: return 'primary';
-      case NotificationStatus.DELIVERED: return 'secondary';
-      case NotificationStatus.READ: return 'success';
-      case NotificationStatus.FAILED: return 'error';
-      default: return 'default';
-    }
-  }
-
-  public getNotificationIcon(type: NotificationType): string {
-    switch (type) {
-      case NotificationType.LESSON_SCHEDULED:
-      case NotificationType.GROUP_LESSON_SCHEDULED:
-        return 'event';
-      case NotificationType.LESSON_CANCELLED:
-      case NotificationType.GROUP_LESSON_CANCELLED:
-        return 'cancel';
-      case NotificationType.LESSON_REMINDER:
-      case NotificationType.GROUP_LESSON_REMINDER:
-        return 'alarm';
-      case NotificationType.LESSON_COMPLETED:
-      case NotificationType.GROUP_LESSON_COMPLETED:
-        return 'check_circle';
-      case NotificationType.PACKAGE_ENDING_SOON:
-        return 'warning';
-      case NotificationType.PAYMENT_DUE:
-        return 'payment';
-      case NotificationType.SYSTEM_MESSAGE:
-        return 'info';
-      case NotificationType.FEEDBACK_REQUEST:
-        return 'rate_review';
-      default:
-        return 'notifications';
+  public getNotificationPriorityText(priority: string): string {
+    switch (priority) {
+      case 'HIGH': return 'Высокий';
+      case 'MEDIUM': return 'Средний';
+      case 'LOW': return 'Низкий';
+      default: return 'Неизвестный';
     }
   }
 }

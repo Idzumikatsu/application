@@ -1,7 +1,10 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import AuthService from './authService';
 
 class HttpClient {
   private client: AxiosInstance;
+  private isRefreshing = false;
+  private failedQueue: Array<{ resolve: (value?: any) => void; reject: (error?: any) => void }> = [];
 
   constructor(baseURL: string) {
     this.client = axios.create({
@@ -14,27 +17,69 @@ class HttpClient {
 
     // Add a request interceptor
     this.client.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem('token');
+      (config: any) => {
+        const token = AuthService.getToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
       },
-      (error) => {
+      (error: any) => {
         return Promise.reject(error);
       }
     );
 
     // Add a response interceptor
     this.client.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          // Handle unauthorized access
-          localStorage.removeItem('token');
-          window.location.href = '/login';
+      (response: any) => response,
+      async (error: any) => {
+        const originalRequest = error.config;
+        
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          if (this.isRefreshing) {
+            // Если уже идет обновление токена, добавляем запрос в очередь
+            return new Promise((resolve, reject) => {
+              this.failedQueue.push({ resolve, reject });
+            }).then(() => {
+              return this.client(originalRequest);
+            }).catch(err => {
+              return Promise.reject(err);
+            });
+          }
+
+          originalRequest._retry = true;
+          this.isRefreshing = true;
+
+          try {
+            const refreshToken = AuthService.getRefreshToken();
+            if (!refreshToken) {
+              throw new Error('No refresh token available');
+            }
+
+            const newToken = await AuthService.refreshToken();
+            AuthService.setToken(newToken);
+            
+            // Повторяем оригинальный запрос с новым токеном
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            
+            // Выполняем все запросы из очереди
+            this.failedQueue.forEach((promise) => promise.resolve());
+            this.failedQueue = [];
+            this.isRefreshing = false;
+            
+            return this.client(originalRequest);
+          } catch (refreshError) {
+            // Если обновление токена не удалось, очищаем аутентификацию
+            this.failedQueue.forEach((promise) => promise.reject(refreshError));
+            this.failedQueue = [];
+            this.isRefreshing = false;
+            
+            AuthService.logout();
+            window.location.href = '/login';
+            return Promise.reject(refreshError);
+          }
         }
+
         return Promise.reject(error);
       }
     );
@@ -55,8 +100,12 @@ class HttpClient {
   public delete<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     return this.client.delete<T>(url, config);
   }
+
+  public patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    return this.client.patch<T>(url, data, config);
+  }
 }
 
-const httpClient = new HttpClient('/api');
+const httpClient = new HttpClient(process.env.REACT_APP_API_BASE_URL || '/api');
 
 export default httpClient;

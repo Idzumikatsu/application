@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Notification } from '../types';
+import { Notification, NotificationStatus } from '../types';
 
 interface NotificationState {
   notifications: Notification[];
@@ -48,7 +48,7 @@ export const notificationSlice = createSlice({
     markAsRead: (state, action: PayloadAction<number>) => {
       const notification = state.notifications.find(n => n.id === action.payload);
       if (notification) {
-        notification.status = 'READ';
+        notification.status = NotificationStatus.READ;
         if (state.unreadCount > 0) {
           state.unreadCount -= 1;
         }
@@ -56,7 +56,7 @@ export const notificationSlice = createSlice({
     },
     markAllAsRead: (state) => {
       state.notifications.forEach(notification => {
-        notification.status = 'READ';
+        notification.status = NotificationStatus.READ;
       });
       state.unreadCount = 0;
     },

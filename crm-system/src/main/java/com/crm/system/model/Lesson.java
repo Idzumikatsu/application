@@ -55,6 +55,12 @@ public class Lesson {
     @Column(name = "confirmed_by_teacher")
     private Boolean confirmedByTeacher = false;
 
+    @Column(name = "attendance_confirmed")
+    private Boolean attendanceConfirmed = false;
+
+    @Column(name = "end_time")
+    private LocalDateTime endTime;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -196,6 +202,22 @@ public class Lesson {
         this.confirmedByTeacher = confirmedByTeacher;
     }
 
+    public Boolean getAttendanceConfirmed() {
+        return attendanceConfirmed;
+    }
+
+    public void setAttendanceConfirmed(Boolean attendanceConfirmed) {
+        this.attendanceConfirmed = attendanceConfirmed;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -242,5 +264,9 @@ public class Lesson {
 
     public void markAsMissed() {
         this.status = LessonStatus.MISSED;
+    }
+
+    public void confirmAttendance() {
+        this.attendanceConfirmed = true;
     }
 }

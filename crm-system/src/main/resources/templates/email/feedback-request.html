@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Запрос на обратную связь - CRM English School</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .greeting {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #495057;
+        }
+        .feedback-info {
+            background-color: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #0c5460;
+        }
+        .feedback-details {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .detail-item {
+            margin-bottom: 8px;
+            display: flex;
+        }
+        .detail-label {
+            font-weight: 600;
+            min-width: 120px;
+            color: #495057;
+        }
+        .importance {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #856404;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+        .benefits {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌟 Запрос на обратную связь</h1>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">
+                Здравствуйте, <span th:text="${recipientName}">Пользователь</span>!
+            </div>
+            
+            <div class="feedback-info">
+                <h3 style="margin-top: 0; color: #0c5460;">Поделитесь вашим мнением!</h3>
+                <p th:text="${feedbackInfo}">Информация о запросе обратной связи</p>
+            </div>
+            
+            <div class="feedback-details">
+                <h4 style="margin-top: 0;">Детали запроса:</h4>
+                <div class="detail-item">
+                    <span class="detail-label">Тип:</span>
+                    <span>🌟 Запрос обратной связи</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Цель:</span>
+                    <span>Улучшение качества обучения</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Время на ответ:</span>
+                    <span>5-10 минут</span>
+                </div>
+            </div>
+            
+            <div class="importance">
+                <strong>💡 Почему это важно:</strong>
+                <p style="margin: 10px 0;">Ваше мнение помогает нам становиться лучше! Мы ценим каждый отзыв и используем его для улучшения качества обучения и сервиса.</p>
+            </div>
+            
+            <div class="benefits">
+                <strong>🎁 Что вы получаете:</strong>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>Возможность влиять на процесс обучения</li>
+                    <li>Улучшенный сервис на основе ваших предложений</li>
+                    <li>Более персонализированный подход</li>
+                    <li>Признательность за ваш вклад в развитие школы</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="https://crm-english-school.com/feedback/form" class="button">Оставить отзыв</a>
+                <a href="https://crm-english-school.com/feedback/examples" class="button" style="background: linear-gradient(135deg, #6c757d 0%, #495057 100%); margin-left: 10px;">Примеры отзывов</a>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <small style="color: #6c757d;">Ваши ответы полностью анонимны и используются только для улучшения качества услуг</small>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© <span th:text="${currentYear}">2024</span> CRM English School. Все права защищены.</p>
+            <p>Это автоматическое сообщение, пожалуйста, не отвечайте на него.</p>
+            <p>Если у вас есть вопросы, свяжитесь с поддержкой: support@crm-english-school.com</p>
+        </div>
+    </div>
+</body>
+</html>

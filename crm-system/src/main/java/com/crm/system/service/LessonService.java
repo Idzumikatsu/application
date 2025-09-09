@@ -122,4 +122,22 @@ public class LessonService {
     public boolean isLessonMissed(Lesson lesson) {
         return lesson.isMissed();
     }
+    public List<Lesson> findByDateRange(LocalDate startDate, LocalDate endDate) {
+        return lessonRepository.findByDateRange(startDate, endDate);
+    }
+
+    public List<Lesson> findCompletedLessonsForAttendanceConfirmation(LocalDate date, LocalDateTime currentTime) {
+        return lessonRepository.findCompletedLessonsForAttendanceConfirmation(date, currentTime);
+    }
+
+    public boolean confirmAttendance(Long lessonId) {
+        Optional<Lesson> lessonOpt = lessonRepository.findById(lessonId);
+        if (lessonOpt.isPresent()) {
+            Lesson lesson = lessonOpt.get();
+            lesson.confirmAttendance();
+            lessonRepository.save(lesson);
+            return true;
+        }
+        return false;
+    }
 }

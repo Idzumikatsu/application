@@ -88,13 +88,27 @@ public class TelegramMessage {
 
     public enum MessageType {
         TEXT,                    // Текстовое сообщение
+        LESSON_SCHEDULED,        // Уведомление о запланированном уроке
         LESSON_REMINDER,         // Напоминание об уроке
         LESSON_CANCELLED,        // Уведомление об отмене урока
         LESSON_CONFIRMATION,     // Подтверждение урока
+        LESSON_STATUS_CHANGE,    // Изменение статуса урока
+        PACKAGE_ENDING_SOON,     // Пакет уроков скоро заканчивается
+        PACKAGE_EXPIRED,         // Пакет уроков закончился
+        GROUP_LESSON_SCHEDULED,  // Уведомление о запланированном групповом уроке
         GROUP_LESSON_REMINDER,   // Напоминание о групповом уроке
         GROUP_LESSON_CANCELLED,  // Уведомление об отмене группового урока
         SYSTEM_NOTIFICATION,     // Системное уведомление
         FEEDBACK_REQUEST         // Запрос на обратную связь
+    }
+
+    public enum DeliveryStatus {
+        PENDING,        // Сообщение ожидает отправки
+        SENT,           // Сообщение отправлено
+        DELIVERED,      // Сообщение доставлено получателю
+        READ,           // Сообщение прочитано получателем
+        FAILED,         // Ошибка при отправке
+        RETRY_PENDING   // Ожидание повторной попытки отправки
     }
 
     public enum DeliveryStatus {
@@ -276,6 +290,10 @@ public class TelegramMessage {
         return this.deliveryStatus == DeliveryStatus.FAILED;
     }
 
+    public boolean isRetryPending() {
+        return this.deliveryStatus == DeliveryStatus.RETRY_PENDING;
+    }
+
     public void markAsSent() {
         this.deliveryStatus = DeliveryStatus.SENT;
         this.sentAt = LocalDateTime.now();
@@ -300,6 +318,14 @@ public class TelegramMessage {
         this.retryCount++;
     }
 
+    public void markForRetry() {
+        this.deliveryStatus = DeliveryStatus.RETRY_PENDING;
+    }
+
+    public boolean canRetry() {
+        return this.retryCount < 3; // Максимум 3 попытки повторной отправки
+    }
+
     public String getRecipientTypeName() {
         switch (this.recipientType) {
             case STUDENT: return "Студент";
@@ -313,9 +339,14 @@ public class TelegramMessage {
     public String getMessageTypeName() {
         switch (this.messageType) {
             case TEXT: return "Текстовое сообщение";
+            case LESSON_SCHEDULED: return "Уведомление о запланированном уроке";
             case LESSON_REMINDER: return "Напоминание об уроке";
             case LESSON_CANCELLED: return "Уведомление об отмене урока";
             case LESSON_CONFIRMATION: return "Подтверждение урока";
+            case LESSON_STATUS_CHANGE: return "Изменение статуса урока";
+            case PACKAGE_ENDING_SOON: return "Пакет уроков скоро заканчивается";
+            case PACKAGE_EXPIRED: return "Пакет уроков закончился";
+            case GROUP_LESSON_SCHEDULED: return "Уведомление о запланированном групповом уроке";
             case GROUP_LESSON_REMINDER: return "Напоминание о групповом уроке";
             case GROUP_LESSON_CANCELLED: return "Уведомление об отмене группового урока";
             case SYSTEM_NOTIFICATION: return "Системное уведомление";
@@ -331,6 +362,7 @@ public class TelegramMessage {
             case DELIVERED: return "Доставлено";
             case READ: return "Прочитано";
             case FAILED: return "Ошибка отправки";
+            case RETRY_PENDING: return "Ожидание повторной отправки";
             default: return "Неизвестный";
         }
     }
