@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Calendar as BigCalendar,
   momentLocalizer,
@@ -86,6 +86,7 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
   });
   const [activeTab, setActiveTab] = useState(0);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' | 'warning' });
+  const [loading, setLoading] = useState(false);
 
   const generateMeetingLink = (): string => {
     return `https://meet.crm-school.com/${Math.random().toString(36).substr(2, 9)}`;
@@ -129,6 +130,7 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
 
   const handleSaveEvent = async () => {
     try {
+      setLoading(true);
       if (!selectedSlot && !editingEvent) return;
 
       const eventData: Omit<CalendarEvent, 'id'> = {
@@ -158,6 +160,7 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
           message: `Обнаружены конфликты с ${conflicts.length} событиями`,
           severity: 'warning'
         });
+        setLoading(false);
         return;
       }
 
@@ -175,6 +178,8 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
       handleCloseDialog();
     } catch (error) {
       setSnackbar({ open: true, message: 'Ошибка сохранения события', severity: 'error' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -269,9 +274,22 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Paper sx={{ p: 2, mb: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h5">Календарь расписания</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <EventIcon color="primary" />
+            <Typography variant="h5">Календарь расписания</Typography>
+          </Box>
           
           <Box sx={{ display: 'flex', gap: 1 }}>
+            <Tooltip title="Создать событие">
+              <IconButton
+                onClick={() => setOpenDialog(true)}
+                color="primary"
+                sx={{ bgcolor: 'primary.main', color: 'white', '&:hover': { bgcolor: 'primary.dark' } }}
+              >
+                <AddIcon />
+              </IconButton>
+            </Tooltip>
+            
             <Tooltip title="Экспорт в ICS">
               <IconButton onClick={() => handleExport('ics')} color="primary">
                 <DownloadIcon />
@@ -293,13 +311,25 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
         </Box>
 
         <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} sx={{ mb: 2 }}>
-          <Tab label="Все события" />
-          <Tab label="Уроки" />
-          <Tab label="Доступность" />
+          <Tab icon={<EventIcon />} label="Все события" />
+          <Tab icon={<VideoCallIcon />} label="Уроки" />
+          <Tab icon={<EventIcon />} label="Доступность" />
         </Tabs>
       </Paper>
 
-      <Paper sx={{ flex: 1, p: 2 }}>
+      <Paper sx={{ flex: 1, p: 2, position: 'relative' }}>
+        {loading && (
+          <LinearProgress
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 10
+            }}
+          />
+        )}
+        
         <BigCalendar
           localizer={localizer}
           events={events}
@@ -324,12 +354,15 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
           messages={messages}
           showMultiDayTimes
           culture="ru"
-          style={{ height: '100%' }}
+          style={{ height: '100%', opacity: loading ? 0.7 : 1 }}
         />
 
         <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
           <DialogTitle>
-            {editingEvent ? 'Редактирование события' : 'Создание события'}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <EventIcon />
+              {editingEvent ? 'Редактирование события' : 'Создание события'}
+            </Box>
           </DialogTitle>
           <DialogContent>
             <TextField
@@ -349,10 +382,30 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
                 onChange={(e) => setNewEvent({...newEvent, type: e.target.value as any})}
                 label="Тип события"
               >
-                <MenuItem value="lesson">Индивидуальный урок</MenuItem>
-                <MenuItem value="group-lesson">Групповой урок</MenuItem>
-                <MenuItem value="availability">Доступность</MenuItem>
-                <MenuItem value="other">Другое</MenuItem>
+                <MenuItem value="lesson">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <VideoCallIcon fontSize="small" />
+                    Индивидуальный урок
+                  </Box>
+                </MenuItem>
+                <MenuItem value="group-lesson">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <VideoCallIcon fontSize="small" />
+                    Групповой урок
+                  </Box>
+                </MenuItem>
+                <MenuItem value="availability">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <EventIcon fontSize="small" />
+                    Доступность
+                  </Box>
+                </MenuItem>
+                <MenuItem value="other">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <EventIcon fontSize="small" />
+                    Другое
+                  </Box>
+                </MenuItem>
               </Select>
             </FormControl>
 
@@ -374,17 +427,32 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
               value={newEvent.meetingLink}
               onChange={(e) => setNewEvent({...newEvent, meetingLink: e.target.value})}
               placeholder="https://meet.example.com/..."
+              InputProps={{
+                endAdornment: newEvent.meetingLink && (
+                  <Chip
+                    label="Видеозвонок"
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                  />
+                ),
+              }}
             />
           </DialogContent>
           <DialogActions>
             {editingEvent && (
-              <Button onClick={handleDeleteEvent} color="error">
+              <Button onClick={handleDeleteEvent} color="error" startIcon={<EventIcon />}>
                 Удалить
               </Button>
             )}
             <Button onClick={handleCloseDialog}>Отмена</Button>
-            <Button onClick={handleSaveEvent} variant="contained">
-              {editingEvent ? 'Сохранить' : 'Создать'}
+            <Button
+              onClick={handleSaveEvent}
+              variant="contained"
+              disabled={loading}
+              startIcon={editingEvent ? <EventIcon /> : <AddIcon />}
+            >
+              {loading ? 'Сохранение...' : (editingEvent ? 'Сохранить' : 'Создать')}
             </Button>
           </DialogActions>
         </Dialog>
