@@ -276,4 +276,50 @@ public interface GroupLessonRepository extends JpaRepository<GroupLesson, Long> 
            "AND gl.scheduledDate >= CURRENT_DATE " +
            "ORDER BY gl.scheduledDate, gl.scheduledTime")
     List<GroupLesson> findScheduledGroupLessonsByTeacherId(@Param("teacherId") Long teacherId);
+    @Query("SELECT gl FROM GroupLesson gl WHERE gl.id = :lessonId")
+    Optional<GroupLesson> findByLessonId(@Param("lessonId") Long lessonId);
+
+    @Query("SELECT COUNT(gl) FROM GroupLesson gl WHERE gl.teacher.id = :teacherId " +
+           "AND gl.status = 'BOOKED'")
+    Long countBookedSlotsByTeacherId(@Param("teacherId") Long teacherId);
+
+    @Query("SELECT gl FROM GroupLesson gl WHERE gl.teacher.id = :teacherId " +
+           "AND gl.scheduledDate = :date " +
+           "AND gl.scheduledTime = :time")
+    Optional<GroupLesson> findByTeacherIdAndDateTime(
+        @Param("teacherId") Long teacherId,
+        @Param("date") LocalDate date,
+        @Param("time") java.time.LocalTime time
+    );
+
+    @Query("SELECT gl FROM GroupLesson gl WHERE gl.teacher.id = :teacherId " +
+           "AND gl.scheduledDate >= :startDate AND gl.scheduledDate <= :endDate " +
+           "AND gl.status IN ('SCHEDULED', 'CONFIRMED') " +
+           "ORDER BY gl.scheduledDate, gl.scheduledTime")
+    List<GroupLesson> findAvailableSlotsForTeacherInDateRange(
+        @Param("teacherId") Long teacherId,
+        @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate
+    );
+
+    @Query("SELECT gl FROM GroupLesson gl WHERE gl.teacher.id = :teacherId " +
+           "AND gl.scheduledDate >= :startDate AND gl.scheduledDate <= :endDate " +
+           "AND gl.status IN ('SCHEDULED', 'CONFIRMED') " +
+           "ORDER BY gl.scheduledDate, gl.scheduledTime")
+    Page<GroupLesson> findAvailableSlotsByTeacherIdAndDateRange(
+        @Param("teacherId") Long teacherId,
+        @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate,
+        Pageable pageable
+    );
+
+    @Query("SELECT gl FROM GroupLesson gl WHERE gl.teacher.id = :teacherId " +
+           "AND gl.scheduledDate >= :startDate AND gl.scheduledDate <= :endDate " +
+           "ORDER BY gl.scheduledDate, gl.scheduledTime")
+    Page<GroupLesson> findByTeacherIdAndDateRange(
+        @Param("teacherId") Long teacherId,
+        @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate,
+        Pageable pageable
+    );
 }

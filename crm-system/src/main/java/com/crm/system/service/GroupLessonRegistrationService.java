@@ -28,6 +28,9 @@ public class GroupLessonRegistrationService {
     private GroupLessonRepository groupLessonRepository;
 
     @Autowired
+    private GroupLessonService groupLessonService;
+
+    @Autowired
     private StudentRepository studentRepository;
 
     @Autowired
@@ -311,9 +314,9 @@ public class GroupLessonRegistrationService {
     }
 
     public Page<GroupLessonRegistration> findRegistrationsByTeacherIdAndStatusesAndDateRange(
-            Long teacherId, List<RegistrationStatus> statuses, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+            Long teacherId, LocalDate startDate, LocalDate endDate, List<RegistrationStatus> statuses, Pageable pageable) {
         return groupLessonRegistrationRepository.findRegistrationsByTeacherIdAndStatusesAndDateRange(
-                teacherId, statuses, startDate, endDate, pageable);
+                teacherId, startDate, endDate, statuses, pageable);
     }
 
     public List<GroupLessonRegistration> findRegisteredLessonsByTeacherIdAndDateRange(

@@ -121,9 +121,19 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     
     @Query("SELECT COUNT(n) FROM Notification n WHERE n.status = 'PENDING'")
     Long countPendingNotifications();
-    
+
     @Query("SELECT COUNT(n) FROM Notification n WHERE n.status = 'FAILED'")
     Long countFailedNotifications();
+
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.recipientId = :recipientId " +
+           "AND n.recipientType = :recipientType " +
+           "AND n.status IN :statuses")
+    Long countByRecipientIdAndRecipientTypeAndStatuses(
+        @Param("recipientId") Long recipientId,
+        @Param("recipientType") RecipientType recipientType,
+        @Param("statuses") List<NotificationStatus> statuses
+    );
+
     
     @Query("SELECT n FROM Notification n WHERE n.notificationType IN :types " +
            "AND n.status = 'PENDING' " +
@@ -167,6 +177,15 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     List<Notification> findPendingNotificationsByRecipientTypeAndId(
         @Param("recipientType") RecipientType recipientType,
         @Param("recipientId") Long recipientId
+    );
+
+    @Query("SELECT n FROM Notification n WHERE n.recipientType = :recipientType " +
+           "AND n.status = 'PENDING' " +
+           "AND n.createdAt <= :beforeDateTime " +
+           "ORDER BY n.createdAt ASC")
+    List<Notification> findPendingNotificationsByRecipientTypeAndBeforeDateTime(
+        @Param("recipientType") RecipientType recipientType,
+        @Param("beforeDateTime") LocalDateTime beforeDateTime
     );
     
     @Query("SELECT n FROM Notification n WHERE n.recipientType = :recipientType " +
@@ -360,5 +379,65 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
         @Param("endDate") LocalDateTime endDate,
         @Param("notificationTypes") List<NotificationType> notificationTypes,
         @Param("statuses") List<NotificationStatus> statuses
+    );
+
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.recipientId = :recipientId " +
+           "AND n.recipientType = :recipientType " +
+           "AND n.status IN :statuses " +
+           "AND n.createdAt >= :startDate AND n.createdAt <= :endDate")
+    Long countByRecipientIdAndRecipientTypeAndStatusesAndDateRange(
+        @Param("recipientId") Long recipientId,
+        @Param("recipientType") RecipientType recipientType,
+        @Param("statuses") List<NotificationStatus> statuses,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate
+    );
+
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.recipientType = :recipientType " +
+           "AND n.recipientId = :recipientId " +
+           "AND n.createdAt >= :startDate AND n.createdAt <= :endDate")
+    Long countByRecipientTypeAndRecipientIdAndDateRange(
+        @Param("recipientType") RecipientType recipientType,
+        @Param("recipientId") Long recipientId,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate
+    );
+
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.recipientType = :recipientType " +
+           "AND n.recipientId = :recipientId " +
+           "AND n.notificationType IN :notificationTypes " +
+           "AND n.createdAt >= :startDate AND n.createdAt <= :endDate")
+    Long countByRecipientTypeAndRecipientIdAndNotificationTypesAndDateRange(
+        @Param("recipientType") RecipientType recipientType,
+        @Param("recipientId") Long recipientId,
+        @Param("notificationTypes") List<NotificationType> notificationTypes,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate
+    );
+
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.recipientType = :recipientType " +
+           "AND n.recipientId = :recipientId " +
+           "AND n.status IN :statuses " +
+           "AND n.createdAt >= :startDate AND n.createdAt <= :endDate")
+    Long countByRecipientTypeAndRecipientIdAndStatusesAndDateRange(
+        @Param("recipientType") RecipientType recipientType,
+        @Param("recipientId") Long recipientId,
+        @Param("statuses") List<NotificationStatus> statuses,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate
+    );
+
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.recipientType = :recipientType " +
+           "AND n.recipientId = :recipientId " +
+           "AND n.notificationType IN :notificationTypes " +
+           "AND n.status IN :statuses " +
+           "AND n.createdAt >= :startDate AND n.createdAt <= :endDate")
+    Long countByRecipientTypeAndRecipientIdAndNotificationTypesAndStatusesAndDateRange(
+        @Param("recipientType") RecipientType recipientType,
+        @Param("recipientId") Long recipientId,
+        @Param("notificationTypes") List<NotificationType> notificationTypes,
+        @Param("statuses") List<NotificationStatus> statuses,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate
     );
 }

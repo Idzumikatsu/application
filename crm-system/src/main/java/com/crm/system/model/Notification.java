@@ -82,9 +82,12 @@ public class Notification {
         LESSON_CANCELLED,       // Урок отменен
         LESSON_REMINDER,        // Напоминание об уроке
         LESSON_COMPLETED,       // Урок завершен
+        LESSON_MISSED,          // Урок пропущен
         GROUP_LESSON_SCHEDULED, // Групповой урок запланирован
         GROUP_LESSON_CANCELLED,  // Групповой урок отменен
         GROUP_LESSON_REMINDER,  // Напоминание о групповом уроке
+        GROUP_LESSON_COMPLETED, // Групповой урок завершен
+        GROUP_LESSON_MISSED,    // Групповой урок пропущен
         PACKAGE_ENDING_SOON,    // Пакет уроков заканчивается
         PAYMENT_DUE,            // Оплата по расписанию
         SYSTEM_MESSAGE,        // Системное сообщение
@@ -281,9 +284,12 @@ public class Notification {
             case LESSON_CANCELLED: return "Урок отменен";
             case LESSON_REMINDER: return "Напоминание об уроке";
             case LESSON_COMPLETED: return "Урок завершен";
+            case LESSON_MISSED: return "Урок пропущен";
             case GROUP_LESSON_SCHEDULED: return "Групповой урок запланирован";
             case GROUP_LESSON_CANCELLED: return "Групповой урок отменен";
             case GROUP_LESSON_REMINDER: return "Напоминание о групповом уроке";
+            case GROUP_LESSON_COMPLETED: return "Групповой урок завершен";
+            case GROUP_LESSON_MISSED: return "Групповой урок пропущен";
             case PACKAGE_ENDING_SOON: return "Пакет уроков заканчивается";
             case PAYMENT_DUE: return "Оплата по расписанию";
             case SYSTEM_MESSAGE: return "Системное сообщение";

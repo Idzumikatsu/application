@@ -269,4 +269,15 @@ public class Lesson {
     public void confirmAttendance() {
         this.attendanceConfirmed = true;
     }
+
+    // Additional methods needed for notifications
+    public String getSubject() {
+        // Default subject based on teacher's specialization or generic
+        return teacher != null ? "Урок с " + teacher.getFirstName() : "Индивидуальный урок";
+    }
+
+    public String getPlatform() {
+        // Default platform - can be customized based on actual implementation
+        return "Zoom";
+    }
 }

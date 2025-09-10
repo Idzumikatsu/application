@@ -63,6 +63,9 @@ public interface TelegramMessageRepository extends JpaRepository<TelegramMessage
 
     List<TelegramMessage> findByDeliveryStatusAndCreatedAtBefore(TelegramMessage.DeliveryStatus deliveryStatus, LocalDateTime createdAt);
     
+    @Query("SELECT tm FROM TelegramMessage tm WHERE tm.createdAt <= :beforeDateTime ORDER BY tm.createdAt ASC")
+    List<TelegramMessage> findMessagesBeforeDateTime(@Param("beforeDateTime") LocalDateTime beforeDateTime);
+    
     @Query("SELECT tm FROM TelegramMessage tm WHERE tm.deliveryStatus = 'PENDING' " +
            "AND tm.createdAt <= :beforeDateTime " +
            "ORDER BY tm.createdAt ASC")
@@ -283,6 +286,76 @@ public interface TelegramMessageRepository extends JpaRepository<TelegramMessage
         @Param("messageTypes") List<MessageType> messageTypes,
         @Param("statuses") List<DeliveryStatus> statuses,
         @Param("minRetries") Integer minRetries,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate
+    );
+    @Query("SELECT tm FROM TelegramMessage tm WHERE tm.chatId = :chatId " +
+           "AND tm.messageType = :messageType " +
+           "ORDER BY tm.createdAt DESC")
+    List<TelegramMessage> findByChatIdAndMessageTypeOrderByCreatedAtDesc(
+        @Param("chatId") String chatId,
+        @Param("messageType") MessageType messageType
+    );
+
+    @Query("SELECT COUNT(tm) FROM TelegramMessage tm WHERE tm.deliveryStatus = :deliveryStatus")
+    Long countByDeliveryStatus(@Param("deliveryStatus") DeliveryStatus deliveryStatus);
+
+    @Query("SELECT COUNT(tm) FROM TelegramMessage tm WHERE tm.recipientId = :recipientId " +
+           "AND tm.recipientType = :recipientType " +
+           "AND tm.deliveryStatus IN :deliveryStatuses " +
+           "AND tm.createdAt >= :startDate AND tm.createdAt <= :endDate")
+    Long countByRecipientIdAndRecipientTypeAndDeliveryStatusesAndDateRange(
+        @Param("recipientId") Long recipientId,
+        @Param("recipientType") RecipientType recipientType,
+        @Param("deliveryStatuses") List<DeliveryStatus> deliveryStatuses,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate
+    );
+
+    @Query("SELECT COUNT(tm) FROM TelegramMessage tm WHERE tm.recipientType = :recipientType " +
+           "AND tm.recipientId = :recipientId " +
+           "AND tm.createdAt >= :startDate AND tm.createdAt <= :endDate")
+    Long countByRecipientTypeAndRecipientIdAndDateRange(
+        @Param("recipientType") RecipientType recipientType,
+        @Param("recipientId") Long recipientId,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate
+    );
+
+    @Query("SELECT COUNT(tm) FROM TelegramMessage tm WHERE tm.recipientType = :recipientType " +
+           "AND tm.recipientId = :recipientId " +
+           "AND tm.messageType IN :messageTypes " +
+           "AND tm.createdAt >= :startDate AND tm.createdAt <= :endDate")
+    Long countByRecipientTypeAndRecipientIdAndMessageTypesAndDateRange(
+        @Param("recipientType") RecipientType recipientType,
+        @Param("recipientId") Long recipientId,
+        @Param("messageTypes") List<MessageType> messageTypes,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate
+    );
+
+    @Query("SELECT COUNT(tm) FROM TelegramMessage tm WHERE tm.recipientType = :recipientType " +
+           "AND tm.recipientId = :recipientId " +
+           "AND tm.deliveryStatus IN :deliveryStatuses " +
+           "AND tm.createdAt >= :startDate AND tm.createdAt <= :endDate")
+    Long countByRecipientTypeAndRecipientIdAndDeliveryStatusesAndDateRange(
+        @Param("recipientType") RecipientType recipientType,
+        @Param("recipientId") Long recipientId,
+        @Param("deliveryStatuses") List<DeliveryStatus> deliveryStatuses,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate
+    );
+
+    @Query("SELECT COUNT(tm) FROM TelegramMessage tm WHERE tm.recipientType = :recipientType " +
+           "AND tm.recipientId = :recipientId " +
+           "AND tm.messageType IN :messageTypes " +
+           "AND tm.deliveryStatus IN :deliveryStatuses " +
+           "AND tm.createdAt >= :startDate AND tm.createdAt <= :endDate")
+    Long countByRecipientTypeAndRecipientIdAndMessageTypesAndDeliveryStatusesAndDateRange(
+        @Param("recipientType") RecipientType recipientType,
+        @Param("recipientId") Long recipientId,
+        @Param("messageTypes") List<MessageType> messageTypes,
+        @Param("deliveryStatuses") List<DeliveryStatus> deliveryStatuses,
         @Param("startDate") LocalDateTime startDate,
         @Param("endDate") LocalDateTime endDate
     );

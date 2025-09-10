@@ -50,7 +50,7 @@ public class GroupLessonController {
         LocalDate end = endDate != null ? endDate : start.plusWeeks(1);
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<GroupLesson> groupLessonPage = groupLessonService.findByTeacherIdAndDateRange(
+        Page<GroupLesson> groupLessonPage = groupLessonService.findAvailableSlotsByTeacherIdAndDateRange(
                 teacherId, start, end, pageable);
 
         Page<GroupLessonDto> groupLessonDtos = groupLessonPage.map(this::convertToDto);

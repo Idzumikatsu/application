@@ -1,6 +1,7 @@
 package com.crm.system.service;
 
 import com.crm.system.model.TelegramBot;
+import com.crm.system.model.TelegramMessage;
 import com.crm.system.repository.TelegramBotRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,8 +20,26 @@ public class TelegramBotService {
     @Autowired
     private TelegramBotRepository telegramBotRepository;
 
+    @Autowired
+    private TelegramNotificationService telegramNotificationService;
+
     public Optional<TelegramBot> findById(Long id) {
         return telegramBotRepository.findById(id);
+    }
+
+    public void sendMessage(Long chatId, Long recipientId, TelegramMessage.RecipientType recipientType,
+                          String messageText, TelegramMessage.MessageType messageType) {
+        telegramNotificationService.sendNotification(chatId, recipientId, recipientType, messageText, messageType);
+    }
+
+    public void sendMessage(TelegramMessage message) {
+        telegramNotificationService.sendNotification(
+            message.getChatId(),
+            message.getRecipientId(),
+            message.getRecipientType(),
+            message.getMessageText(),
+            message.getMessageType()
+        );
     }
 
     public Optional<TelegramBot> findByBotUsername(String botUsername) {

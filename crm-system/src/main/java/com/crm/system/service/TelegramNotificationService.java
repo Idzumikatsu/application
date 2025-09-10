@@ -4,13 +4,16 @@ import com.crm.system.model.TelegramMessage;
 import com.crm.system.model.TelegramMessage.RecipientType;
 import com.crm.system.model.TelegramMessage.MessageType;
 import com.crm.system.model.TelegramMessage.DeliveryStatus;
+import com.crm.system.model.Lesson;
+import com.crm.system.model.LessonPackage;
+import com.crm.system.model.NotificationSettings;
+import com.crm.system.model.Student;
 import com.crm.system.model.User;
 import com.crm.system.model.UserRole;
-import com.crm.system.model.Student;
-import com.crm.system.model.LessonPackage;
 import com.crm.system.repository.TelegramMessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.DefaultAbsSender;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
@@ -42,6 +45,9 @@ public class TelegramNotificationService extends DefaultAbsSender {
     @Autowired
     private LessonPackageService lessonPackageService;
 
+    @Autowired
+    private TelegramMessageService telegramMessageService;
+
     @Value("${telegram.bot.token}")
     private String botToken;
 
@@ -52,6 +58,10 @@ public class TelegramNotificationService extends DefaultAbsSender {
     @Override
     public String getBotToken() {
         return botToken;
+    }
+
+    public TelegramMessage saveTelegramMessage(TelegramMessage telegramMessage) {
+        return telegramMessageService.saveTelegramMessage(telegramMessage);
     }
 
     public void sendNotification(Long chatId, Long recipientId, RecipientType recipientType,
@@ -280,7 +290,12 @@ public class TelegramNotificationService extends DefaultAbsSender {
 
     public void notifyStudentAboutLessonStatusChange(Long studentId, String lessonInfo,
                                                    Lesson.LessonStatus oldStatus, Lesson.LessonStatus newStatus) {
-        Student student = studentService.findById(studentId);
+        Optional<Student> studentOpt = studentService.findById(studentId);
+        if (studentOpt.isEmpty()) {
+            logger.warning("Student not found with ID: " + studentId);
+            return;
+        }
+        Student student = studentOpt.get();
         if (student != null && student.getTelegramChatId() != null) {
             notifyLessonStatusChange(
                 student.getTelegramChatId(),
@@ -295,7 +310,12 @@ public class TelegramNotificationService extends DefaultAbsSender {
 
     public void notifyTeacherAboutLessonStatusChange(Long teacherId, String lessonInfo,
                                                    Lesson.LessonStatus oldStatus, Lesson.LessonStatus newStatus) {
-        User teacher = userService.findById(teacherId);
+        Optional<User> teacherOpt = userService.findById(teacherId);
+        if (teacherOpt.isEmpty()) {
+            logger.warning("Teacher not found with ID: " + teacherId);
+            return;
+        }
+        User teacher = teacherOpt.get();
         if (teacher != null && teacher.getTelegramChatId() != null) {
             notifyLessonStatusChange(
                 teacher.getTelegramChatId(),
@@ -345,7 +365,12 @@ public class TelegramNotificationService extends DefaultAbsSender {
 
     // Методы для уведомлений о пакетах уроков
     public void notifyStudentAboutPackageEndingSoon(Long studentId, LessonPackage lessonPackage) {
-        Student student = studentService.findById(studentId);
+        Optional<Student> studentOpt = studentService.findById(studentId);
+        if (studentOpt.isEmpty()) {
+            logger.warning("Student not found with ID: " + studentId);
+            return;
+        }
+        Student student = studentOpt.get();
         if (student != null && student.getTelegramChatId() != null) {
             String packageInfo = String.format(
                 "Пакет уроков #%d\nОсталось уроков: %d из %d\nДата создания: %s",
@@ -364,7 +389,12 @@ public class TelegramNotificationService extends DefaultAbsSender {
     }
 
     public void notifyStudentAboutPackageExpired(Long studentId, LessonPackage lessonPackage) {
-        Student student = studentService.findById(studentId);
+        Optional<Student> studentOpt = studentService.findById(studentId);
+        if (studentOpt.isEmpty()) {
+            logger.warning("Student not found with ID: " + studentId);
+            return;
+        }
+        Student student = studentOpt.get();
         if (student != null && student.getTelegramChatId() != null) {
             String packageInfo = String.format(
                 "Пакет уроков #%d\nИспользовано уроков: %d из %d\nДата создания: %s",
@@ -535,7 +565,7 @@ public class TelegramNotificationService extends DefaultAbsSender {
     }
 
     public List<TelegramMessage> getDeliveredButUnreadMessagesByRecipient(Long recipientId, RecipientType recipientType) {
-        return telegramMessageRepository.findDeliveredButUnreadMessagesByRecipient(recipientId, recipientType);
+        return telegramMessageRepository.findDeliveredButUnreadMessagesByRecipient(recipientId, recipientType, Pageable.unpaged()).getContent();
     }
 
     public Long countDeliveredButUnreadMessagesByRecipient(Long recipientId, RecipientType recipientType) {

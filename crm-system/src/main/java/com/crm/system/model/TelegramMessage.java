@@ -111,13 +111,6 @@ public class TelegramMessage {
         RETRY_PENDING   // Ожидание повторной попытки отправки
     }
 
-    public enum DeliveryStatus {
-        PENDING,      // Ожидает отправки
-        SENT,         // Отправлено
-        DELIVERED,    // Доставлено
-        READ,         // Прочитано
-        FAILED        // Ошибка отправки
-    }
 
     // Constructors
     public TelegramMessage() {}

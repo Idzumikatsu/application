@@ -298,4 +298,22 @@ public class GroupLesson {
     public void postponeLesson() {
         this.status = GroupLessonStatus.POSTPONED;
     }
+
+    // Additional methods needed for notifications
+    public String getSubject() {
+        return lessonTopic != null ? lessonTopic : "Групповой урок";
+    }
+
+    public String getPlatform() {
+        // Default platform - can be customized based on actual implementation
+        return "Zoom";
+    }
+
+    public Integer getCurrentParticipants() {
+        return currentStudents;
+    }
+
+    public Integer getMaxParticipants() {
+        return maxStudents;
+    }
 }

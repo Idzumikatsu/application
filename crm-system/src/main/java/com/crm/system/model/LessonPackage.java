@@ -119,4 +119,18 @@ public class LessonPackage {
         this.totalLessons += lessonsToAdd;
         this.remainingLessons += lessonsToAdd;
     }
+
+    // Additional methods needed for notifications
+    public String getName() {
+        return "Пакет из " + totalLessons + " уроков";
+    }
+
+    public LocalDateTime getExpirationDate() {
+        // Default expiration: 3 months from creation
+        return createdAt != null ? createdAt.plusMonths(3) : LocalDateTime.now().plusMonths(3);
+    }
+
+    public Long getStudentId() {
+        return student != null ? student.getId() : null;
+    }
 }

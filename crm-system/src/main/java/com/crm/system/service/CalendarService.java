@@ -48,25 +48,28 @@ public class CalendarService {
         List<Lesson> lessons = lessonService.findByTeacherIdAndDateRange(teacherId, startDate, endDate);
         
         // Получаем все групповые уроки преподавателя за период
-        List<GroupLesson> groupLessons = groupLessonService.findByTeacherIdAndDateRange(teacherId, startDate, endDate);
+        List<GroupLesson> groupLessons = groupLessonService.findTeacherLessonsByDateRange(teacherId, startDate, endDate);
         
         // Группируем данные по дням
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
             List<CalendarSlotDto> daySlots = new ArrayList<>();
             
             // Фильтруем слоты по дате
+            LocalDate finalDate1 = date;
             List<AvailabilitySlot> dayAvailabilitySlots = slots.stream()
-                    .filter(slot -> slot.getSlotDate().equals(date))
+                    .filter(slot -> slot.getSlotDate().equals(finalDate1))
                     .collect(Collectors.toList());
             
             // Фильтруем уроки по дате
+            LocalDate finalDate2 = date;
             List<Lesson> dayLessons = lessons.stream()
-                    .filter(lesson -> lesson.getScheduledDate().equals(date))
+                    .filter(lesson -> lesson.getScheduledDate().equals(finalDate2))
                     .collect(Collectors.toList());
             
             // Фильтруем групповые уроки по дате
+            LocalDate finalDate3 = date;
             List<GroupLesson> dayGroupLessons = groupLessons.stream()
-                    .filter(groupLesson -> groupLesson.getScheduledDate().equals(date))
+                    .filter(groupLesson -> groupLesson.getScheduledDate().equals(finalDate3))
                     .collect(Collectors.toList());
             
             // Преобразуем слоты доступности в календарные слоты
@@ -150,13 +153,15 @@ public class CalendarService {
             List<CalendarSlotDto> daySlots = new ArrayList<>();
             
             // Фильтруем уроки по дате
+            LocalDate finalDate4 = date;
             List<Lesson> dayLessons = lessons.stream()
-                    .filter(lesson -> lesson.getScheduledDate().equals(date))
+                    .filter(lesson -> lesson.getScheduledDate().equals(finalDate4))
                     .collect(Collectors.toList());
             
             // Фильтруем регистрации на групповые уроки по дате
+            LocalDate finalDate5 = date;
             List<GroupLessonRegistration> dayGroupLessonRegistrations = groupLessonRegistrations.stream()
-                    .filter(registration -> registration.getGroupLesson().getScheduledDate().equals(date))
+                    .filter(registration -> registration.getGroupLesson().getScheduledDate().equals(finalDate5))
                     .collect(Collectors.toList());
             
             // Преобразуем уроки в календарные слоты
@@ -220,7 +225,7 @@ public class CalendarService {
         List<Lesson> lessons = lessonService.findByTeacherIdAndDate(teacherId, date);
         
         // Получаем групповые уроки преподавателя на дату
-        List<GroupLesson> groupLessons = groupLessonService.findByTeacherIdAndDate(teacherId, date);
+        List<GroupLesson> groupLessons = groupLessonService.findTeacherLessonsByDate(teacherId, date);
         
         List<CalendarSlotDto> calendarSlots = new ArrayList<>();
         

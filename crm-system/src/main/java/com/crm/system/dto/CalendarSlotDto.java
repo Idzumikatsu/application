@@ -1,6 +1,8 @@
 package com.crm.system.dto;
 
 import com.crm.system.model.AvailabilitySlot;
+import com.crm.system.model.GroupLesson;
+import com.crm.system.model.GroupLessonRegistration;
 import com.crm.system.model.Lesson;
 
 import java.time.LocalTime;
@@ -8,13 +10,19 @@ import java.time.LocalTime;
 public class CalendarSlotDto {
     private Long slotId;
     private Long lessonId;
+    private Long groupLessonId;
     private LocalTime time;
     private Integer durationMinutes;
     private AvailabilitySlot.SlotStatus slotStatus;
     private Lesson.LessonStatus lessonStatus;
+    private GroupLesson.GroupLessonStatus groupLessonStatus;
     private String studentName;
     private Long studentId;
     private Boolean isBooked;
+    private String groupLessonTopic;
+    private Integer maxStudents;
+    private Integer currentStudents;
+    private GroupLessonRegistration.RegistrationStatus registrationStatus;
 
     // Constructors
     public CalendarSlotDto() {}
@@ -34,6 +42,14 @@ public class CalendarSlotDto {
 
     public void setLessonId(Long lessonId) {
         this.lessonId = lessonId;
+    }
+
+    public Long getGroupLessonId() {
+        return groupLessonId;
+    }
+
+    public void setGroupLessonId(Long groupLessonId) {
+        this.groupLessonId = groupLessonId;
     }
 
     public LocalTime getTime() {
@@ -68,6 +84,14 @@ public class CalendarSlotDto {
         this.lessonStatus = lessonStatus;
     }
 
+    public GroupLesson.GroupLessonStatus getGroupLessonStatus() {
+        return groupLessonStatus;
+    }
+
+    public void setGroupLessonStatus(GroupLesson.GroupLessonStatus groupLessonStatus) {
+        this.groupLessonStatus = groupLessonStatus;
+    }
+
     public String getStudentName() {
         return studentName;
     }
@@ -90,5 +114,37 @@ public class CalendarSlotDto {
 
     public void setIsBooked(Boolean isBooked) {
         this.isBooked = isBooked;
+    }
+
+    public String getGroupLessonTopic() {
+        return groupLessonTopic;
+    }
+
+    public void setGroupLessonTopic(String groupLessonTopic) {
+        this.groupLessonTopic = groupLessonTopic;
+    }
+
+    public Integer getMaxStudents() {
+        return maxStudents;
+    }
+
+    public void setMaxStudents(Integer maxStudents) {
+        this.maxStudents = maxStudents;
+    }
+
+    public Integer getCurrentStudents() {
+        return currentStudents;
+    }
+
+    public void setCurrentStudents(Integer currentStudents) {
+        this.currentStudents = currentStudents;
+    }
+
+    public GroupLessonRegistration.RegistrationStatus getRegistrationStatus() {
+        return registrationStatus;
+    }
+
+    public void setRegistrationStatus(GroupLessonRegistration.RegistrationStatus registrationStatus) {
+        this.registrationStatus = registrationStatus;
     }
 }

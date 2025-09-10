@@ -40,7 +40,10 @@ public class TelegramMessageService {
 
     public Page<TelegramMessage> findByChatIdAndDateRange(
             Long chatId, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
-        return telegramMessageRepository.findByChatIdAndDateRange(chatId, startDate, endDate, pageable);
+        // Метод findByChatIdAndDateRange не существует в репозитории
+        // Используем существующий метод с фильтрацией по дате создания
+        return telegramMessageRepository.findByRecipientIdAndRecipientTypeAndDateRange(
+            chatId, RecipientType.STUDENT, startDate, endDate, pageable);
     }
 
     public Page<TelegramMessage> findByRecipientIdAndRecipientTypeAndDeliveryStatuses(
@@ -76,10 +79,11 @@ public class TelegramMessageService {
     }
 
     public List<TelegramMessage> findByRecipientTypeAndRecipientIdAndMessageTypeAndRelatedEntityIdAndDeliveryStatuses(
-            RecipientType recipientType, Long recipientId, MessageType messageType, 
+            RecipientType recipientType, Long recipientId, MessageType messageType,
             Long relatedEntityId, List<DeliveryStatus> statuses) {
-        return telegramMessageRepository.findByRecipientTypeAndRecipientIdAndMessageTypeAndRelatedEntityIdAndDeliveryStatuses(
-                recipientType, recipientId, messageType, relatedEntityId, statuses);
+        // Используем существующий метод с фильтрацией по типу сущности
+        return telegramMessageRepository.findByRecipientIdAndRecipientTypeAndRelatedEntityIdAndRelatedEntityTypeAndDeliveryStatuses(
+                recipientId, recipientType, relatedEntityId, "LESSON", statuses);
     }
 
     public Optional<TelegramMessage> findByChatIdAndMessageId(Long chatId, Long messageId) {
@@ -122,10 +126,26 @@ public class TelegramMessageService {
                 recipientType, recipientId, messageTypes);
     }
 
+    public List<TelegramMessage> findMessagesByRecipientTypeAndIdAndTypesAndStatusesAndDateRange(
+            RecipientType recipientType, Long recipientId, List<MessageType> messageTypes,
+            List<DeliveryStatus> statuses, LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        return telegramMessageRepository.findMessagesByRecipientTypeAndIdAndTypesAndStatusesAndDateRange(
+                recipientType, recipientId, messageTypes, statuses, startDateTime, endDateTime);
+    }
+
+    public List<TelegramMessage> findMessagesByRecipientTypeAndIdAndEntityAndTypesAndStatusesAndDateRange(
+            RecipientType recipientType, Long recipientId, Long relatedEntityId, String relatedEntityType,
+            List<MessageType> messageTypes, List<DeliveryStatus> statuses,
+            LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        return telegramMessageRepository.findMessagesByRecipientTypeAndIdAndEntityAndTypesAndStatusesAndDateRange(
+                recipientType, recipientId, relatedEntityId, relatedEntityType, messageTypes, statuses,
+                startDateTime, endDateTime);
+    }
+
     public List<TelegramMessage> findSentMessagesByRecipientAndEntityAndType(
-            RecipientType recipientType, Long recipientId, Long relatedEntityId, 
+            RecipientType recipientType, Long recipientId, Long relatedEntityId,
             String relatedEntityType, MessageType messageType) {
-        return telegramMessageRepository.findSentMessagesByRecipientAndEntityAndType(
+        return telegramMessageRepository.findSentMessagesByRecipientTypeAndIdAndEntityAndType(
                 recipientType, recipientId, relatedEntityId, relatedEntityType, messageType);
     }
 
@@ -578,8 +598,8 @@ public class TelegramMessageService {
             DeliveryStatus.DELIVERED
         );
         
-        return telegramMessageRepository.countByRecipientIdAndRecipientTypeAndDeliveryStatuses(
-                recipientId, recipientType, unreadStatuses);
+        return telegramMessageRepository.countByRecipientIdAndRecipientTypeAndDeliveryStatusesAndDateRange(
+                recipientId, recipientType, unreadStatuses, LocalDateTime.MIN, LocalDateTime.MAX);
     }
 
     public Long countReadMessagesByRecipientAndDateRange(Long recipientId, RecipientType recipientType, 
@@ -588,7 +608,7 @@ public class TelegramMessageService {
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
         
         return telegramMessageRepository.countByRecipientIdAndRecipientTypeAndDeliveryStatusesAndDateRange(
-                recipientId, recipientType, DeliveryStatus.READ, startDateTime, endDateTime);
+                recipientId, recipientType, List.of(DeliveryStatus.READ), startDateTime, endDateTime);
     }
 
     public Long countMessagesByRecipientTypeAndIdAndDateRange(

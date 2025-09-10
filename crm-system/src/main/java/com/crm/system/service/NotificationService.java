@@ -560,7 +560,7 @@ public class NotificationService {
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
         
         return notificationRepository.countByRecipientIdAndRecipientTypeAndStatusesAndDateRange(
-                recipientId, recipientType, NotificationStatus.READ, startDateTime, endDateTime);
+                recipientId, recipientType, List.of(NotificationStatus.READ), startDateTime, endDateTime);
     }
 
     public Long countNotificationsByRecipientTypeAndIdAndDateRange(

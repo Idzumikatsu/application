@@ -177,4 +177,9 @@ public class User {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    // Utility methods
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
 }

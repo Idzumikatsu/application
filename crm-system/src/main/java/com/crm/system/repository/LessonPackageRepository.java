@@ -30,9 +30,9 @@ public interface LessonPackageRepository extends JpaRepository<LessonPackage, Lo
     @Query("SELECT lp FROM LessonPackage lp WHERE lp.remainingLessons > 0")
     List<LessonPackage> findByRemainingLessonsGreaterThan(@Param("remainingLessons") int remainingLessons);
 
-    @Query("SELECT lp FROM LessonPackage lp WHERE lp.remainingLessons <= :threshold AND lp.remainingLessons > 0 AND lp.active = true")
+    @Query("SELECT lp FROM LessonPackage lp WHERE lp.remainingLessons <= :threshold AND lp.remainingLessons > 0")
     List<LessonPackage> findPackagesWithLowRemainingLessons(@Param("threshold") int threshold);
 
-    @Query("SELECT lp FROM LessonPackage lp WHERE lp.expirationDate < :currentDate AND lp.remainingLessons > 0 AND lp.active = true")
-    List<LessonPackage> findExpiredPackages(@Param("currentDate") LocalDateTime currentDate);
+    @Query("SELECT lp FROM LessonPackage lp WHERE lp.createdAt < :expirationThreshold AND lp.remainingLessons > 0")
+    List<LessonPackage> findExpiredPackages(@Param("expirationThreshold") LocalDateTime expirationThreshold);
 }

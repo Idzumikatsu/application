@@ -40,9 +40,9 @@ public class GroupLessonRegistrationController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/bookings")
+    @PostMapping("/group-bookings")
     @PreAuthorize("hasRole('STUDENT') or hasRole('MANAGER') or hasRole('ADMIN')")
-    public ResponseEntity<GroupLessonRegistrationDto> bookSlot(@Valid @RequestBody BookSlotDto bookSlotDto) {
+    public ResponseEntity<GroupLessonRegistrationDto> bookGroupSlot(@Valid @RequestBody BookSlotDto bookSlotDto) {
         GroupLesson groupLesson = groupLessonService.findById(bookSlotDto.getSlotId())
                 .orElseThrow(() -> new RuntimeException("Group lesson not found with id: " + bookSlotDto.getSlotId()));
 
@@ -63,9 +63,9 @@ public class GroupLessonRegistrationController {
         return ResponseEntity.ok(convertToDto(registration));
     }
 
-    @DeleteMapping("/bookings/slots/{slotId}")
+    @DeleteMapping("/group-bookings/slots/{slotId}")
     @PreAuthorize("hasRole('STUDENT') or hasRole('MANAGER') or hasRole('ADMIN') or hasRole('TEACHER')")
-    public ResponseEntity<?> cancelBooking(@PathVariable Long slotId, @RequestParam Long studentId) {
+    public ResponseEntity<?> cancelGroupBooking(@PathVariable Long slotId, @RequestParam Long studentId) {
         // Проверяем, что студент зарегистрирован на этот слот
         GroupLessonRegistration registration = groupLessonRegistrationService.findByStudentIdAndGroupLessonId(studentId, slotId)
                 .orElseThrow(() -> new RuntimeException("Student is not registered for this slot"));
@@ -78,16 +78,16 @@ public class GroupLessonRegistrationController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/bookings/slots/{slotId}/available")
+    @GetMapping("/group-bookings/slots/{slotId}/available")
     @PreAuthorize("hasRole('STUDENT') or hasRole('MANAGER') or hasRole('ADMIN') or hasRole('TEACHER')")
-    public ResponseEntity<Boolean> isSlotAvailableForBooking(@PathVariable Long slotId) {
+    public ResponseEntity<Boolean> isGroupSlotAvailableForBooking(@PathVariable Long slotId) {
         boolean isAvailable = groupLessonService.isSlotAvailableForBooking(slotId);
         return ResponseEntity.ok(isAvailable);
     }
 
-    @GetMapping("/bookings/slots/{slotId}/student/{studentId}")
+    @GetMapping("/group-bookings/slots/{slotId}/student/{studentId}")
     @PreAuthorize("hasRole('STUDENT') or hasRole('MANAGER') or hasRole('ADMIN') or hasRole('TEACHER')")
-    public ResponseEntity<Boolean> isSlotBookedByStudent(@PathVariable Long slotId, @PathVariable Long studentId) {
+    public ResponseEntity<Boolean> isGroupSlotBookedByStudent(@PathVariable Long slotId, @PathVariable Long studentId) {
         boolean isBooked = groupLessonRegistrationService.isSlotBookedByStudent(slotId, studentId);
         return ResponseEntity.ok(isBooked);
     }
@@ -108,8 +108,8 @@ public class GroupLessonRegistrationController {
         LocalDate end = endDate != null ? endDate : start.plusWeeks(1);
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<GroupLessonRegistration> registrationPage = groupLessonRegistrationService.findByStudentIdAndDateRange(
-                studentId, start, end, pageable);
+        Page<GroupLessonRegistration> registrationPage = groupLessonRegistrationService.findByStudentIdAndStatusesAndDateRange(
+                studentId, List.of(GroupLessonRegistration.RegistrationStatus.REGISTERED), start, end, pageable);
 
         Page<GroupLessonRegistrationDto> registrationDtos = registrationPage.map(this::convertToDto);
         return ResponseEntity.ok(registrationDtos);

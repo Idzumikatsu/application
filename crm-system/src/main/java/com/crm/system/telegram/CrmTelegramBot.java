@@ -158,8 +158,9 @@ public class CrmTelegramBot extends TelegramLongPollingBot {
     private void handleEmailRegistration(Long chatId, String email, User telegramUser) {
         try {
             // Ищем пользователя по email
-            com.crm.system.model.User user = userService.findByEmail(email);
-            if (user != null) {
+            java.util.Optional<com.crm.system.model.User> userOptional = userService.findByEmail(email);
+            if (userOptional.isPresent()) {
+                com.crm.system.model.User user = userOptional.get();
                 // Обновляем chatId пользователя
                 user.setTelegramChatId(chatId);
                 userService.saveUser(user);
@@ -179,8 +180,9 @@ public class CrmTelegramBot extends TelegramLongPollingBot {
                 
             } else {
                 // Ищем студента по email
-                com.crm.system.model.Student student = studentService.findByEmail(email);
-                if (student != null) {
+                java.util.Optional<com.crm.system.model.Student> studentOptional = studentService.findByEmail(email);
+                if (studentOptional.isPresent()) {
+                    com.crm.system.model.Student student = studentOptional.get();
                     // Обновляем chatId студента
                     student.setTelegramChatId(chatId);
                     studentService.saveStudent(student);
@@ -260,8 +262,9 @@ public class CrmTelegramBot extends TelegramLongPollingBot {
                     sendTextMessage(chatId, "✅ Ваше присутствие на уроке подтверждено!");
                     
                     // Отправляем уведомление менеджеру
-                    com.crm.system.model.Lesson lesson = lessonService.findById(lessonId);
-                    if (lesson != null) {
+                    java.util.Optional<com.crm.system.model.Lesson> lessonOptional = lessonService.findById(lessonId);
+                    if (lessonOptional.isPresent()) {
+                        com.crm.system.model.Lesson lesson = lessonOptional.get();
                         String notificationText = "✅ Студент подтвердил присутствие на уроке:\n\n" +
                                                "📚 Урок: " + lesson.getSubject() + "\n" +
                                                "👨‍🎓 Студент: " + lesson.getStudent().getFirstName() + " " + lesson.getStudent().getLastName() + "\n" +
@@ -515,7 +518,10 @@ public class CrmTelegramBot extends TelegramLongPollingBot {
         private void sendGroupLessonReminderToParticipants(com.crm.system.model.GroupLesson groupLesson, String day) {
             try {
                 // Получаем всех участников группового урока
-                List<com.crm.system.model.Student> participants = groupLessonRegistrationService.findParticipantsByGroupLesson(groupLesson.getId());
+                List<com.crm.system.model.GroupLessonRegistration> registrations = groupLessonRegistrationService.findByGroupLessonId(groupLesson.getId());
+                List<com.crm.system.model.Student> participants = registrations.stream()
+                        .map(com.crm.system.model.GroupLessonRegistration::getStudent)
+                        .collect(java.util.stream.Collectors.toList());
                 
                 for (com.crm.system.model.Student student : participants) {
                     if (student.getTelegramChatId() != null) {
@@ -617,8 +623,9 @@ public class CrmTelegramBot extends TelegramLongPollingBot {
                             sendTextMessage(chatId, "✅ Ваше присутствие на уроке подтверждено!");
                             
                             // Отправляем уведомление менеджеру
-                            Lesson lesson = lessonService.findById(lessonId);
-                            if (lesson != null) {
+                            java.util.Optional<Lesson> lessonOptional = lessonService.findById(lessonId);
+                            if (lessonOptional.isPresent()) {
+                                Lesson lesson = lessonOptional.get();
                                 String notificationText = "✅ Студент подтвердил присутствие на уроке:\n\n" +
                                                        "📚 Урок: " + lesson.getSubject() + "\n" +
                                                        "👨‍🎓 Студент: " + lesson.getStudent().getFirstName() + " " + lesson.getStudent().getLastName() + "\n" +

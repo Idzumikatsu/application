@@ -84,6 +84,9 @@ public interface TelegramBotRepository extends JpaRepository<TelegramBot, Long> 
                                                      @Param("endDate") java.time.LocalDateTime endDate);
     
     @Query("SELECT tb FROM TelegramBot tb WHERE tb.isActive = false AND tb.updatedAt >= :startDate AND tb.updatedAt <= :endDate")
-    List<TelegramBot> findInactiveBotsByUpdatedAtBetween(@Param("startDate") java.time.LocalDateTime startDate, 
+    List<TelegramBot> findInactiveBotsByUpdatedAtBetween(@Param("startDate") java.time.LocalDateTime startDate,
                                                        @Param("endDate") java.time.LocalDateTime endDate);
+
+    @Query("SELECT tb FROM TelegramBot tb WHERE tb.isActive = false AND tb.botName LIKE %:botName%")
+    List<TelegramBot> findInactiveBotsByBotNameContaining(@Param("botName") String botName);
 }

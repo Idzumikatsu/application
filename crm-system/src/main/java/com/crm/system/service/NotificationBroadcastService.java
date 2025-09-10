@@ -193,14 +193,18 @@ public class NotificationBroadcastService {
      */
     private void sendEmailNotification(User recipient, NotificationDto notificationDto, BroadcastResult result) {
         try {
-            emailService.sendNotificationEmail(
-                recipient.getEmail(),
-                recipient.getFullName(),
-                notificationDto.getTitle(),
-                notificationDto.getMessage(),
-                notificationDto.getNotificationType(),
-                notificationDto.getPriority()
-            );
+            // Создаем объект Notification для передачи в emailService
+            Notification notification = new Notification();
+            notification.setRecipientId(recipient.getId());
+            notification.setRecipientType(Notification.RecipientType.valueOf(recipient.getRole().name()));
+            notification.setNotificationType(notificationDto.getNotificationType());
+            notification.setTitle(notificationDto.getTitle());
+            notification.setMessage(notificationDto.getMessage());
+            notification.setPriority(notificationDto.getPriority());
+            notification.setStatus(Notification.NotificationStatus.PENDING);
+            notification.setCreatedAt(LocalDateTime.now());
+            
+            emailService.sendNotificationEmail(notification);
             result.incrementEmailNotificationsSent();
         } catch (Exception e) {
             logger.warning("Failed to send email notification to user " + recipient.getId() + ": " + e.getMessage());

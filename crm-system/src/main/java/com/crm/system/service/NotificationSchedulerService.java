@@ -138,7 +138,7 @@ public class NotificationSchedulerService {
                 
                 // Отправляем уведомление в Telegram, если есть chatId
                 if (student.getTelegramChatId() != null) {
-                    telegramBotService.sendGroupLessonReminder(
+                    telegramNotificationService.sendGroupLessonReminderNotification(
                             student.getTelegramChatId(),
                             student.getId(),
                             TelegramMessage.RecipientType.STUDENT,
@@ -202,7 +202,7 @@ public class NotificationSchedulerService {
                 telegramMessageService.incrementRetryCount(message);
                 
                 // Повторная отправка
-                telegramBotService.sendMessage(
+                telegramNotificationService.sendNotification(
                         message.getChatId(),
                         message.getRecipientId(),
                         message.getRecipientType(),
@@ -284,11 +284,12 @@ public class NotificationSchedulerService {
                 
                 // Отправляем уведомление в Telegram, если есть chatId
                 if (student.getTelegramChatId() != null) {
-                    telegramBotService.sendGroupLessonCancelled(
+                    telegramNotificationService.sendGroupLessonCancelledNotification(
                             student.getTelegramChatId(),
                             student.getId(),
                             TelegramMessage.RecipientType.STUDENT,
-                            cancellationInfo.toString()
+                            cancellationInfo.toString(),
+                            reason
                     );
                 }
             }
@@ -328,7 +329,7 @@ public class NotificationSchedulerService {
             
             // Отправляем уведомление в Telegram, если есть chatId
             if (teacher.getTelegramChatId() != null) {
-                telegramBotService.sendFeedbackRequest(
+                telegramNotificationService.sendFeedbackRequestNotification(
                         teacher.getTelegramChatId(),
                         teacher.getId(),
                         TelegramMessage.RecipientType.TEACHER,

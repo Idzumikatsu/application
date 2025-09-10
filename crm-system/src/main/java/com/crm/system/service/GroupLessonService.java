@@ -1,6 +1,7 @@
 package com.crm.system.service;
 
 import com.crm.system.model.GroupLesson;
+import com.crm.system.model.GroupLessonRegistration;
 import com.crm.system.model.User;
 import com.crm.system.model.GroupLesson.GroupLessonStatus;
 import com.crm.system.repository.GroupLessonRepository;
@@ -43,10 +44,6 @@ public class GroupLessonService {
     public GroupLesson createGroupLesson(User teacher, String lessonTopic, LocalDate scheduledDate, LocalTime scheduledTime, Integer durationMinutes) {
         GroupLesson groupLesson = new GroupLesson(teacher, lessonTopic, scheduledDate, scheduledTime, durationMinutes);
         return groupLessonRepository.save(groupLesson);
-    }
-
-    public List<GroupLesson> findByTeacherIdAndDate(Long teacherId, LocalDate date) {
-        return groupLessonRepository.findByTeacherIdAndDate(teacherId, date);
     }
 
     public List<GroupLesson> findByTeacherIdAndDate(Long teacherId, LocalDate date) {
