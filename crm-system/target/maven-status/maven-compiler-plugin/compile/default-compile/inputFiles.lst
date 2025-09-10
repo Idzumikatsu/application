@@ -13,6 +13,7 @@
 /opt/application/crm-system/src/main/java/com/crm/system/dto/CreateGroupLessonDto.java
 /opt/application/crm-system/src/main/java/com/crm/system/repository/TelegramBotRepository.java
 /opt/application/crm-system/src/main/java/com/crm/system/dto/UserDto.java
+/opt/application/crm-system/src/main/java/com/crm/system/config/CorsConfig.java
 /opt/application/crm-system/src/main/java/com/crm/system/dto/GroupLessonDto.java
 /opt/application/crm-system/src/main/java/com/crm/system/service/TelegramBotService.java
 /opt/application/crm-system/src/main/java/com/crm/system/dto/TelegramMessageDto.java
@@ -21,9 +22,12 @@
 /opt/application/crm-system/src/main/java/com/crm/system/dto/NotificationDto.java
 /opt/application/crm-system/src/main/java/com/crm/system/security/UserDetailsServiceImpl.java
 /opt/application/crm-system/src/main/java/com/crm/system/dto/CreateLessonPackageDto.java
+/opt/application/crm-system/src/main/java/com/crm/system/service/EmailService.java
 /opt/application/crm-system/src/main/java/com/crm/system/service/UserService.java
 /opt/application/crm-system/src/main/java/com/crm/system/model/Lesson.java
 /opt/application/crm-system/src/main/java/com/crm/system/service/LessonService.java
+/opt/application/crm-system/src/main/java/com/crm/system/model/NotificationSettings.java
+/opt/application/crm-system/src/main/java/com/crm/system/service/MessageRetryService.java
 /opt/application/crm-system/src/main/java/com/crm/system/security/JwtTokenUtil.java
 /opt/application/crm-system/src/main/java/com/crm/system/model/Notification.java
 /opt/application/crm-system/src/main/java/com/crm/system/controller/StudentController.java
@@ -40,6 +44,7 @@
 /opt/application/crm-system/src/main/java/com/crm/system/controller/LessonController.java
 /opt/application/crm-system/src/main/java/com/crm/system/CrmSystemApplication.java
 /opt/application/crm-system/src/main/java/com/crm/system/model/TelegramBot.java
+/opt/application/crm-system/src/main/java/com/crm/system/config/TelegramConfig.java
 /opt/application/crm-system/src/main/java/com/crm/system/dto/CreateAvailabilitySlotDto.java
 /opt/application/crm-system/src/main/java/com/crm/system/service/LessonPackageService.java
 /opt/application/crm-system/src/main/java/com/crm/system/dto/StudentDto.java
@@ -49,16 +54,19 @@
 /opt/application/crm-system/src/main/java/com/crm/system/service/CalendarService.java
 /opt/application/crm-system/src/main/java/com/crm/system/controller/AuthController.java
 /opt/application/crm-system/src/main/java/com/crm/system/controller/NotificationController.java
+/opt/application/crm-system/src/main/java/com/crm/system/service/PackageNotificationService.java
 /opt/application/crm-system/src/main/java/com/crm/system/dto/LessonPackageDto.java
 /opt/application/crm-system/src/main/java/com/crm/system/controller/SlotBookingController.java
 /opt/application/crm-system/src/main/java/com/crm/system/security/JwtAuthenticationFilter.java
 /opt/application/crm-system/src/main/java/com/crm/system/service/NotificationBroadcastService.java
+/opt/application/crm-system/src/main/java/com/crm/system/repository/NotificationSettingsRepository.java
 /opt/application/crm-system/src/main/java/com/crm/system/service/TelegramNotificationService.java
 /opt/application/crm-system/src/main/java/com/crm/system/dto/LessonDto.java
 /opt/application/crm-system/src/main/java/com/crm/system/controller/TeacherController.java
 /opt/application/crm-system/src/main/java/com/crm/system/dto/JwtResponseDto.java
 /opt/application/crm-system/src/main/java/com/crm/system/model/AvailabilitySlot.java
 /opt/application/crm-system/src/main/java/com/crm/system/dto/TelegramBotDto.java
+/opt/application/crm-system/src/main/java/com/crm/system/service/NotificationSettingsService.java
 /opt/application/crm-system/src/main/java/com/crm/system/dto/MessageDto.java
 /opt/application/crm-system/src/main/java/com/crm/system/telegram/CrmTelegramBot.java
 /opt/application/crm-system/src/main/java/com/crm/system/controller/LessonPackageController.java
@@ -79,4 +87,5 @@
 /opt/application/crm-system/src/main/java/com/crm/system/service/GroupLessonService.java
 /opt/application/crm-system/src/main/java/com/crm/system/repository/StudentRepository.java
 /opt/application/crm-system/src/main/java/com/crm/system/service/NotificationSenderService.java
+/opt/application/crm-system/src/main/java/com/crm/system/service/PackageNotificationScheduler.java
 /opt/application/crm-system/src/main/java/com/crm/system/dto/AvailabilitySlotDto.java
