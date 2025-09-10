@@ -8,8 +8,6 @@ import {
   Box,
   Typography,
   Grid,
-  Card,
-  CardContent,
   Chip,
   Table,
   TableBody,
@@ -62,7 +60,7 @@ const StudentLessonsDialog: React.FC<StudentLessonsDialogProps> = ({
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
       
-      const data = await LessonService.getStudentLessons(student.id, startDate, endDate);
+      const data = await LessonService.getStudentLessons(student.id, params);
       setLessons(data);
     } catch (error) {
       console.error('Ошибка загрузки уроков:', error);
@@ -75,7 +73,7 @@ const StudentLessonsDialog: React.FC<StudentLessonsDialogProps> = ({
     filterStatus === 'all' || lesson.status === filterStatus
   );
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
 

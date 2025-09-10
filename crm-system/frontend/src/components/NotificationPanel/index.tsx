@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { Notification as NotificationType, NotificationStatus, NotificationType as NType } from '../../types';
+import { Notification as NotificationType, NotificationStatus } from '../../types';
 import {
   Box,
   Tabs,
@@ -47,7 +47,7 @@ const NotificationPanel: React.FC = () => {
       id: 1,
       recipientId: user?.id || 0,
       recipientType: 'STUDENT',
-      notificationType: NType.LESSON_COMPLETED,
+      notificationType: 'LESSON_COMPLETED',
       title: 'Статус урока изменен',
       message: 'Статус вашего урока от 2024-01-15 изменен с "Проведен" на "Завершен"',
       status: NotificationStatus.PENDING,
@@ -60,7 +60,7 @@ const NotificationPanel: React.FC = () => {
       id: 2,
       recipientId: user?.id || 0,
       recipientType: 'STUDENT',
-      notificationType: NType.LESSON_CANCELLED,
+      notificationType: 'LESSON_CANCELLED',
       title: 'Урок отменен',
       message: 'Ваш урок от 2024-01-16 был отменен. Причина: болезнь учителя',
       status: NotificationStatus.PENDING,
@@ -71,7 +71,7 @@ const NotificationPanel: React.FC = () => {
     } as NotificationType
   ];
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
 

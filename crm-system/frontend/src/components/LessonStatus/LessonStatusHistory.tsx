@@ -11,8 +11,8 @@ import {
   Divider,
   Avatar,
 } from '@mui/material';
+import { Settings as SettingsIcon, Person as PersonIcon, ArrowForward as ArrowForwardIcon } from '@mui/icons-material';
 import { LessonStatusHistory as LessonStatusHistoryType } from '../../types';
-import lessonService from '../../services/lessonService';
 import { LessonStatusBadge } from './';
 
 interface LessonStatusHistoryProps {
@@ -40,11 +40,7 @@ const LessonStatusHistory: React.FC<LessonStatusHistoryProps> = ({
   };
 
   const getTimelineIcon = (automated: boolean) => {
-    return automated ? 'settings' : 'person';
-  };
-
-  const getTimelineColor = (automated: boolean) => {
-    return automated ? 'secondary' : 'primary';
+    return automated ? <SettingsIcon fontSize="small" /> : <PersonIcon fontSize="small" />;
   };
 
   if (history.length === 0) {
@@ -78,9 +74,7 @@ const LessonStatusHistory: React.FC<LessonStatusHistoryProps> = ({
                     height: 32,
                   }}
                 >
-                  <span className="material-icons" style={{ fontSize: '18px' }}>
-                    {getTimelineIcon(item.automated)}
-                  </span>
+                  {getTimelineIcon(item.automated)}
                 </Avatar>
               </ListItemIcon>
               
@@ -89,9 +83,7 @@ const LessonStatusHistory: React.FC<LessonStatusHistoryProps> = ({
                   <Box sx={{ mb: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                       <LessonStatusBadge status={item.oldStatus} size="small" showIcon={false} />
-                      <span className="material-icons" style={{ fontSize: '16px' }}>
-                        arrow_forward
-                      </span>
+                      <ArrowForwardIcon sx={{ fontSize: '16px' }} />
                       <LessonStatusBadge status={item.newStatus} size="small" showIcon={false} />
                     </Box>
                     

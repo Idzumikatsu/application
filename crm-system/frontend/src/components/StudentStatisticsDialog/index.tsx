@@ -10,19 +10,15 @@ import {
   Grid,
   Card,
   CardContent,
-  Chip,
   LinearProgress,
   List,
   ListItem,
   ListItemText,
   ListItemIcon,
   Divider,
-  Paper,
 } from '@mui/material';
 import {
   School,
-  Event,
-  TrendingUp,
   CheckCircle,
   Cancel,
   AccessTime,
@@ -53,7 +49,6 @@ const StudentStatisticsDialog: React.FC<StudentStatisticsDialogProps> = ({
   onClose,
   student,
 }) => {
-  const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(false);
   const [statistics, setStatistics] = useState<Statistics>({
     totalLessons: 0,
@@ -78,7 +73,6 @@ const StudentStatisticsDialog: React.FC<StudentStatisticsDialogProps> = ({
     setLoading(true);
     try {
       const data = await LessonService.getStudentLessons(student.id);
-      setLessons(data);
       calculateStatistics(data);
     } catch (error) {
       console.error('Ошибка загрузки уроков:', error);

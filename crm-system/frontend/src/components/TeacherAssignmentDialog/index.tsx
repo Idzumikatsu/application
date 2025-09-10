@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -10,7 +10,6 @@ import {
   Grid,
   Card,
   CardContent,
-  Chip,
   Avatar,
   FormControl,
   InputLabel,
@@ -43,6 +42,24 @@ const TeacherAssignmentDialog: React.FC<TeacherAssignmentDialogProps> = ({
   const [loading, setLoading] = useState(false);
   const [currentTeacher, setCurrentTeacher] = useState<Teacher | null>(null);
 
+  const loadTeachers = useCallback(async () => {
+    try {
+      const data = await UserService.getAllTeachers();
+      setTeachers(data);
+    } catch (error) {
+      console.error('Ошибка загрузки преподавателей:', error);
+    }
+  }, []);
+
+  const loadCurrentTeacher = useCallback(async (teacherId: number) => {
+    try {
+      const teacher = await UserService.getTeacherById(teacherId);
+      setCurrentTeacher(teacher);
+    } catch (error) {
+      console.error('Ошибка загрузки преподавателя:', error);
+    }
+  }, []);
+
   useEffect(() => {
     if (open) {
       loadTeachers();
@@ -54,25 +71,7 @@ const TeacherAssignmentDialog: React.FC<TeacherAssignmentDialogProps> = ({
         setCurrentTeacher(null);
       }
     }
-  }, [open, student]);
-
-  const loadTeachers = async () => {
-    try {
-      const data = await UserService.getAllTeachers();
-      setTeachers(data);
-    } catch (error) {
-      console.error('Ошибка загрузки преподавателей:', error);
-    }
-  };
-
-  const loadCurrentTeacher = async (teacherId: number) => {
-    try {
-      const teacher = await UserService.getTeacherById(teacherId);
-      setCurrentTeacher(teacher);
-    } catch (error) {
-      console.error('Ошибка загрузки преподавателя:', error);
-    }
-  };
+  }, [open, student, loadTeachers, loadCurrentTeacher]);
 
   const handleAssignTeacher = async () => {
     if (!student) return;
@@ -80,7 +79,7 @@ const TeacherAssignmentDialog: React.FC<TeacherAssignmentDialogProps> = ({
     setLoading(true);
     try {
       const teacherId = selectedTeacherId ? parseInt(selectedTeacherId) : undefined;
-      const updatedStudent = await UserService.updateStudent(student.id, {
+      await UserService.updateStudent(student.id, {
         assignedTeacherId: teacherId,
       });
       
@@ -104,7 +103,7 @@ const TeacherAssignmentDialog: React.FC<TeacherAssignmentDialogProps> = ({
     
     setLoading(true);
     try {
-      const updatedStudent = await UserService.updateStudent(student.id, {
+      await UserService.updateStudent(student.id, {
         assignedTeacherId: undefined,
       });
       setSelectedTeacherId('');

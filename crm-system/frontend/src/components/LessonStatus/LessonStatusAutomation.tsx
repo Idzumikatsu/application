@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { LessonStatusTransitionService } from '../../services/lessonStatusTransitionService';
 import { setLoading, setError } from '../../store/notificationSlice';
 import { updateLesson } from '../../store/lessonSlice';
 import { Box, Typography, Paper, Chip, Button } from '@mui/material';
-import { PlayArrow, Stop, Settings } from '@mui/icons-material';
+import { PlayArrow, Stop } from '@mui/icons-material';
 
 interface LessonStatusAutomationProps {
   lessonId?: number;
@@ -18,13 +18,13 @@ const LessonStatusAutomation: React.FC<LessonStatusAutomationProps> = ({
 }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
-  const [isRunning, setIsRunning] = React.useState(false);
-  const [lastCheck, setLastCheck] = React.useState<Date | null>(null);
-  const [checkInterval, setCheckInterval] = React.useState<NodeJS.Timeout | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
+  const [lastCheck, setLastCheck] = useState<Date | null>(null);
+  const [checkInterval, setCheckInterval] = useState<NodeJS.Timeout | null>(null);
 
   const rules = LessonStatusTransitionService.getTransitionRules();
 
-  const startAutomation = () => {
+  const startAutomation = useCallback(() => {
     if (isRunning) return;
 
     const interval = LessonStatusTransitionService.startPeriodicCheck(5);
@@ -33,9 +33,9 @@ const LessonStatusAutomation: React.FC<LessonStatusAutomationProps> = ({
     setLastCheck(new Date());
     
     dispatch(setLoading(false));
-  };
+  }, [isRunning, dispatch]);
 
-  const stopAutomation = () => {
+  const stopAutomation = useCallback(() => {
     if (checkInterval) {
       clearInterval(checkInterval);
       setCheckInterval(null);
@@ -43,9 +43,9 @@ const LessonStatusAutomation: React.FC<LessonStatusAutomationProps> = ({
     setIsRunning(false);
     
     dispatch(setLoading(false));
-  };
+  }, [checkInterval, dispatch]);
 
-  const checkSingleLesson = async () => {
+  const checkSingleLesson = useCallback(async () => {
     if (!lessonId) return;
 
     try {
@@ -62,7 +62,7 @@ const LessonStatusAutomation: React.FC<LessonStatusAutomationProps> = ({
       dispatch(setError('Ошибка при проверке статуса урока'));
       dispatch(setLoading(false));
     }
-  };
+  }, [lessonId, dispatch]);
 
   useEffect(() => {
     // Автоматически запускаем проверку при монтировании компонента
@@ -73,7 +73,7 @@ const LessonStatusAutomation: React.FC<LessonStatusAutomationProps> = ({
     return () => {
       stopAutomation();
     };
-  }, [user]);
+  }, [user, startAutomation, stopAutomation]);
 
   return (
     <Paper sx={{ p: 2, mb: 2 }}>
@@ -141,7 +141,6 @@ const LessonStatusAutomation: React.FC<LessonStatusAutomationProps> = ({
         <Box>
           <Button
             variant="outlined"
-            startIcon={<Settings />}
             onClick={checkSingleLesson}
             size="small"
           >

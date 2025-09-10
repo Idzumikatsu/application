@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import {
@@ -24,7 +24,7 @@ interface NotificationSetting {
 }
 
 const LessonStatusNotificationSettings: React.FC = () => {
-  const { user } = useSelector((state: RootState) => state.auth);
+  // const { user } = useSelector((state: RootState) => state.auth); // Не используется в текущей реализации
   const [settings, setSettings] = useState<NotificationSetting[]>([
     {
       id: 'lesson-completed',
@@ -65,13 +65,13 @@ const LessonStatusNotificationSettings: React.FC = () => {
 
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
 
-  const handleSettingChange = (id: string, field: keyof NotificationSetting, value: any) => {
+  const handleSettingChange = useCallback((id: string, field: keyof NotificationSetting, value: any) => {
     setSettings(prev => prev.map(setting =>
       setting.id === id ? { ...setting, [field]: value } : setting
     ));
-  };
+  }, []);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     setSaveStatus('saving');
     try {
       // Здесь будет вызов API для сохранения настроек
@@ -82,25 +82,25 @@ const LessonStatusNotificationSettings: React.FC = () => {
       setSaveStatus('error');
       setTimeout(() => setSaveStatus('idle'), 3000);
     }
-  };
+  }, []);
 
-  const getChannelColor = (channel: string) => {
+  const getChannelColor = useCallback((channel: string) => {
     switch (channel) {
       case 'email': return 'primary';
       case 'telegram': return 'info';
       case 'push': return 'secondary';
       default: return 'default';
     }
-  };
+  }, []);
 
-  const getChannelLabel = (channel: string) => {
+  const getChannelLabel = useCallback((channel: string) => {
     switch (channel) {
       case 'email': return 'Email';
       case 'telegram': return 'Telegram';
       case 'push': return 'Push';
       default: return channel;
     }
-  };
+  }, []);
 
   return (
     <Paper sx={{ p: 3 }}>

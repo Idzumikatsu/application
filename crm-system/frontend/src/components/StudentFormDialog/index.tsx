@@ -11,10 +11,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Switch,
-  FormControlLabel,
   Box,
-  Typography,
 } from '@mui/material';
 import { Student, Teacher } from '../../types';
 import UserService from '../../services/userService';
@@ -40,10 +37,8 @@ const StudentFormDialog: React.FC<StudentFormDialogProps> = ({
     telegramUsername: '',
     dateOfBirth: '',
     assignedTeacherId: '',
-    isActive: true,
   });
   const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -57,7 +52,6 @@ const StudentFormDialog: React.FC<StudentFormDialogProps> = ({
           telegramUsername: student.telegramUsername || '',
           dateOfBirth: student.dateOfBirth || '',
           assignedTeacherId: student.assignedTeacherId?.toString() || '',
-          isActive: true,
         });
       } else {
         setFormData({
@@ -68,7 +62,6 @@ const StudentFormDialog: React.FC<StudentFormDialogProps> = ({
           telegramUsername: '',
           dateOfBirth: '',
           assignedTeacherId: '',
-          isActive: true,
         });
       }
     }

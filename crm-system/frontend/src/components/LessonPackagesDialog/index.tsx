@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -13,13 +13,9 @@ import {
   Chip,
   IconButton,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Alert,
 } from '@mui/material';
-import { Add, Delete, Edit } from '@mui/icons-material';
+import { Add, Delete } from '@mui/icons-material';
 import { Student, LessonPackage } from '../../types';
 import UserService from '../../services/userService';
 
@@ -42,13 +38,7 @@ const LessonPackagesDialog: React.FC<LessonPackagesDialogProps> = ({
     remainingLessons: 10,
   });
 
-  useEffect(() => {
-    if (open && student) {
-      loadPackages();
-    }
-  }, [open, student]);
-
-  const loadPackages = async () => {
+  const loadPackages = useCallback(async () => {
     if (!student) return;
     
     setLoading(true);
@@ -60,11 +50,18 @@ const LessonPackagesDialog: React.FC<LessonPackagesDialogProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [student]);
+
+  useEffect(() => {
+    if (open && student) {
+      loadPackages();
+    }
+  }, [open, student, loadPackages]);
 
   const handleAddPackage = async () => {
     if (!student) return;
     
+    setLoading(true);
     try {
       const createdPackage = await UserService.createLessonPackage(student.id, newPackage);
       setPackages(prev => [...prev, createdPackage]);
@@ -72,15 +69,20 @@ const LessonPackagesDialog: React.FC<LessonPackagesDialogProps> = ({
       setNewPackage({ totalLessons: 10, remainingLessons: 10 });
     } catch (error) {
       console.error('Ошибка создания пакета:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDeletePackage = async (packageId: number) => {
+    setLoading(true);
     try {
       await UserService.deleteLessonPackage(packageId);
       setPackages(prev => prev.filter(pkg => pkg.id !== packageId));
     } catch (error) {
       console.error('Ошибка удаления пакета:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -155,6 +157,7 @@ const LessonPackagesDialog: React.FC<LessonPackagesDialogProps> = ({
                           size="small"
                           color="error"
                           onClick={() => handleDeletePackage(pkg.id)}
+                          disabled={loading}
                         >
                           <Delete />
                         </IconButton>
@@ -203,8 +206,9 @@ const LessonPackagesDialog: React.FC<LessonPackagesDialogProps> = ({
                       <Button
                         variant="contained"
                         onClick={handleAddPackage}
+                        disabled={loading}
                       >
-                        Сохранить
+                        {loading ? 'Сохранение...' : 'Сохранить'}
                       </Button>
                       <Button
                         variant="outlined"
@@ -225,6 +229,7 @@ const LessonPackagesDialog: React.FC<LessonPackagesDialogProps> = ({
               variant="outlined"
               onClick={() => setShowAddForm(true)}
               sx={{ mt: 2 }}
+              disabled={loading}
             >
               Добавить пакет
             </Button>

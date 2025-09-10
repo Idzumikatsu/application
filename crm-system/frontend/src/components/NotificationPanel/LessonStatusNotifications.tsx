@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { Notification, NotificationType } from '../../types';
 import { Box, Typography, Paper, Chip, List, ListItem, ListItemText, ListItemIcon, Divider } from '@mui/material';
-import { Event, Cancel, CheckCircle, Error, Schedule } from '@mui/icons-material';
+import { Event, Cancel, CheckCircle, Schedule } from '@mui/icons-material';
 
 interface LessonStatusNotificationsProps {
   notifications?: Notification[];
@@ -14,7 +14,7 @@ const LessonStatusNotifications: React.FC<LessonStatusNotificationsProps> = ({
   notifications,
   maxItems = 5
 }) => {
-  const { user } = useSelector((state: RootState) => state.auth);
+  // const { user } = useSelector((state: RootState) => state.auth); // Не используется в текущей реализации
   
   // Фильтруем уведомления о статусах уроков
   const lessonStatusNotifications = (notifications || []).filter(n => 
@@ -55,7 +55,7 @@ const LessonStatusNotifications: React.FC<LessonStatusNotificationsProps> = ({
         <Typography variant="h6" gutterBottom>
           Уведомления о статусах уроков
         </Typography>
-        <Typography variant="body2" color="textSecondary">
+        <Typography variant="body2" color="text.secondary">
           Нет новых уведомлений
         </Typography>
       </Paper>
