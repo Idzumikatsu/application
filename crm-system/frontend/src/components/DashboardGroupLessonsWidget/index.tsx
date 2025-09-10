@@ -32,47 +32,48 @@ const DashboardGroupLessonsWidget: React.FC = () => {
   const { groupLessons, loading, error } = useSelector((state: RootState) => state.lessons);
 
   useEffect(() => {
-    loadGroupLessons();
-  }, [user?.id]);
-
-  const loadGroupLessons = async () => {
-    if (!user?.id) return;
-    
-    dispatch(setLoading(true));
-    try {
-      let data: GroupLesson[] = [];
+    const loadGroupLessons = async () => {
+      if (!user?.id) return;
       
-      if (user.role === 'TEACHER') {
-        // Load teacher's group lessons
-        const response = await LessonService.getTeacherGroupLessons(user.id, 0, 100);
-        data = response.content;
-      } else if (user.role === 'STUDENT') {
-        // Load student's registered group lessons
-        const response = await LessonService.getStudentGroupLessons(user.id, 0, 100);
-        data = response.content;
-      } else {
-        // For managers and admins, load all group lessons
-        // This would need a new endpoint in a real implementation
-        const response = await LessonService.getTeacherGroupLessons(1, 0, 100); // Dummy call
-        data = response.content;
+      dispatch(setLoading(true));
+      try {
+        let data: GroupLesson[] = [];
+        
+        if (user.role === 'TEACHER') {
+          // Load teacher's group lessons
+          const response = await LessonService.getTeacherGroupLessons(user.id, 0, 100);
+          data = response.content;
+        } else if (user.role === 'STUDENT') {
+          // Load student's registered group lessons
+          const response = await LessonService.getStudentGroupLessons(user.id, 0, 100);
+          data = response.content;
+        } else {
+          // For managers and admins, load all group lessons
+          // This would need a new endpoint in a real implementation
+          const response = await LessonService.getTeacherGroupLessons(1, 0, 100); // Dummy call
+          data = response.content;
+        }
+        
+        // Filter scheduled lessons and take first 5
+        const scheduledLessons = data
+          .filter(lesson => lesson.status === GroupLessonStatus.SCHEDULED)
+          .sort((a, b) =>
+            new Date(`${a.scheduledDate}T${a.scheduledTime}`).getTime() -
+            new Date(`${b.scheduledDate}T${b.scheduledTime}`).getTime()
+          )
+          .slice(0, 5);
+        
+        dispatch(setGroupLessons(scheduledLessons));
+      } catch (err: any) {
+        dispatch(setError(err.message || 'Ошибка загрузки групповых уроков'));
+      } finally {
+        dispatch(setLoading(false));
       }
-      
-      // Filter scheduled lessons and take first 5
-      const scheduledLessons = data
-        .filter(lesson => lesson.status === GroupLessonStatus.SCHEDULED)
-        .sort((a, b) => 
-          new Date(`${a.scheduledDate}T${a.scheduledTime}`).getTime() - 
-          new Date(`${b.scheduledDate}T${b.scheduledTime}`).getTime()
-        )
-        .slice(0, 5);
-      
-      dispatch(setGroupLessons(scheduledLessons));
-    } catch (err: any) {
-      dispatch(setError(err.message || 'Ошибка загрузки групповых уроков'));
-    } finally {
-      dispatch(setLoading(false));
-    }
-  };
+    };
+    
+    loadGroupLessons();
+  }, [user?.id, user?.role, dispatch]);
+
 
   const formatTime = (timeString: string) => {
     return timeString.substring(0, 5);

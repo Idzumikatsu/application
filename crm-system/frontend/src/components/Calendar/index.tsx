@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -95,13 +95,6 @@ const Calendar: React.FC<CalendarProps> = ({
     });
   };
 
-  const getDayClassName = (date: Date): string => {
-    const dayEvents = getEventsForDate(date);
-    if (dayEvents.length > 0) {
-      return 'has-events';
-    }
-    return '';
-  };
 
   const renderEvent = (event: CalendarEvent) => {
     return (

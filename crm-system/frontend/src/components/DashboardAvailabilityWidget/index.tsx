@@ -24,7 +24,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';
 import { setSlots, setLoading, setError } from '../../store/availabilitySlice';
 import AvailabilityService from '../../services/availabilityService';
-import { AvailabilitySlot, AvailabilitySlotStatus } from '../../types';
+import { AvailabilitySlotStatus } from '../../types';
 
 const DashboardAvailabilityWidget: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
@@ -33,44 +33,45 @@ const DashboardAvailabilityWidget: React.FC = () => {
 
   useEffect(() => {
     if (user?.role === 'TEACHER') {
+      const loadAvailability = async () => {
+        if (!user?.id || user.role !== 'TEACHER') return;
+        
+        dispatch(setLoading(true));
+        try {
+          // Get availability for the next week
+          const today = new Date();
+          const nextWeek = new Date();
+          nextWeek.setDate(today.getDate() + 7);
+          
+          const startDate = today.toISOString().split('T')[0];
+          const endDate = nextWeek.toISOString().split('T')[0];
+          
+          const data = await AvailabilityService.getTeacherAvailability(user.id, startDate, endDate);
+          
+          // Filter and sort slots
+          const upcomingSlots = data
+            .filter(slot =>
+              slot.status === AvailabilitySlotStatus.AVAILABLE ||
+              slot.status === AvailabilitySlotStatus.BOOKED
+            )
+            .sort((a, b) =>
+              new Date(`${a.slotDate}T${a.slotTime}`).getTime() -
+              new Date(`${b.slotDate}T${b.slotTime}`).getTime()
+            )
+            .slice(0, 5);
+          
+          dispatch(setSlots(upcomingSlots));
+        } catch (err: any) {
+          dispatch(setError(err.message || 'Ошибка загрузки расписания доступности'));
+        } finally {
+          dispatch(setLoading(false));
+        }
+      };
+      
       loadAvailability();
     }
-  }, [user?.id]);
+  }, [user?.id, user?.role, dispatch]);
 
-  const loadAvailability = async () => {
-    if (!user?.id || user.role !== 'TEACHER') return;
-    
-    dispatch(setLoading(true));
-    try {
-      // Get availability for the next week
-      const today = new Date();
-      const nextWeek = new Date();
-      nextWeek.setDate(today.getDate() + 7);
-      
-      const startDate = today.toISOString().split('T')[0];
-      const endDate = nextWeek.toISOString().split('T')[0];
-      
-      const data = await AvailabilityService.getTeacherAvailability(user.id, startDate, endDate);
-      
-      // Filter and sort slots
-      const upcomingSlots = data
-        .filter(slot => 
-          slot.status === AvailabilitySlotStatus.AVAILABLE || 
-          slot.status === AvailabilitySlotStatus.BOOKED
-        )
-        .sort((a, b) => 
-          new Date(`${a.slotDate}T${a.slotTime}`).getTime() - 
-          new Date(`${b.slotDate}T${b.slotTime}`).getTime()
-        )
-        .slice(0, 5);
-      
-      dispatch(setSlots(upcomingSlots));
-    } catch (err: any) {
-      dispatch(setError(err.message || 'Ошибка загрузки расписания доступности'));
-    } finally {
-      dispatch(setLoading(false));
-    }
-  };
 
   const formatTime = (timeString: string) => {
     return timeString.substring(0, 5);

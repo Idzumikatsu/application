@@ -11,7 +11,6 @@ import {
   ListItemText,
   Chip,
   Divider,
-  CircularProgress,
   Button,
   Avatar,
 } from '@mui/material';
@@ -23,8 +22,6 @@ import {
   GppMaybe as GppMaybeIcon,
   AutoAwesome as AutoAwesomeIcon,
 } from '@mui/icons-material';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../../store';
 
 interface Achievement {
   id: number;
@@ -38,9 +35,7 @@ interface Achievement {
 }
 
 const DashboardAchievementsWidget: React.FC = () => {
-  const dispatch: AppDispatch = useDispatch();
-  const { user } = useSelector((state: RootState) => state.auth);
-  const [achievements, setAchievements] = useState<Achievement[]>([
+  const [achievements] = useState<Achievement[]>([
     // Demo achievements
     {
       id: 1,
@@ -100,20 +95,15 @@ const DashboardAchievementsWidget: React.FC = () => {
       points: 150,
     },
   ]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [totalPoints, setTotalPoints] = useState(0);
 
   useEffect(() => {
-    calculateTotalPoints();
-  }, [achievements]);
-
-  const calculateTotalPoints = () => {
     const earnedPoints = achievements
       .filter(achievement => achievement.earned)
       .reduce((sum, achievement) => sum + achievement.points, 0);
     setTotalPoints(earnedPoints);
-  };
+  }, [achievements]);
+
 
   const getRarityColor = (rarity: Achievement['rarity']) => {
     switch (rarity) {
@@ -152,13 +142,7 @@ const DashboardAchievementsWidget: React.FC = () => {
       />
       
       <CardContent>
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-            <CircularProgress />
-          </Box>
-        ) : error ? (
-          <Typography color="error">{error}</Typography>
-        ) : achievements.length === 0 ? (
+        {achievements.length === 0 ? (
           <Typography variant="body2" color="textSecondary" align="center" sx={{ py: 2 }}>
             Нет достижений
           </Typography>

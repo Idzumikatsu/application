@@ -13,22 +13,20 @@ import {
   Divider,
   CircularProgress,
   Button,
-  IconButton,
 } from '@mui/material';
 import {
   Event as EventIcon,
   Group as GroupIcon,
   Person as PersonIcon,
   People as PeopleIcon,
-  AccessTime as TimeIcon,
   LocationOn as LocationOnIcon,
   Videocam as VideocamIcon,
   CalendarToday as CalendarTodayIcon,
   ArrowForward as ArrowForwardIcon,
   OndemandVideo as OndemandVideoIcon,
 } from '@mui/icons-material';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../../store';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 
 interface EventItem {
   id: number;
@@ -50,9 +48,8 @@ interface EventItem {
 }
 
 const DashboardEventsWidget: React.FC = () => {
-  const dispatch: AppDispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
-  const [events, setEvents] = useState<EventItem[]>([
+  const [events] = useState<EventItem[]>([
     // Demo events
     {
       id: 1,
@@ -112,28 +109,29 @@ const DashboardEventsWidget: React.FC = () => {
 
   useEffect(() => {
     if (user?.id) {
+      const loadEvents = async () => {
+        if (!user?.id) return;
+        
+        setLoading(true);
+        setError(null);
+        
+        try {
+          // Simulate API call
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // In a real implementation, you would fetch actual events
+          // For now, we'll use demo data
+        } catch (err: any) {
+          setError(err.message || 'Ошибка загрузки событий');
+        } finally {
+          setLoading(false);
+        }
+      };
+      
       loadEvents();
     }
   }, [user?.id]);
 
-  const loadEvents = async () => {
-    if (!user?.id) return;
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In a real implementation, you would fetch actual events
-      // For now, we'll use demo data
-    } catch (err: any) {
-      setError(err.message || 'Ошибка загрузки событий');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getEventIcon = (type: EventItem['type']) => {
     switch (type) {

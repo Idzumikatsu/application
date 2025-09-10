@@ -33,55 +33,56 @@ const DashboardFeedbackWidget: React.FC = () => {
   const { notifications, loading, error } = useSelector((state: RootState) => state.notifications);
 
   useEffect(() => {
-    loadFeedbackRequests();
-  }, [user?.id]);
-
-  const loadFeedbackRequests = async () => {
-    if (!user?.id) return;
-    
-    dispatch(setLoading(true));
-    try {
-      // Load feedback request notifications
-      let data: Notification[] = [];
+    const loadFeedbackRequests = async () => {
+      if (!user?.id) return;
       
-      if (user.role === 'TEACHER') {
-        // Load feedback requests for teachers
-        data = await NotificationService.getNotificationsByType(
-          user.id, 
-          user.role, 
-          NotificationType.FEEDBACK_REQUEST
-        );
-      } else if (user.role === 'STUDENT') {
-        // Load feedback requests for students
-        data = await NotificationService.getNotificationsByType(
-          user.id, 
-          user.role, 
-          NotificationType.FEEDBACK_REQUEST
-        );
-      } else {
-        // For managers and admins, load all feedback requests
-        data = await NotificationService.getNotificationsByType(
-          user.id, 
-          user.role, 
-          NotificationType.FEEDBACK_REQUEST
-        );
+      dispatch(setLoading(true));
+      try {
+        // Load feedback request notifications
+        let data: Notification[] = [];
+        
+        if (user.role === 'TEACHER') {
+          // Load feedback requests for teachers
+          data = await NotificationService.getNotificationsByType(
+            user.id,
+            user.role,
+            NotificationType.FEEDBACK_REQUEST
+          );
+        } else if (user.role === 'STUDENT') {
+          // Load feedback requests for students
+          data = await NotificationService.getNotificationsByType(
+            user.id,
+            user.role,
+            NotificationType.FEEDBACK_REQUEST
+          );
+        } else {
+          // For managers and admins, load all feedback requests
+          data = await NotificationService.getNotificationsByType(
+            user.id,
+            user.role,
+            NotificationType.FEEDBACK_REQUEST
+          );
+        }
+        
+        // Filter only pending feedback requests and sort by date
+        const feedbackRequests = data
+          .filter(notification => notification.status === NotificationStatus.PENDING)
+          .sort((a, b) =>
+            new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
+          )
+          .slice(0, 5);
+        
+        dispatch(setNotifications(feedbackRequests));
+      } catch (err: any) {
+        dispatch(setError(err.message || 'Ошибка загрузки запросов на обратную связь'));
+      } finally {
+        dispatch(setLoading(false));
       }
-      
-      // Filter only pending feedback requests and sort by date
-      const feedbackRequests = data
-        .filter(notification => notification.status === NotificationStatus.PENDING)
-        .sort((a, b) => 
-          new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
-        )
-        .slice(0, 5);
-      
-      dispatch(setNotifications(feedbackRequests));
-    } catch (err: any) {
-      dispatch(setError(err.message || 'Ошибка загрузки запросов на обратную связь'));
-    } finally {
-      dispatch(setLoading(false));
-    }
-  };
+    };
+    
+    loadFeedbackRequests();
+  }, [user?.id, user?.role, dispatch]);
+
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

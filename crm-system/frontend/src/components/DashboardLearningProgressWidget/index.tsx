@@ -19,8 +19,6 @@ import {
 import {
   TrendingUp as TrendingUpIcon,
   School as SchoolIcon,
-  Event as EventIcon,
-  CheckCircle as CheckCircleIcon,
   Star as StarIcon,
 } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
@@ -46,7 +44,7 @@ interface LearningProgress {
 const DashboardLearningProgressWidget: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
-  const { lessons, groupLessons, loading, error } = useSelector((state: RootState) => state.lessons);
+  const { loading, error } = useSelector((state: RootState) => state.lessons);
   const [progress, setProgress] = useState<LearningProgress>({
     totalLessons: 0,
     completedLessons: 0,
@@ -57,94 +55,95 @@ const DashboardLearningProgressWidget: React.FC = () => {
   });
 
   useEffect(() => {
+    const loadLearningProgress = async () => {
+      if (!user?.id || user.role !== 'STUDENT') return;
+      
+      dispatch(setLoading(true));
+      try {
+        // Load student's lessons
+        const startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 3); // Last 3 months
+        const endDate = new Date();
+        
+        const studentLessons = await LessonService.getStudentLessons(
+          user.id,
+          startDate.toISOString().split('T')[0],
+          endDate.toISOString().split('T')[0]
+        );
+        
+        const studentGroupLessons = (await LessonService.getStudentGroupLessons(
+          user.id,
+          0,
+          100,
+          startDate.toISOString().split('T')[0],
+          endDate.toISOString().split('T')[0]
+        )).content;
+        
+        dispatch(setLessons(studentLessons));
+        dispatch(setGroupLessons(studentGroupLessons));
+        
+        // Calculate progress metrics
+        const allLessons = [...studentLessons, ...studentGroupLessons];
+        const completedLessons = allLessons.filter(lesson => {
+          if ('status' in lesson) {
+            return (lesson as Lesson).status === LessonStatus.COMPLETED;
+          } else {
+            return (lesson as GroupLesson).status === GroupLessonStatus.COMPLETED;
+          }
+        }).length;
+        
+        const totalLessons = allLessons.length;
+        const attendanceRate = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+        
+        // Simulate streak calculation
+        const currentStreak = Math.floor(Math.random() * 10);
+        const longestStreak = Math.max(currentStreak, Math.floor(Math.random() * 15));
+        
+        // Simulate subject progress
+        const subjects = [
+          {
+            name: 'Грамматика',
+            completed: Math.floor(Math.random() * 20),
+            total: 30,
+            progress: 0,
+          },
+          {
+            name: 'Разговорная практика',
+            completed: Math.floor(Math.random() * 15),
+            total: 25,
+            progress: 0,
+          },
+          {
+            name: 'Аудирование',
+            completed: Math.floor(Math.random() * 12),
+            total: 20,
+            progress: 0,
+          },
+        ].map(subject => ({
+          ...subject,
+          progress: subject.total > 0 ? (subject.completed / subject.total) * 100 : 0,
+        }));
+        
+        setProgress({
+          totalLessons,
+          completedLessons,
+          attendanceRate,
+          currentStreak,
+          longestStreak,
+          subjects,
+        });
+      } catch (err: any) {
+        dispatch(setError(err.message || 'Ошибка загрузки прогресса обучения'));
+      } finally {
+        dispatch(setLoading(false));
+      }
+    };
+    
     if (user?.role === 'STUDENT') {
       loadLearningProgress();
     }
-  }, [user?.id]);
+  }, [user?.id, user?.role, dispatch]);
 
-  const loadLearningProgress = async () => {
-    if (!user?.id || user.role !== 'STUDENT') return;
-    
-    dispatch(setLoading(true));
-    try {
-      // Load student's lessons
-      const startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - 3); // Last 3 months
-      const endDate = new Date();
-      
-      const studentLessons = await LessonService.getStudentLessons(
-        user.id, 
-        startDate.toISOString().split('T')[0], 
-        endDate.toISOString().split('T')[0]
-      );
-      
-      const studentGroupLessons = (await LessonService.getStudentGroupLessons(
-        user.id, 
-        0, 
-        100,
-        startDate.toISOString().split('T')[0], 
-        endDate.toISOString().split('T')[0]
-      )).content;
-      
-      dispatch(setLessons(studentLessons));
-      dispatch(setGroupLessons(studentGroupLessons));
-      
-      // Calculate progress metrics
-      const allLessons = [...studentLessons, ...studentGroupLessons];
-      const completedLessons = allLessons.filter(lesson => {
-        if ('status' in lesson) {
-          return (lesson as Lesson).status === LessonStatus.COMPLETED;
-        } else {
-          return (lesson as GroupLesson).status === GroupLessonStatus.COMPLETED;
-        }
-      }).length;
-      
-      const totalLessons = allLessons.length;
-      const attendanceRate = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
-      
-      // Simulate streak calculation
-      const currentStreak = Math.floor(Math.random() * 10);
-      const longestStreak = Math.max(currentStreak, Math.floor(Math.random() * 15));
-      
-      // Simulate subject progress
-      const subjects = [
-        {
-          name: 'Грамматика',
-          completed: Math.floor(Math.random() * 20),
-          total: 30,
-          progress: 0,
-        },
-        {
-          name: 'Разговорная практика',
-          completed: Math.floor(Math.random() * 15),
-          total: 25,
-          progress: 0,
-        },
-        {
-          name: 'Аудирование',
-          completed: Math.floor(Math.random() * 12),
-          total: 20,
-          progress: 0,
-        },
-      ].map(subject => ({
-        ...subject,
-        progress: subject.total > 0 ? (subject.completed / subject.total) * 100 : 0,
-      }));
-      
-      setProgress({
-        totalLessons,
-        completedLessons,
-        attendanceRate,
-        currentStreak,
-        longestStreak,
-        subjects,
-      });
-    } catch (err: any) {
-      dispatch(setError(err.message || 'Ошибка загрузки прогресса обучения'));
-    } finally {
-      dispatch(setLoading(false));
-    }
-  };
 
   const getOverallRating = () => {
     if (progress.attendanceRate >= 90) return 5;

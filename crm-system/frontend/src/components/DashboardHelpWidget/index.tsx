@@ -14,7 +14,6 @@ import {
   CircularProgress,
   Button,
   TextField,
-  TextareaAutosize,
   FormControl,
   InputLabel,
   Select,
@@ -33,8 +32,6 @@ import {
   Phone as PhoneIcon,
   Chat as ChatIcon,
 } from '@mui/icons-material';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../../store';
 
 interface HelpResource {
   id: number;
@@ -57,9 +54,7 @@ interface SupportTicket {
 }
 
 const DashboardHelpWidget: React.FC = () => {
-  const dispatch: AppDispatch = useDispatch();
-  const { user } = useSelector((state: RootState) => state.auth);
-  const [resources, setResources] = useState<HelpResource[]>([
+  const [resources] = useState<HelpResource[]>([
     // Demo help resources
     {
       id: 1,

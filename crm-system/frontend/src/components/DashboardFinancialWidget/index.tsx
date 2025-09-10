@@ -7,7 +7,6 @@ import {
   Box,
   List,
   ListItem,
-  ListItemIcon,
   ListItemText,
   Chip,
   Divider,
@@ -23,8 +22,8 @@ import {
   AttachMoney as AttachMoneyIcon,
   Receipt as ReceiptIcon,
 } from '@mui/icons-material';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../../store';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 
 interface FinancialMetric {
   id: number;
@@ -43,9 +42,8 @@ interface RevenueData {
 }
 
 const DashboardFinancialWidget: React.FC = () => {
-  const dispatch: AppDispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
-  const [metrics, setMetrics] = useState<FinancialMetric[]>([
+  const [metrics] = useState<FinancialMetric[]>([
     // Demo metrics
     {
       id: 1,
@@ -80,7 +78,7 @@ const DashboardFinancialWidget: React.FC = () => {
       period: 'урок',
     },
   ]);
-  const [revenueData, setRevenueData] = useState<RevenueData[]>([
+  const [revenueData] = useState<RevenueData[]>([
     { month: 'Янв', revenue: 110000, expenses: 40000, profit: 70000 },
     { month: 'Фев', revenue: 105000, expenses: 38000, profit: 67000 },
     { month: 'Мар', revenue: 120000, expenses: 42000, profit: 78000 },
@@ -92,26 +90,27 @@ const DashboardFinancialWidget: React.FC = () => {
 
   useEffect(() => {
     if (user?.role === 'MANAGER' || user?.role === 'ADMIN') {
+      const loadFinancialData = async () => {
+        if (!user?.id || (user.role !== 'MANAGER' && user.role !== 'ADMIN')) return;
+        
+        setLoading(true);
+        try {
+          // Simulate API call
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // In a real implementation, you would fetch actual financial data
+          // For now, we'll use the demo data
+        } catch (err: any) {
+          setError(err.message || 'Ошибка загрузки финансовой статистики');
+        } finally {
+          setLoading(false);
+        }
+      };
+      
       loadFinancialData();
     }
-  }, [user?.id]);
+  }, [user?.id, user?.role]);
 
-  const loadFinancialData = async () => {
-    if (!user?.id || (user.role !== 'MANAGER' && user.role !== 'ADMIN')) return;
-    
-    setLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In a real implementation, you would fetch actual financial data
-      // For now, we'll use the demo data
-    } catch (err: any) {
-      setError(err.message || 'Ошибка загрузки финансовой статистики');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const formatCurrency = (value: number, currency: string = '₽') => {
     return new Intl.NumberFormat('ru-RU', {
