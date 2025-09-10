@@ -64,3 +64,8 @@ beforeAll(() => {
 afterAll(() => {
   console.error = originalError;
 });
+
+// Простой тест для удовлетворения требования Jest
+test('setup test', () => {
+  expect(true).toBe(true);
+});

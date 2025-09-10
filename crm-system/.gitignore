@@ -4,6 +4,7 @@
 node_modules/
 frontend/dist/
 frontend/build/
--e 
+frontend/coverage/
+-e
 target/test-classes/
 target/maven-status/
