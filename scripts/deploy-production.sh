@@ -48,16 +48,11 @@ if [ -d "$APP_DIR" ]; then
     echo -e "${GREEN}Backup created: $BACKUP_DIR${NC}"
 fi
 
-# Deploy backend
+# Deploy backend from pre-built artifact
 echo -e "${YELLOW}Deploying backend...${NC}"
-cd $BACKEND_DIR
-
-# Update from git
-git pull origin main
-
-# Build backend
-./mvnw clean package -DskipTests
-cp target/*.jar $APP_DIR/crm-system.jar
+if [ -f "$APP_DIR/crm-system.jar" ]; then
+    cp $APP_DIR/crm-system.jar $APP_DIR/crm-system.jar.backup
+fi
 
 # Create systemd service
 cat > /etc/systemd/system/$SERVICE_NAME.service << EOF
@@ -79,19 +74,18 @@ EnvironmentFile=$APP_DIR/.env
 WantedBy=multi-user.target
 EOF
 
-# Deploy frontend
+# Deploy frontend from pre-built artifact
 echo -e "${YELLOW}Deploying frontend...${NC}"
-cd $FRONTEND_DIR
-
-# Install dependencies and build
-npm ci --only=production
-npm run build
-
-# Copy build to nginx serving directory
-rm -rf /var/www/$APP_NAME/*
-cp -r build/* /var/www/$APP_NAME/
-chown -R www-data:www-data /var/www/$APP_NAME
-chmod -R 755 /var/www/$APP_NAME
+if [ -d "$APP_DIR/build" ]; then
+    # Copy build to nginx serving directory
+    rm -rf /var/www/$APP_NAME/*
+    cp -r $APP_DIR/build/* /var/www/$APP_NAME/
+    chown -R www-data:www-data /var/www/$APP_NAME
+    chmod -R 755 /var/www/$APP_NAME
+else
+    echo -e "${RED}Frontend build not found!${NC}"
+    exit 1
+fi
 
 # Configure nginx
 echo -e "${YELLOW}Configuring nginx...${NC}"
