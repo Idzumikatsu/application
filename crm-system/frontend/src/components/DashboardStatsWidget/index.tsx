@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -16,19 +16,46 @@ import {
   Cancel as CancelIcon,
   AccessTime as TimeIcon,
 } from '@mui/icons-material';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../../store';
 import StatCard from '../StatCard';
-import { loadDashboardStats } from '../../store/dashboardSlice';
 import { DashboardStats } from '../../types';
 
 const DashboardStatsWidget: React.FC = () => {
-  const dispatch: AppDispatch = useDispatch();
-  const { stats, loading, error } = useSelector((state: RootState) => state.dashboard);
-  
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    dispatch(loadDashboardStats());
-  }, [dispatch]);
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Simulate API call to fetch statistics
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Demo data - in real implementation, fetch from API
+      const demoStats: DashboardStats = {
+        totalStudents: 156,
+        totalTeachers: 24,
+        scheduledLessons: 42,
+        completedLessons: 785,
+        cancelledLessons: 45,
+        upcomingLessons: 28,
+        availableSlots: 86,
+        bookedSlots: 42,
+        unreadNotifications: 12,
+      };
+
+      setStats(demoStats);
+    } catch (err: any) {
+      setError(err.message || 'Ошибка загрузки статистики');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -99,7 +126,7 @@ const DashboardStatsWidget: React.FC = () => {
         <StatCard
           title="Доступные слоты"
           value={stats?.availableSlots || 0}
-          icon={<AccessTimeIcon />}
+          icon={<TimeIcon />}
           color="warning"
         />
       </Grid>

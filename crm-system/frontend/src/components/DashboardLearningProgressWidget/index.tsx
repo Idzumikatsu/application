@@ -91,11 +91,13 @@ const DashboardLearningProgressWidget: React.FC = () => {
       
       // Calculate progress metrics
       const allLessons = [...studentLessons, ...studentGroupLessons];
-      const completedLessons = allLessons.filter(lesson => 
-        'status' in lesson ? 
-          lesson.status === LessonStatus.COMPLETED : 
-          lesson.status === GroupLessonStatus.COMPLETED
-      ).length;
+      const completedLessons = allLessons.filter(lesson => {
+        if ('status' in lesson) {
+          return (lesson as Lesson).status === LessonStatus.COMPLETED;
+        } else {
+          return (lesson as GroupLesson).status === GroupLessonStatus.COMPLETED;
+        }
+      }).length;
       
       const totalLessons = allLessons.length;
       const attendanceRate = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;

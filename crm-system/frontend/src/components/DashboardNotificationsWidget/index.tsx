@@ -30,7 +30,7 @@ import {
 } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';
-import { setNotifications, markAsRead, setLoading, setError } from '../../store/notificationSlice';
+import { setNotifications, markAsRead, markAllAsRead, setLoading, setError } from '../../store/notificationSlice';
 import NotificationService from '../../services/notificationService';
 import { Notification, NotificationType, NotificationStatus } from '../../types';
 

@@ -18,7 +18,7 @@ import {
   Group as GroupIcon,
   Event as EventIcon,
   People as PeopleIcon,
-  AccessTime as TimeIcon,
+  AccessTime as AccessTimeIcon,
 } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';

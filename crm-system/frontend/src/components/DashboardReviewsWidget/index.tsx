@@ -15,6 +15,7 @@ import {
   Button,
   Rating,
   Avatar,
+  LinearProgress,
 } from '@mui/material';
 import {
   Reviews as ReviewsIcon,

@@ -34,7 +34,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';
 import { setUser } from '../../store/authSlice';
 import UserService from '../../services/userService';
-import { User, UserRole } from '../../types';
+import { User, UserRole, Teacher, Student } from '../../types';
 
 const DashboardProfileWidget: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
@@ -83,7 +83,7 @@ const DashboardProfileWidget: React.FC = () => {
       case UserRole.MANAGER: return 'primary';
       case UserRole.TEACHER: return 'secondary';
       case UserRole.STUDENT: return 'info';
-      default: return 'default';
+      default: return 'warning';
     }
   };
 
@@ -265,7 +265,7 @@ const DashboardProfileWidget: React.FC = () => {
                 </>
               )}
               
-              {profileData.role === UserRole.TEACHER && profileData.specialization && (
+              {profileData.role === UserRole.TEACHER && (profileData as Teacher).specialization && (
                 <>
                   <ListItem alignItems="flex-start" sx={{ py: 1, px: 0 }}>
                     <ListItemIcon sx={{ minWidth: 36, mr: 1 }}>
@@ -279,7 +279,7 @@ const DashboardProfileWidget: React.FC = () => {
                       }
                       secondary={
                         <Typography variant="body2" color="textPrimary">
-                          {profileData.specialization}
+                          {(profileData as Teacher).specialization}
                         </Typography>
                       }
                     />
@@ -289,7 +289,7 @@ const DashboardProfileWidget: React.FC = () => {
                 </>
               )}
               
-              {profileData.role === UserRole.STUDENT && profileData.assignedTeacherId && (
+              {profileData.role === UserRole.STUDENT && (profileData as Student).assignedTeacherId && (
                 <>
                   <ListItem alignItems="flex-start" sx={{ py: 1, px: 0 }}>
                     <ListItemIcon sx={{ minWidth: 36, mr: 1 }}>
@@ -303,7 +303,7 @@ const DashboardProfileWidget: React.FC = () => {
                       }
                       secondary={
                         <Typography variant="body2" color="textPrimary">
-                          ID: {profileData.assignedTeacherId}
+                          ID: {(profileData as Student).assignedTeacherId}
                         </Typography>
                       }
                     />
