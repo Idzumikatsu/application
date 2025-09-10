@@ -19,7 +19,6 @@ import {
   School as SchoolIcon,
   Event as EventIcon,
   TrendingUp as TrendingUpIcon,
-  Star as StarIcon,
   Add as AddIcon,
   Group as GroupIcon,
 } from '@mui/icons-material';

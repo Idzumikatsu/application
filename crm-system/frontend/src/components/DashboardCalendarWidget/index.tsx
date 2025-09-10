@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -21,7 +21,6 @@ import {
   School as SchoolIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
-  TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
@@ -51,13 +50,7 @@ const DashboardCalendarWidget: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'today' | 'tomorrow' | 'week'>('today');
 
-  useEffect(() => {
-    if (user?.id) {
-      loadCalendarEvents();
-    }
-  }, [user?.id, viewMode]);
-
-  const loadCalendarEvents = async () => {
+  const loadCalendarEvents = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -165,7 +158,13 @@ const DashboardCalendarWidget: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [viewMode]);
+
+  useEffect(() => {
+    if (user?.id) {
+      loadCalendarEvents();
+    }
+  }, [user?.id, loadCalendarEvents]);
 
   const getStatusColor = (status: CalendarEvent['status']) => {
     switch (status) {

@@ -17,7 +17,6 @@ import {
   School as SchoolIcon,
   Event as EventIcon,
   CheckCircle as CheckCircleIcon,
-  Cancel as CancelIcon,
   Group as GroupIcon,
 } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
@@ -94,13 +93,6 @@ const DashboardStatisticsWidget: React.FC = () => {
     }).format(amount);
   };
 
-  const getTrendIcon = (value: number, comparison: number) => {
-    return value > comparison ? <TrendingUpIcon /> : <TrendingDownIcon />;
-  };
-
-  const getTrendColor = (value: number, comparison: number) => {
-    return value > comparison ? 'success' : 'error';
-  };
 
   if (loading) {
     return (
