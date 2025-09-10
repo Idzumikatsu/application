@@ -125,6 +125,13 @@ const ManagerDashboardPage: React.FC = () => {
       path: '/manager/packages',
       color: 'info' as const,
     },
+    {
+      title: 'Просмотр уведомлений',
+      description: 'Посмотреть все уведомления',
+      icon: <NotificationsIcon />,
+      path: '/manager/notifications',
+      color: 'secondary' as const,
+    },
   ];
 
   const getTrendIcon = (value: number, comparison: number) => {

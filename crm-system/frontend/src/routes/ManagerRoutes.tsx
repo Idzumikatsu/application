@@ -5,6 +5,7 @@ import ManagerTeachersPage from '../pages/ManagerTeachersPage';
 import ManagerStudentsPage from '../pages/ManagerStudentsPage';
 import ManagerSchedulingPage from '../pages/ManagerSchedulingPage';
 import ManagerPackagesPage from '../pages/ManagerPackagesPage';
+import ManagerNotificationsPage from '../pages/ManagerNotificationsPage';
 
 const ManagerRoutes: React.FC = () => {
   return (
@@ -14,6 +15,7 @@ const ManagerRoutes: React.FC = () => {
       <Route path="/students" element={<ManagerStudentsPage />} />
       <Route path="/scheduling" element={<ManagerSchedulingPage />} />
       <Route path="/packages" element={<ManagerPackagesPage />} />
+      <Route path="/notifications" element={<ManagerNotificationsPage />} />
       <Route path="/" element={<ManagerDashboardPage />} />
     </Routes>
   );
