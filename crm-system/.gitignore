@@ -1,0 +1,6 @@
+-e target/
+*.class
+.mvn/
+node_modules/
+frontend/dist/
+frontend/build/
