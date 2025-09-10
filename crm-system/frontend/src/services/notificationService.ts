@@ -61,6 +61,38 @@ class NotificationService {
     return response.data;
   }
 
+  // New methods for filtering notifications by type
+  public async getNotificationsByType(
+    userId: number,
+    userRole: string,
+    notificationType: NotificationType
+  ): Promise<Notification[]> {
+    const response = await httpClient.get<Notification[]>(
+      `/notifications/user/${userId}/role/${userRole}/type/${notificationType}`
+    );
+    return response.data;
+  }
+
+  public async getPendingNotifications(userId: number, userRole: string): Promise<Notification[]> {
+    const response = await httpClient.get<Notification[]>(
+      `/notifications/user/${userId}/role/${userRole}/status/pending`
+    );
+    return response.data;
+  }
+
+  // Alias methods for backward compatibility
+  public async getNotifications(userId: number, userRole: string): Promise<Notification[]> {
+    return this.getAllNotifications();
+  }
+
+  public async markAsRead(id: number): Promise<Notification> {
+    return this.markNotificationAsRead(id);
+  }
+
+  public async markAllAsRead(userId: number, userRole: string): Promise<void> {
+    return this.markAllNotificationsAsRead();
+  }
+
   // Email notifications
   public async sendPackageEmailNotification(studentId: number, packageId: number): Promise<void> {
     await httpClient.post(`/notifications/packages/${packageId}/email`, { studentId });

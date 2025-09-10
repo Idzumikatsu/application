@@ -19,11 +19,13 @@ import {
   Event as EventIcon,
   Group as GroupIcon,
   Person as PersonIcon,
+  People as PeopleIcon,
   AccessTime as TimeIcon,
-  LocationOn as LocationIcon,
+  LocationOn as LocationOnIcon,
   Videocam as VideocamIcon,
   CalendarToday as CalendarTodayIcon,
   ArrowForward as ArrowForwardIcon,
+  OndemandVideo as OndemandVideoIcon,
 } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';

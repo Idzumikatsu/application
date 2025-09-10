@@ -23,7 +23,7 @@ import {
 } from '@mui/icons-material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { CalendarPicker } from '@mui/x-date-pickers/CalendarPicker';
+import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { ru } from 'date-fns/locale';
 import { CalendarEvent } from '../../types';
 
@@ -131,15 +131,18 @@ const Calendar: React.FC<CalendarProps> = ({
     );
   };
 
-  const renderDay = (day: Date) => {
+  // Custom Day component for calendar
+  const CustomDay = (props: any) => {
+    const { day, ...other } = props;
     const dayEvents = getEventsForDate(day);
-    const isToday = 
+    const isToday =
       day.getDate() === new Date().getDate() &&
       day.getMonth() === new Date().getMonth() &&
       day.getFullYear() === new Date().getFullYear();
     
     return (
       <Box
+        {...other}
         sx={{
           height: '100%',
           minHeight: 80,
@@ -150,9 +153,9 @@ const Calendar: React.FC<CalendarProps> = ({
           bgcolor: isToday ? 'action.selected' : 'background.paper',
         }}
       >
-        <Typography 
-          variant="body2" 
-          align="right" 
+        <Typography
+          variant="body2"
+          align="right"
           sx={{ fontWeight: isToday ? 'bold' : 'normal' }}
         >
           {day.getDate()}
@@ -170,7 +173,7 @@ const Calendar: React.FC<CalendarProps> = ({
   };
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns} locale={ru}>
+    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ru}>
       <Paper sx={{ p: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -230,11 +233,18 @@ const Calendar: React.FC<CalendarProps> = ({
         </Box>
         
         <Box sx={{ height: view === 'month' ? 600 : 'auto' }}>
-          <CalendarPicker
-            date={currentDate}
+          <DateCalendar
+            value={currentDate}
             onChange={handleDateChange}
-            renderDay={renderDay}
             views={['day', 'month', 'year']}
+            slots={{
+              day: CustomDay
+            }}
+            slotProps={{
+              day: {
+                day: undefined
+              } as any
+            }}
           />
         </Box>
       </Paper>

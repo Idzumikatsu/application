@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
+  TrendingDown as TrendingDownIcon,
   School as SchoolIcon,
   Event as EventIcon,
   CheckCircle as CheckCircleIcon,
@@ -215,13 +216,15 @@ const DashboardProgressWidget: React.FC = () => {
                     sx={{ py: 1, px: 0 }}
                   >
                     <ListItemIcon sx={{ minWidth: 36, mr: 1 }}>
-                      <Chip 
-                        icon={item.icon} 
-                        label={item.title} 
-                        color={item.color as any}
-                        size="small" 
-                        variant="outlined"
-                      />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {item.icon}
+                        <Chip
+                          label={item.title}
+                          color={item.color as any}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </Box>
                     </ListItemIcon>
                     <ListItemText
                       primary={

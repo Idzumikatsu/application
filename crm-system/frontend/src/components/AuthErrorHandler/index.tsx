@@ -20,7 +20,7 @@ const AuthErrorHandler: React.FC = () => {
       return;
     }
     setOpen(false);
-    dispatch(loginFailure(null));
+    dispatch(loginFailure(''));
   };
 
   if (!error) {
