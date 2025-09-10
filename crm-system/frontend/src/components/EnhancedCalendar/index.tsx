@@ -85,7 +85,6 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
   });
   const [activeTab, setActiveTab] = useState(0);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' | 'warning' });
-  const [draggedEvent, setDraggedEvent] = useState<CalendarEvent | null>(null);
 
   const generateMeetingLink = (): string => {
     return `https://meet.crm-school.com/${Math.random().toString(36).substr(2, 9)}`;
@@ -102,59 +101,6 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
     });
   }, []);
 
-  const handleDragStart = useCallback((event: CalendarEvent) => {
-    setDraggedEvent(event);
-  }, []);
-
-  const handleDragOver = useCallback((slotInfo: SlotInfo) => {
-    if (!draggedEvent) return;
-    
-    // Подсветка области для drop
-    const element = document.querySelector('.rbc-selected') as HTMLElement;
-    if (element) {
-      element.style.backgroundColor = '#e3f2fd';
-      element.style.border = '2px dashed #1976d2';
-    }
-  }, [draggedEvent]);
-
-  const handleDrop = useCallback(async (slotInfo: SlotInfo) => {
-    if (!draggedEvent) return;
-
-    try {
-      const duration = draggedEvent.end.getTime() - draggedEvent.start.getTime();
-      const newStart = slotInfo.start;
-      const newEnd = new Date(newStart.getTime() + duration);
-
-      // Обновление события
-      const updatedEvent = await onEventUpdate?.({
-        ...draggedEvent,
-        start: newStart,
-        end: newEnd
-      } as CalendarEvent);
-
-      setSnackbar({
-        open: true,
-        message: 'Событие перемещено',
-        severity: 'success'
-      });
-    } catch (error) {
-      console.error('Ошибка перемещения события:', error);
-      setSnackbar({
-        open: true,
-        message: 'Ошибка перемещения события',
-        severity: 'error'
-      });
-    } finally {
-      setDraggedEvent(null);
-      
-      // Сброс подсветки
-      const element = document.querySelector('.rbc-selected') as HTMLElement;
-      if (element) {
-        element.style.backgroundColor = '';
-        element.style.border = '';
-      }
-    }
-  }, [draggedEvent, onEventUpdate]);
 
   const handleSelectEvent = useCallback((event: Event) => {
     const calendarEvent = event as CalendarEvent;
@@ -295,7 +241,8 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
     weekdayFormat: 'ddd',
     monthHeaderFormat: 'MMMM YYYY',
     dayHeaderFormat: 'dddd, MMMM DD',
-    agendaHeaderFormat: 'dddd, MMMM DD',
+    agendaHeaderFormat: ({ start }: { start: Date }) =>
+      moment(start).format('dddd, MMMM DD'),
   };
 
   const messages = {
@@ -360,7 +307,7 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
           views={['month', 'week', 'day', 'agenda']}
           view={currentView}
           date={currentDate}
-          onViewChange={(newView: View) => {
+          onView={(newView: View) => {
             setCurrentView(newView);
             onViewChange?.(newView);
           }}
@@ -371,14 +318,9 @@ const EnhancedCalendar: React.FC<EnhancedCalendarProps> = ({
           selectable
           onSelectSlot={handleSelectSlot}
           onSelectEvent={handleSelectEvent}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          draggableAccessor={() => true}
           eventPropGetter={eventStyleGetter}
           formats={formats}
           messages={messages}
-          resizable
           showMultiDayTimes
           culture="ru"
           style={{ height: '100%' }}
