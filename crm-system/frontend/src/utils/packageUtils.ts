@@ -104,7 +104,8 @@ export const isPackageLowBalance = (packageData: LessonPackage, threshold: numbe
 export const calculatePackageUsagePercentage = (packageData: LessonPackage): number => {
   if (packageData.totalLessons === 0) return 0;
   const used = packageData.totalLessons - packageData.remainingLessons;
-  return Math.round((used / packageData.totalLessons) * 100);
+  const percentage = (used / packageData.totalLessons) * 100;
+  return Math.max(0, Math.min(100, Math.round(percentage)));
 };
 
 export const formatPackagePrice = (price: number): string => {

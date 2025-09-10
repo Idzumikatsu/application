@@ -84,4 +84,5 @@ class AvailabilityService {
   }
 }
 
-export default new AvailabilityService();
+const availabilityService = new AvailabilityService();
+export default availabilityService;

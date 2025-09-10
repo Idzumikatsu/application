@@ -1,5 +1,5 @@
 import httpClient from './httpClient';
-import { LoginRequest, LoginResponse, User, AuthResponse } from '../types';
+import { LoginRequest, LoginResponse, User } from '../types';
 
 class AuthService {
   public async login(credentials: LoginRequest): Promise<LoginResponse> {
@@ -76,9 +76,12 @@ class AuthService {
     const expiration = this.getTokenExpiration();
     if (!expiration) return false;
     
-    // Обновляем токен за 5 минут до истечения
-    return expiration - Date.now() < 5 * 60 * 1000;
+    const timeUntilExpiration = expiration - Date.now();
+    
+    // Обновляем токен за 5 минут до истечения, но только если токен еще действителен
+    return timeUntilExpiration > 0 && timeUntilExpiration < 5 * 60 * 1000;
   }
 }
 
-export default new AuthService();
+const authService = new AuthService();
+export default authService;

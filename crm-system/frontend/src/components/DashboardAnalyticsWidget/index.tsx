@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -7,14 +7,12 @@ import {
   Box,
   List,
   ListItem,
-  ListItemIcon,
   ListItemText,
   Chip,
   Divider,
   CircularProgress,
   Button,
   LinearProgress,
-  Rating,
 } from '@mui/material';
 import {
   Analytics as AnalyticsIcon,
@@ -23,8 +21,8 @@ import {
   Equalizer as EqualizerIcon,
   Insights as InsightsIcon,
 } from '@mui/icons-material';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../../store';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store';
 
 interface AnalyticsMetric {
   id: number;
@@ -45,9 +43,8 @@ interface PerformanceData {
 }
 
 const DashboardAnalyticsWidget: React.FC = () => {
-  const dispatch: AppDispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.auth);
-  const [metrics, setMetrics] = useState<AnalyticsMetric[]>([
+  const metrics: AnalyticsMetric[] = [
     // Demo metrics
     {
       id: 1,
@@ -85,24 +82,18 @@ const DashboardAnalyticsWidget: React.FC = () => {
       icon: <AnalyticsIcon />,
       color: 'info',
     },
-  ]);
-  const [performanceData, setPerformanceData] = useState<PerformanceData[]>([
+  ];
+  const performanceData: PerformanceData[] = [
     { metric: 'Посещаемость', current: 92, target: 95, progress: 97, trend: 'up' },
     { metric: 'Завершение уроков', current: 88, target: 90, progress: 98, trend: 'up' },
     { metric: 'Удовлетворенность', current: 4.7, target: 4.8, progress: 98, trend: 'stable' },
     { metric: 'Повторные заказы', current: 78, target: 80, progress: 98, trend: 'up' },
     { metric: 'Средний чек', current: 3500, target: 3600, progress: 97, trend: 'down' },
-  ]);
+  ];
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user?.role === 'MANAGER' || user?.role === 'ADMIN') {
-      loadAnalyticsData();
-    }
-  }, [user?.id]);
-
-  const loadAnalyticsData = async () => {
+  const loadAnalyticsData = useCallback(async () => {
     if (!user?.id || (user.role !== 'MANAGER' && user.role !== 'ADMIN')) return;
     
     setLoading(true);
@@ -117,7 +108,13 @@ const DashboardAnalyticsWidget: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, user?.role]);
+
+  useEffect(() => {
+    if (user?.role === 'MANAGER' || user?.role === 'ADMIN') {
+      loadAnalyticsData();
+    }
+  }, [user?.id, user?.role, loadAnalyticsData]);
 
   const getTrendIcon = (trend: PerformanceData['trend']) => {
     switch (trend) {

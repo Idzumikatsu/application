@@ -169,4 +169,5 @@ class PackageService {
   }
 }
 
-export default new PackageService();
+const packageService = new PackageService();
+export default packageService;
