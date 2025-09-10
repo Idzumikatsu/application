@@ -2,9 +2,9 @@ name: CRM System CI/CD
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ master ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ master ]
 
 env:
   JAVA_VERSION: '11'
@@ -186,16 +186,48 @@ jobs:
         cd crm-system
         mvn org.owasp:dependency-check-maven:check -DskipTests
 
-  deploy:
-    name: Deploy to Staging
+  build-artifacts:
+    name: Build Artifacts
     runs-on: ubuntu-latest
     needs: [backend-tests, frontend-tests, e2e-tests, security-scan]
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/master'
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Deploy to staging environment
-      run: echo "Deployment to staging would happen here"
-      # Здесь будет реальная логика деплоя
+    - name: Set up JDK ${{ env.JAVA_VERSION }}
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: Set up Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: crm-system/frontend/package-lock.json
+
+    - name: Build backend JAR
+      run: |
+        cd crm-system
+        ./mvnw clean package -DskipTests
+        cp target/*.jar ../crm-system.jar
+
+    - name: Build frontend
+      run: |
+        cd crm-system/frontend
+        npm ci --only=production
+        npm run build
+
+    - name: Upload deployment artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: deployment-artifacts
+        path: |
+          crm-system.jar
+          crm-system/frontend/build/
+          scripts/
+        retention-days: 7
