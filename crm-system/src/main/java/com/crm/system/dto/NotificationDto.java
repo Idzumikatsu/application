@@ -2,7 +2,7 @@ package com.crm.system.dto;
 
 import com.crm.system.model.Notification;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 public class NotificationDto {

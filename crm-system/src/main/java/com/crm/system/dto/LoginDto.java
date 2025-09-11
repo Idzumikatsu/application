@@ -1,6 +1,6 @@
 package com.crm.system.dto;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 public class LoginDto {
     @NotBlank

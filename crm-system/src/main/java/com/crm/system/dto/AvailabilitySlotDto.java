@@ -2,7 +2,7 @@ package com.crm.system.dto;
 
 import com.crm.system.model.AvailabilitySlot;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
