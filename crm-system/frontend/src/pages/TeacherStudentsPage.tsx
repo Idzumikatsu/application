@@ -18,19 +18,12 @@ import {
   TextField,
   Tabs,
   Tab,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
 } from '@mui/material';
 import {
   Person as PersonIcon,
   Email as EmailIcon,
   Phone as PhoneIcon,
   Event as EventIcon,
-  School as SchoolIcon,
-  TrendingUp as TrendingUpIcon,
   NoteAdd as NoteAddIcon,
   VideoCall as VideoCallIcon,
 } from '@mui/icons-material';
@@ -111,7 +104,7 @@ const TeacherStudentsPage: React.FC = () => {
     } catch (err: any) {
       setError(err.message || 'Ошибка загрузки студентов');
     }
-  }, [user?.id]);
+  }, []);
 
   const loadLessons = useCallback(async () => {
     try {

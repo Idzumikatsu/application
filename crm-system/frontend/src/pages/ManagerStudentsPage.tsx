@@ -9,10 +9,6 @@ import {
   InputAdornment,
   IconButton,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Chip,
   Tab,
   Tabs,
@@ -95,7 +91,6 @@ const ManagerStudentsPage: React.FC = () => {
   const [openStatisticsDialog, setOpenStatisticsDialog] = useState(false);
   const [openTeacherDialog, setOpenTeacherDialog] = useState(false);
   const [openExportDialog, setOpenExportDialog] = useState(false);
-  const [, setFilterStatus] = useState<string>('all');
   const [, setShowPackageNotifications] = useState(false);
 
   const loadStudents = useCallback(async () => {

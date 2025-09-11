@@ -3,17 +3,15 @@ import { useSelector } from 'react-redux';
 import { Box, Typography, Paper } from '@mui/material';
 import { RootState } from '../store';
 import EnhancedCalendar from '../components/EnhancedCalendar';
-import { CalendarEvent, AvailabilitySlot } from '../types';
+import { CalendarEvent } from '../types';
 import { getCalendarEvents, createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from '../services/scheduleService';
 
 const TeacherSchedulePage: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const loadEvents = useCallback(async () => {
     try {
-      setLoading(true);
       const startDate = new Date();
       startDate.setMonth(startDate.getMonth() - 1);
       const endDate = new Date();
@@ -28,9 +26,8 @@ const TeacherSchedulePage: React.FC = () => {
     } catch (error) {
       console.error('Ошибка загрузки событий:', error);
     } finally {
-      setLoading(false);
     }
-  }, [user?.id]);
+  }, [user]);
 
   useEffect(() => {
     if (user?.id) {

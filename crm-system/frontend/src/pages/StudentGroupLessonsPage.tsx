@@ -32,15 +32,16 @@ const StudentGroupLessonsPage: React.FC = () => {
   const [registrations, setRegistrations] = useState<GroupLessonRegistration[]>([]);
   const [availableLessons, setAvailableLessons] = useState<GroupLesson[]>([]);
   
-  const today = new Date();
-  const nextMonth = new Date();
-  nextMonth.setMonth(today.getMonth() + 1);
 
   const loadGroupLessons = useCallback(async () => {
     if (!user?.id) return;
     
     dispatch(setLoading(true));
     try {
+      const today = new Date();
+      const nextMonth = new Date();
+      nextMonth.setMonth(today.getMonth() + 1);
+      
       const startDate = today.toISOString().split('T')[0];
       const endDate = nextMonth.toISOString().split('T')[0];
       const response = await LessonService.getStudentGroupLessons(user.id, 0, 100, startDate, endDate);
@@ -50,7 +51,7 @@ const StudentGroupLessonsPage: React.FC = () => {
     } finally {
       dispatch(setLoading(false));
     }
-  }, [user?.id, dispatch, today, nextMonth]);
+  }, [user?.id, dispatch]);
 
   const loadRegistrations = useCallback(async () => {
     if (!user?.id) return;

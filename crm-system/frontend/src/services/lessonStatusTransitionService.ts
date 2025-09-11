@@ -1,4 +1,4 @@
-import { Lesson, LessonStatus, LessonStatusHistory, LessonStatusChangeRequest } from '../types';
+import { Lesson, LessonStatus, LessonStatusChangeRequest } from '../types';
 import lessonService from './lessonService';
 import notificationService from './notificationService';
 
@@ -71,7 +71,7 @@ export class LessonStatusTransitionService {
     }
 
     try {
-      // Создаем запись в истории статусов (переменная statusHistory объявлена, но не используется)
+      // Создаем запись в истории статусов
 
       // Обновляем статус урока
       const statusChangeRequest: LessonStatusChangeRequest = {
@@ -102,7 +102,6 @@ export class LessonStatusTransitionService {
     newStatus: LessonStatus,
     reason: string
   ): Promise<void> {
-    // Переменная statusText объявлена, но не используется
     try {
       await notificationService.createLessonStatusNotification(
         lesson.studentId,

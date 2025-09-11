@@ -28,7 +28,7 @@ import {
 } from '@mui/icons-material';
 import { RootState } from '../store';
 import { markAsRead, removeNotification, setNotifications } from '../store/notificationSlice';
-import { Notification, NotificationType } from '../types';
+import { NotificationType } from '../types';
 
 const TeacherNotificationsPage: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -43,7 +43,7 @@ const TeacherNotificationsPage: React.FC = () => {
       // For now, we'll use empty notifications
       dispatch(setNotifications([]));
     }
-  }, [user?.id, dispatch]);
+  }, [user, dispatch]);
 
   useEffect(() => {
     loadNotifications();

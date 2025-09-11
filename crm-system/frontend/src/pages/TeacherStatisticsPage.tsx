@@ -19,12 +19,10 @@ import {
   Event as EventIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
-  TrendingUp as TrendingUpIcon,
   Person as PersonIcon,
   Schedule as ScheduleIcon,
 } from '@mui/icons-material';
 import { RootState } from '../store';
-import LessonService from '../services/lessonService';
 import { TeacherStats } from '../types';
 
 const TeacherStatisticsPage: React.FC = () => {

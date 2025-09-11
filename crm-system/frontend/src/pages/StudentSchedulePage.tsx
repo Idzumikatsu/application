@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
@@ -6,12 +6,10 @@ import {
   Paper,
   Grid,
   CircularProgress,
-  Chip,
 } from '@mui/material';
 import { RootState } from '../store';
 import { setLessons, setLoading, setError } from '../store/lessonSlice';
 import LessonService from '../services/lessonService';
-import { Lesson } from '../types';
 import { LessonStatusBadge } from '../components/LessonStatus';
 
 const StudentSchedulePage: React.FC = () => {
@@ -19,15 +17,16 @@ const StudentSchedulePage: React.FC = () => {
   const { lessons, loading, error } = useSelector((state: RootState) => state.lessons);
   const dispatch = useDispatch();
   
-  const today = new Date();
-  const nextMonth = new Date();
-  nextMonth.setMonth(today.getMonth() + 1);
 
   const loadLessons = useCallback(async () => {
     if (!user?.id) return;
     
     dispatch(setLoading(true));
     try {
+      const today = new Date();
+      const nextMonth = new Date();
+      nextMonth.setMonth(today.getMonth() + 1);
+      
       const startDate = today.toISOString().split('T')[0];
       const endDate = nextMonth.toISOString().split('T')[0];
       const data = await LessonService.getStudentLessons(user.id, startDate, endDate);
@@ -37,7 +36,7 @@ const StudentSchedulePage: React.FC = () => {
     } finally {
       dispatch(setLoading(false));
     }
-  }, [user?.id, dispatch, today, nextMonth]);
+  }, [user?.id, dispatch]);
 
   useEffect(() => {
     if (user?.id) {
