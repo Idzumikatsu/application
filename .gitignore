@@ -64,6 +64,7 @@ dist/
 build/
 .out/
 .next/
+target/
 
 # Temporary folders
 tmp/
@@ -71,3 +72,4 @@ temp/.gemini/
 .kilocode/
 .qwen/
 .roo/
+bin/
