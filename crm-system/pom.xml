@@ -130,6 +130,12 @@
 			<version>0.8.8</version>
 			<scope>test</scope>
 		</dependency>
+		
+		<!-- Spring Boot Actuator для мониторинга здоровья приложения -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
