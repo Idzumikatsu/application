@@ -43,7 +43,7 @@ jobs:
 
     - name: Build and test backend
       env:
-        DATABASE_URL: jdbc:postgresql://postgres:5432/testdb
+        DATABASE_URL: jdbc:postgresql://localhost:5432/testdb
         DATABASE_USERNAME: test
         DATABASE_PASSWORD: test
       run: |
@@ -154,7 +154,7 @@ jobs:
       run: |
         echo "Waiting for PostgreSQL to be ready..."
         for i in {1..30}; do
-          if nc -z postgres 5432; then
+          if nc -z localhost 5432; then
             echo "PostgreSQL is ready!"
             exit 0
           fi
@@ -166,7 +166,7 @@ jobs:
 
     - name: Start backend server
       env:
-        DATABASE_URL: jdbc:postgresql://postgres:5432/testdb
+        DATABASE_URL: jdbc:postgresql://localhost:5432/testdb
         DATABASE_USERNAME: test
         DATABASE_PASSWORD: test
       run: |
