@@ -76,7 +76,7 @@ const TeacherStudentsPage: React.FC = () => {
         {
           id: 2,
           firstName: 'Мария',
-          lastName: 'Сидорова',
+          lastName: 'Сидорova',
           email: 'maria@example.com',
           phone: '+79169876543',
           registrationDate: '2025-02-20',

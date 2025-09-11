@@ -4,7 +4,6 @@ import {
   Box,
   Typography,
   Paper,
-  Grid,
   CircularProgress,
   TextField,
   InputAdornment,
@@ -17,8 +16,6 @@ import {
   Chip,
   Tab,
   Tabs,
-  Card,
-  CardContent,
   Avatar,
   Menu,
   MenuItem,
@@ -32,14 +29,7 @@ import {
   TableRow,
   TablePagination,
   Checkbox,
-  FormControl,
-  InputLabel,
-  Select,
-  Tooltip,
-  Badge,
   Alert,
-  Switch,
-  FormControlLabel,
 } from '@mui/material';
 import {
   Search,
@@ -47,29 +37,21 @@ import {
   Edit,
   Delete,
   MoreVert,
-  Person,
-  School,
-  Event,
-  TrendingUp,
   Download,
   Email,
   Phone,
   Telegram,
-  CalendarToday,
+  FilterList,
+  Clear,
   Assignment,
   History,
   BarChart,
   Link,
-  Notifications,
-  FilterList,
-  Refresh,
-  Clear,
 } from '@mui/icons-material';
 import { RootState } from '../store';
 import { setStudents, addStudent, updateStudent, removeStudent, setLoading, setError } from '../store/userSlice';
 import UserService from '../services/userService';
-import LessonService from '../services/lessonService';
-import { Student, LessonPackage, Teacher } from '../types';
+import { Student } from '../types';
 import StudentFormDialog from '../components/StudentFormDialog';
 import LessonPackagesDialog from '../components/LessonPackagesDialog';
 import StudentLessonsDialog from '../components/StudentLessonsDialog';

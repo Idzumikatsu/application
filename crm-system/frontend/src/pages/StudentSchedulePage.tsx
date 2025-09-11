@@ -37,7 +37,7 @@ const StudentSchedulePage: React.FC = () => {
     } finally {
       dispatch(setLoading(false));
     }
-  }, [user?.id, dispatch]);
+  }, [user?.id, dispatch, today, nextMonth]);
 
   useEffect(() => {
     if (user?.id) {

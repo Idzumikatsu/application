@@ -50,7 +50,7 @@ const StudentGroupLessonsPage: React.FC = () => {
     } finally {
       dispatch(setLoading(false));
     }
-  }, [user?.id, dispatch]);
+  }, [user?.id, dispatch, today, nextMonth]);
 
   const loadRegistrations = useCallback(async () => {
     if (!user?.id) return;
