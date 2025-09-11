@@ -42,6 +42,10 @@ jobs:
         cache: 'maven'
 
     - name: Build and test backend
+      env:
+        DATABASE_URL: jdbc:postgresql://postgres:5432/testdb
+        DATABASE_USERNAME: test
+        DATABASE_PASSWORD: test
       run: |
         cd crm-system
         mvn clean test -Dspring.profiles.active=test
@@ -150,7 +154,7 @@ jobs:
       run: |
         echo "Waiting for PostgreSQL to be ready..."
         for i in {1..30}; do
-          if nc -z localhost 5432; then
+          if nc -z postgres 5432; then
             echo "PostgreSQL is ready!"
             exit 0
           fi
@@ -161,6 +165,10 @@ jobs:
         exit 1
 
     - name: Start backend server
+      env:
+        DATABASE_URL: jdbc:postgresql://postgres:5432/testdb
+        DATABASE_USERNAME: test
+        DATABASE_PASSWORD: test
       run: |
         cd crm-system
         mvn spring-boot:run -Dspring.profiles.active=test &
