@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Typography,
@@ -33,13 +33,7 @@ const TeacherStatisticsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user?.id) {
-      loadStatistics();
-    }
-  }, [user?.id]);
-
-  const loadStatistics = async () => {
+  const loadStatistics = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -64,8 +58,13 @@ const TeacherStatisticsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
+  useEffect(() => {
+    if (user?.id) {
+      loadStatistics();
+    }
+  }, [user?.id, loadStatistics]);
   const getCompletionRate = () => {
     if (!stats || stats.totalLessons === 0) return 0;
     return Math.round((stats.completedLessons / stats.totalLessons) * 100);

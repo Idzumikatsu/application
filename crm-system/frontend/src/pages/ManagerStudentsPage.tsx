@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
@@ -69,7 +69,7 @@ import { RootState } from '../store';
 import { setStudents, addStudent, updateStudent, removeStudent, setLoading, setError } from '../store/userSlice';
 import UserService from '../services/userService';
 import LessonService from '../services/lessonService';
-import { Student, Lesson, LessonPackage, Teacher } from '../types';
+import { Student, LessonPackage, Teacher } from '../types';
 import StudentFormDialog from '../components/StudentFormDialog';
 import LessonPackagesDialog from '../components/LessonPackagesDialog';
 import StudentLessonsDialog from '../components/StudentLessonsDialog';
@@ -113,14 +113,10 @@ const ManagerStudentsPage: React.FC = () => {
   const [openStatisticsDialog, setOpenStatisticsDialog] = useState(false);
   const [openTeacherDialog, setOpenTeacherDialog] = useState(false);
   const [openExportDialog, setOpenExportDialog] = useState(false);
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [showPackageNotifications, setShowPackageNotifications] = useState(false);
+  const [, setFilterStatus] = useState<string>('all');
+  const [, setShowPackageNotifications] = useState(false);
 
-  useEffect(() => {
-    loadStudents();
-  }, []);
-
-  const loadStudents = async () => {
+  const loadStudents = useCallback(async () => {
     dispatch(setLoading(true));
     try {
       const data = await UserService.getAllStudents();
@@ -130,7 +126,12 @@ const ManagerStudentsPage: React.FC = () => {
     } finally {
       dispatch(setLoading(false));
     }
-  };
+  }, [dispatch]);
+
+  useEffect(() => {
+    loadStudents();
+  }, [loadStudents]);
+
 
   const handleCreateStudent = async (studentData: Partial<Student>) => {
     try {
@@ -231,7 +232,7 @@ const ManagerStudentsPage: React.FC = () => {
           <Button
             variant="outlined"
             startIcon={<FilterList />}
-            onClick={() => setShowPackageNotifications(!showPackageNotifications)}
+            onClick={() => setShowPackageNotifications(prev => !prev)}
           >
             Уведомления о пакетах
           </Button>

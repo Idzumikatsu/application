@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Typography,
@@ -7,17 +7,12 @@ import {
   Grid,
   Card,
   CardContent,
-  Chip,
   Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Select,
   CircularProgress,
   Tabs,
   Tab,
@@ -27,11 +22,9 @@ import {
 import {
   Event as EventIcon,
   CheckCircle as CheckCircleIcon,
-  Cancel as CancelIcon,
   Edit as EditIcon,
   NoteAdd as NoteAddIcon,
   VideoCall as VideoCallIcon,
-  Person as PersonIcon,
 } from '@mui/icons-material';
 import { RootState } from '../store';
 import LessonService from '../services/lessonService';
@@ -51,13 +44,7 @@ const TeacherLessonsPage: React.FC = () => {
   const [statusHistory, setStatusHistory] = useState<LessonStatusHistoryType[]>([]);
   const [selectedLessonForStatus, setSelectedLessonForStatus] = useState<Lesson | null>(null);
 
-  useEffect(() => {
-    if (user?.id) {
-      loadLessons();
-    }
-  }, [user?.id, activeTab]);
-
-  const loadLessons = async () => {
+  const loadLessons = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -149,8 +136,13 @@ const TeacherLessonsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, activeTab]);
 
+  useEffect(() => {
+    if (user?.id) {
+      loadLessons();
+    }
+  }, [user?.id, activeTab, loadLessons]);
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
@@ -245,9 +237,6 @@ const TeacherLessonsPage: React.FC = () => {
     loadStatusHistory(lesson.id);
   };
 
-  const getStatusText = (status: LessonStatus) => {
-    return LessonService.getLessonStatusText(status);
-  };
 
   const formatLessonDateTime = (date: string, time: string) => {
     return `${new Date(date).toLocaleDateString('ru-RU')} в ${time}`;

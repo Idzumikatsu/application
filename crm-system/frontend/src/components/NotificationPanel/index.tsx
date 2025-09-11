@@ -7,7 +7,6 @@ import {
   Tabs,
   Tab,
   Typography,
-  Paper,
   IconButton,
   Badge,
   Drawer

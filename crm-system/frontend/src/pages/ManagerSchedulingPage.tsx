@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Box, Typography, Paper, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { RootState } from '../store';
@@ -10,17 +10,9 @@ const ManagerSchedulingPage: React.FC = () => {
   const { teachers } = useSelector((state: RootState) => state.users);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [selectedTeacherId, setSelectedTeacherId] = useState<number | ''>('');
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (selectedTeacherId) {
-      loadEvents();
-    } else {
-      setEvents([]);
-    }
-  }, [selectedTeacherId]);
-
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async () => {
     try {
       setLoading(true);
       const startDate = new Date();
@@ -39,7 +31,16 @@ const ManagerSchedulingPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedTeacherId]);
+
+  useEffect(() => {
+    if (selectedTeacherId) {
+      loadEvents();
+    } else {
+      setEvents([]);
+    }
+  }, [selectedTeacherId, loadEvents]);
+
 
   const handleEventCreate = async (eventData: Omit<CalendarEvent, 'id'>) => {
     try {

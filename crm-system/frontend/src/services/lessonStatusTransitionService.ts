@@ -71,14 +71,7 @@ export class LessonStatusTransitionService {
     }
 
     try {
-      // Создаем запись в истории статусов
-      const statusHistory: Partial<LessonStatusHistory> = {
-        oldStatus: lesson.status,
-        newStatus: applicableRule.to,
-        changedBy: 'system',
-        changeReason: applicableRule.description,
-        automated: true
-      };
+      // Создаем запись в истории статусов (переменная statusHistory объявлена, но не используется)
 
       // Обновляем статус урока
       const statusChangeRequest: LessonStatusChangeRequest = {
@@ -109,8 +102,7 @@ export class LessonStatusTransitionService {
     newStatus: LessonStatus,
     reason: string
   ): Promise<void> {
-    const statusText = this.getStatusText(newStatus);
-    
+    // Переменная statusText объявлена, но не используется
     try {
       await notificationService.createLessonStatusNotification(
         lesson.studentId,

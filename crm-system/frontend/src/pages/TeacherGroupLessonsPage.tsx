@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -7,7 +7,6 @@ import {
   Grid,
   Card,
   CardContent,
-  Chip,
   Button,
   CircularProgress,
   Tabs,
@@ -24,15 +23,13 @@ import {
 } from '@mui/material';
 import {
   Event as EventIcon,
-  CheckCircle as CheckCircleIcon,
-  Cancel as CancelIcon,
   VideoCall as VideoCallIcon,
   People as PeopleIcon,
   Edit as EditIcon,
   NoteAdd as NoteAddIcon,
 } from '@mui/icons-material';
 import { RootState } from '../store';
-import { GroupLesson, GroupLessonStatus, RegistrationStatus } from '../types';
+import { GroupLesson, GroupLessonStatus } from '../types';
 import { GroupLessonStatusBadge } from '../components/GroupLessonStatus';
 import GroupLessonStatusDialog from '../components/GroupLessonStatus/GroupLessonStatusDialog';
 import LessonService from '../services/lessonService';
@@ -48,13 +45,7 @@ const TeacherGroupLessonsPage: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [openStatusDialog, setOpenStatusDialog] = useState(false);
 
-  useEffect(() => {
-    if (user?.id) {
-      loadGroupLessons();
-    }
-  }, [user?.id, activeTab]);
-
-  const loadGroupLessons = async () => {
+  const loadGroupLessons = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -144,8 +135,13 @@ const TeacherGroupLessonsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, activeTab]);
 
+  useEffect(() => {
+    if (user?.id) {
+      loadGroupLessons();
+    }
+  }, [user?.id, activeTab, loadGroupLessons]);
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };

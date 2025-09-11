@@ -9,7 +9,6 @@ import {
   Tab,
   AppBar,
   Toolbar,
-  Button,
   Chip,
   Avatar,
   Badge,
@@ -26,7 +25,6 @@ import {
 import { RootState } from '../store';
 import TeacherSchedulePage from './TeacherSchedulePage';
 import TeacherLessonsPage from './TeacherLessonsPage';
-import TeacherGroupLessonsPage from './TeacherGroupLessonsPage';
 import TeacherStudentsPage from './TeacherStudentsPage';
 import TeacherStatisticsPage from './TeacherStatisticsPage';
 import TeacherAvailabilityPage from './TeacherAvailabilityPage';

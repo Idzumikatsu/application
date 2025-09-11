@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
@@ -19,7 +19,7 @@ import { Search, Add } from '@mui/icons-material';
 import { RootState } from '../store';
 import { setTeachers, addTeacher, setLoading, setError } from '../store/userSlice';
 import UserService from '../services/userService';
-import { User, UserRole } from '../types';
+import { UserRole } from '../types';
 
 const ManagerTeachersPage: React.FC = () => {
   const { teachers, loading, error } = useSelector((state: RootState) => state.users);
@@ -33,11 +33,7 @@ const ManagerTeachersPage: React.FC = () => {
     phone: '',
   });
 
-  useEffect(() => {
-    loadTeachers();
-  }, []);
-
-  const loadTeachers = async () => {
+  const loadTeachers = useCallback(async () => {
     dispatch(setLoading(true));
     try {
       const data = await UserService.getAllTeachers();
@@ -47,7 +43,12 @@ const ManagerTeachersPage: React.FC = () => {
     } finally {
       dispatch(setLoading(false));
     }
-  };
+  }, [dispatch]);
+
+  useEffect(() => {
+    loadTeachers();
+  }, [loadTeachers]);
+
 
   const handleCreateTeacher = async () => {
     try {

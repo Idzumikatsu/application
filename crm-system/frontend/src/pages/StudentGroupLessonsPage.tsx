@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
@@ -12,14 +12,13 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
 } from '@mui/material';
 import { RootState } from '../store';
-import { setGroupLessons, addGroupLesson, setLoading, setError } from '../store/lessonSlice';
+import { setGroupLessons, setLoading, setError } from '../store/lessonSlice';
 import LessonService from '../services/lessonService';
 import { GroupLesson, GroupLessonStatus, GroupLessonRegistration, RegistrationStatus } from '../types';
 
@@ -37,15 +36,7 @@ const StudentGroupLessonsPage: React.FC = () => {
   const nextMonth = new Date();
   nextMonth.setMonth(today.getMonth() + 1);
 
-  useEffect(() => {
-    if (user?.id) {
-      loadGroupLessons();
-      loadRegistrations();
-      loadAvailableLessons();
-    }
-  }, [user?.id]);
-
-  const loadGroupLessons = async () => {
+  const loadGroupLessons = useCallback(async () => {
     if (!user?.id) return;
     
     dispatch(setLoading(true));
@@ -59,9 +50,9 @@ const StudentGroupLessonsPage: React.FC = () => {
     } finally {
       dispatch(setLoading(false));
     }
-  };
+  }, [user?.id, dispatch]);
 
-  const loadRegistrations = async () => {
+  const loadRegistrations = useCallback(async () => {
     if (!user?.id) return;
     
     try {
@@ -70,9 +61,9 @@ const StudentGroupLessonsPage: React.FC = () => {
     } catch (err: any) {
       dispatch(setError(err.message || 'Ошибка загрузки регистраций'));
     }
-  };
+  }, [user?.id, dispatch]);
 
-  const loadAvailableLessons = async () => {
+  const loadAvailableLessons = useCallback(async () => {
     try {
       // Здесь должна быть реализация загрузки доступных групповых уроков
       // Пока используем заглушку
@@ -104,7 +95,16 @@ const StudentGroupLessonsPage: React.FC = () => {
     } catch (err: any) {
       dispatch(setError(err.message || 'Ошибка загрузки доступных уроков'));
     }
-  };
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (user?.id) {
+      loadGroupLessons();
+      loadRegistrations();
+      loadAvailableLessons();
+    }
+  }, [user?.id, loadGroupLessons, loadRegistrations, loadAvailableLessons]);
+
 
   const handleRegisterForLesson = async () => {
     if (!user?.id || !selectedLesson) return;

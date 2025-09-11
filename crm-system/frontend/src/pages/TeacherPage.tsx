@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import {
@@ -24,6 +24,17 @@ const TeacherPage: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
+
+  const loadTeacherData = useCallback(async () => {
+    if (user?.id) {
+      // TODO: Implement teacher data loading logic
+      console.log('Loading teacher data for user:', user.id);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    loadTeacherData();
+  }, [loadTeacherData]);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
@@ -44,13 +44,7 @@ const TeacherAvailabilityPage: React.FC = () => {
   const [duration, setDuration] = useState(60);
   const [status, setStatus] = useState<AvailabilitySlotStatus>(AvailabilitySlotStatus.AVAILABLE);
 
-  useEffect(() => {
-    if (user?.id) {
-      loadAvailabilitySlots();
-    }
-  }, [user?.id]);
-
-  const loadAvailabilitySlots = async () => {
+  const loadAvailabilitySlots = useCallback(async () => {
     if (!user?.id) return;
     
     dispatch(setLoading(true));
@@ -69,8 +63,13 @@ const TeacherAvailabilityPage: React.FC = () => {
     } finally {
       dispatch(setLoading(false));
     }
-  };
+  }, [user?.id, dispatch]);
 
+  useEffect(() => {
+    if (user?.id) {
+      loadAvailabilitySlots();
+    }
+  }, [user?.id, loadAvailabilitySlots]);
   const handleCreateSlot = async () => {
     if (!user?.id || !selectedDate || !selectedTime) return;
     

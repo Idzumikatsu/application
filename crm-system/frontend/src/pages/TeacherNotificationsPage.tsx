@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
@@ -37,13 +37,17 @@ const TeacherNotificationsPage: React.FC = () => {
   
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
-  useEffect(() => {
+  const loadNotifications = useCallback(async () => {
     if (user?.id) {
       // TODO: Implement fetch notifications logic
       // For now, we'll use empty notifications
       dispatch(setNotifications([]));
     }
   }, [user?.id, dispatch]);
+
+  useEffect(() => {
+    loadNotifications();
+  }, [loadNotifications]);
 
   const handleMarkAsRead = (notificationId: number) => {
     dispatch(markAsRead(notificationId));

@@ -1,6 +1,4 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store';
 import { Notification, NotificationType } from '../../types';
 import { Box, Typography, Paper, Chip, List, ListItem, ListItemText, ListItemIcon, Divider } from '@mui/material';
 import { Event, Cancel, CheckCircle, Schedule } from '@mui/icons-material';

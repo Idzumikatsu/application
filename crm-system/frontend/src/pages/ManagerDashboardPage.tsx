@@ -18,8 +18,6 @@ import {
 } from '@mui/material';
 import {
   Search as SearchIcon,
-  FilterList as FilterIcon,
-  Add as AddIcon,
   Person as PersonIcon,
   School as SchoolIcon,
   Event as EventIcon,
@@ -61,7 +59,7 @@ const ManagerDashboardPage: React.FC = () => {
     attendanceRate: 0,
     cancellationRate: 0,
   });
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState(0);
 
@@ -138,9 +136,6 @@ const ManagerDashboardPage: React.FC = () => {
     return value > comparison ? <TrendingUpIcon /> : <TrendingDownIcon />;
   };
 
-  const getTrendColor = (value: number, comparison: number) => {
-    return value > comparison ? 'success' : 'error';
-  };
 
   return (
     <Container maxWidth="xl" sx={{ py: 3 }}>

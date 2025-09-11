@@ -5,9 +5,7 @@ import {
   PackageTemplate,
   PackageOperation,
   PackageStats,
-  PackageFilter,
-  PackageStatus,
-  PackageType
+  PackageFilter
 } from '../types/packageTypes';
 
 interface PackageState {

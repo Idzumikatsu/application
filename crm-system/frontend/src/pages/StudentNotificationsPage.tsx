@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
@@ -14,28 +14,25 @@ import {
   Tooltip,
   CircularProgress,
 } from '@mui/material';
-import { 
-  Check, 
-  Close, 
-  Info, 
-  Warning, 
-  Error, 
-  Event, 
-  People, 
+import {
+  Check,
+  Close,
+  Info,
+  Warning,
+  Event,
   School,
   DoneAll
 } from '@mui/icons-material';
 import { RootState } from '../store';
-import { 
-  setNotifications, 
-  addNotification, 
-  markAsRead, 
-  markAllAsRead, 
-  setLoading, 
-  setError 
+import {
+  setNotifications,
+  markAsRead,
+  markAllAsRead,
+  setLoading,
+  setError
 } from '../store/notificationSlice';
 import NotificationService from '../services/notificationService';
-import { Notification, NotificationType, NotificationStatus } from '../types';
+import { NotificationType, NotificationStatus } from '../types';
 
 const StudentNotificationsPage: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -44,13 +41,7 @@ const StudentNotificationsPage: React.FC = () => {
   
   const [unreadCount, setUnreadCount] = useState(0);
 
-  useEffect(() => {
-    if (user?.id) {
-      loadNotifications();
-    }
-  }, [user?.id]);
-
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     if (!user?.id) return;
     
     dispatch(setLoading(true));
@@ -66,11 +57,18 @@ const StudentNotificationsPage: React.FC = () => {
     } finally {
       dispatch(setLoading(false));
     }
-  };
+  }, [user?.id, dispatch]);
+
+  useEffect(() => {
+    if (user?.id) {
+      loadNotifications();
+    }
+  }, [user?.id, loadNotifications]);
+
 
   const handleMarkAsRead = async (id: number) => {
     try {
-      const updatedNotification = await NotificationService.markAsRead(id);
+      await NotificationService.markAsRead(id);
       dispatch(markAsRead(id));
       setUnreadCount(prev => prev > 0 ? prev - 1 : 0);
     } catch (err: any) {

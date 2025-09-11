@@ -1,5 +1,5 @@
 import httpClient from './httpClient';
-import { Notification, PackageNotification, NotificationType, NotificationStatus } from '../types';
+import { Notification, PackageNotification, NotificationType } from '../types';
 
 class NotificationService {
   // Package notifications

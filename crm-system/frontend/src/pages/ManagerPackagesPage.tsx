@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
@@ -23,7 +23,7 @@ import { Search, Add } from '@mui/icons-material';
 import { RootState } from '../store';
 import { setStudents, setLoading, setError } from '../store/userSlice';
 import UserService from '../services/userService';
-import { Student, LessonPackage } from '../types';
+import { LessonPackage } from '../types';
 
 const ManagerPackagesPage: React.FC = () => {
   const { students, loading, error } = useSelector((state: RootState) => state.users);
@@ -33,11 +33,7 @@ const ManagerPackagesPage: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<number>(0);
   const [packageLessons, setPackageLessons] = useState<number>(10);
 
-  useEffect(() => {
-    loadStudents();
-  }, []);
-
-  const loadStudents = async () => {
+  const loadStudents = useCallback(async () => {
     dispatch(setLoading(true));
     try {
       const data = await UserService.getAllStudents();
@@ -47,7 +43,12 @@ const ManagerPackagesPage: React.FC = () => {
     } finally {
       dispatch(setLoading(false));
     }
-  };
+  }, [dispatch]);
+
+  useEffect(() => {
+    loadStudents();
+  }, [loadStudents]);
+
 
   const handleCreatePackage = async () => {
     if (!selectedStudent) return;

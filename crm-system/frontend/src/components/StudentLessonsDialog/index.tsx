@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -45,13 +45,7 @@ const StudentLessonsDialog: React.FC<StudentLessonsDialogProps> = ({
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
 
-  useEffect(() => {
-    if (open && student) {
-      loadLessons();
-    }
-  }, [open, student]);
-
-  const loadLessons = async () => {
+  const loadLessons = useCallback(async () => {
     if (!student) return;
     
     setLoading(true);
@@ -67,7 +61,14 @@ const StudentLessonsDialog: React.FC<StudentLessonsDialogProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [student, startDate, endDate]);
+
+  useEffect(() => {
+    if (open && student) {
+      loadLessons();
+    }
+  }, [open, student, loadLessons]);
+
 
   const filteredLessons = lessons.filter(lesson =>
     filterStatus === 'all' || lesson.status === filterStatus

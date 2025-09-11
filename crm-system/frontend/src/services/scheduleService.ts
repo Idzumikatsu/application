@@ -9,7 +9,6 @@ import {
   AvailabilitySlot,
   CalendarEvent,
   LessonStatus,
-  GroupLessonStatus,
   AvailabilitySlotStatus
 } from '../types';
 

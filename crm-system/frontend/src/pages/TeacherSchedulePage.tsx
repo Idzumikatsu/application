@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Box, Typography, Paper } from '@mui/material';
 import { RootState } from '../store';
@@ -11,13 +11,7 @@ const TeacherSchedulePage: React.FC = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user?.id) {
-      loadEvents();
-    }
-  }, [user?.id]);
-
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async () => {
     try {
       setLoading(true);
       const startDate = new Date();
@@ -36,8 +30,13 @@ const TeacherSchedulePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
+  useEffect(() => {
+    if (user?.id) {
+      loadEvents();
+    }
+  }, [user?.id, loadEvents]);
   const handleEventCreate = async (eventData: Omit<CalendarEvent, 'id'>) => {
     try {
       const newEvent = await createCalendarEvent({

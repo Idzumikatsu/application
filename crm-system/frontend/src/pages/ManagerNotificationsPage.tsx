@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
@@ -8,7 +8,6 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  ListItemSecondaryAction,
   IconButton,
   Chip,
   Divider,
@@ -31,13 +30,23 @@ import NotificationService from '../services/notificationService';
 
 const ManagerNotificationsPage: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
-  const { notifications, unreadCount, loading, error } = useSelector((state: RootState) => state.notifications);
-  const { user } = useSelector((state: RootState) => state.auth);
+  const { notifications, loading, error } = useSelector((state: RootState) => state.notifications);
   const [managerNotifications, setManagerNotifications] = useState<Notification[]>([]);
+
+  const loadNotifications = useCallback(async () => {
+    try {
+      dispatch(setLoading(true));
+      await NotificationService.getAllNotifications();
+    } catch (err) {
+      dispatch(setError('Не удалось загрузить уведомления'));
+    } finally {
+      dispatch(setLoading(false));
+    }
+  }, [dispatch]);
 
   useEffect(() => {
     loadNotifications();
-  }, []);
+  }, [loadNotifications]);
 
   useEffect(() => {
     // Filter notifications for managers - system messages, package alerts, payment reminders
@@ -50,16 +59,6 @@ const ManagerNotificationsPage: React.FC = () => {
     setManagerNotifications(filtered);
   }, [notifications]);
 
-  const loadNotifications = async () => {
-    try {
-      dispatch(setLoading(true));
-      await NotificationService.getAllNotifications();
-    } catch (err) {
-      dispatch(setError('Не удалось загрузить уведомления'));
-    } finally {
-      dispatch(setLoading(false));
-    }
-  };
 
   const handleMarkAsRead = async (notificationId: number) => {
     try {

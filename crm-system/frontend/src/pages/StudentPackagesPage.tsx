@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
@@ -10,24 +10,17 @@ import {
   Chip,
 } from '@mui/material';
 import { RootState } from '../store';
-import { setStudents, setLoading, setError } from '../store/userSlice';
-import UserService from '../services/userService';
-import { Student, LessonPackage } from '../types';
+import { setLoading, setError } from '../store/userSlice';
+import { LessonPackage } from '../types';
 
 const StudentPackagesPage: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
-  const { students, loading, error } = useSelector((state: RootState) => state.users);
+  const { loading, error } = useSelector((state: RootState) => state.users);
   const dispatch = useDispatch();
   
   const [studentPackages, setStudentPackages] = useState<LessonPackage[]>([]);
 
-  useEffect(() => {
-    if (user?.id) {
-      loadStudentData();
-    }
-  }, [user?.id]);
-
-  const loadStudentData = async () => {
+  const loadStudentData = useCallback(async () => {
     if (!user?.id) return;
     
     dispatch(setLoading(true));
@@ -59,7 +52,14 @@ const StudentPackagesPage: React.FC = () => {
     } finally {
       dispatch(setLoading(false));
     }
-  };
+  }, [user?.id, dispatch]);
+
+  useEffect(() => {
+    if (user?.id) {
+      loadStudentData();
+    }
+  }, [user?.id, loadStudentData]);
+
 
   const getPackageStatus = (pkg: LessonPackage) => {
     if (pkg.remainingLessons === 0) {

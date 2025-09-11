@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -55,14 +55,7 @@ const TeacherStudentsPage: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [studentNotes, setStudentNotes] = useState('');
 
-  useEffect(() => {
-    if (user?.id) {
-      loadStudents();
-      loadLessons();
-    }
-  }, [user?.id]);
-
-  const loadStudents = async () => {
+  const loadStudents = useCallback(async () => {
     try {
       // В реальной реализации здесь будет вызов API
       // const data = await StudentService.getTeacherStudents(user.id);
@@ -118,9 +111,9 @@ const TeacherStudentsPage: React.FC = () => {
     } catch (err: any) {
       setError(err.message || 'Ошибка загрузки студентов');
     }
-  };
+  }, [user?.id]);
 
-  const loadLessons = async () => {
+  const loadLessons = useCallback(async () => {
     try {
       // В реальной реализации здесь будет вызов API
       // const data = await LessonService.getTeacherLessons(user.id);
@@ -139,8 +132,14 @@ const TeacherStudentsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
+  useEffect(() => {
+    if (user?.id) {
+      loadStudents();
+      loadLessons();
+    }
+  }, [user?.id, loadStudents, loadLessons]);
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
