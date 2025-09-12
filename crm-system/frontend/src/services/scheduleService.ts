@@ -316,13 +316,87 @@ export const updateCalendarEvent = async (
 };
 
 /**
+ * Создает новое событие календаря
+ * @param eventData - данные события
+ * @returns Созданное событие
+ */
+export const createCalendarEvent = async (eventData: Omit<CalendarEvent, 'id'>): Promise<CalendarEvent> => {
+  try {
+    const { type, start, end, title, resource } = eventData;
+    const startDate = start.toISOString().split('T')[0];
+    const startTime = start.toTimeString().split(' ')[0];
+    const durationMinutes = Math.round((end.getTime() - start.getTime()) / 60000);
+
+    switch (type) {
+      case 'lesson':
+      case 'group-lesson': {
+        const lessonData: Partial<Lesson> = {
+          scheduledDate: startDate,
+          scheduledTime: startTime,
+          durationMinutes,
+          notes: resource?.description,
+          studentId: resource?.studentId || 1, // Default value if not provided
+          teacherId: resource?.teacherId || 1, // Default value if not provided
+          status: LessonStatus.SCHEDULED as LessonStatus,
+        };
+        const lesson = await createLesson(lessonData);
+        return {
+          id: `lesson-${lesson.id}`,
+          title: title || 'Урок',
+          start,
+          end,
+          type: type as 'lesson' | 'group-lesson',
+          status: lesson.status,
+          resource: {
+            description: lesson.notes || '',
+            meetingLink: '',
+            studentId: lesson.studentId,
+            lessonId: lesson.id
+          }
+        };
+      }
+
+      case 'availability': {
+        const slotData: Partial<AvailabilitySlot> = {
+          slotDate: startDate,
+          slotTime: startTime,
+          durationMinutes,
+          teacherId: resource?.teacherId || 1, // Default value if not provided
+          status: AvailabilitySlotStatus.AVAILABLE as AvailabilitySlotStatus,
+        };
+        const slot = await createAvailabilitySlot(slotData);
+        return {
+          id: `availability-${slot.id}`,
+          title: title || 'Доступность',
+          start,
+          end,
+          type: 'availability',
+          status: slot.status,
+          resource: {
+            description: `Длительность: ${durationMinutes} минут`,
+            meetingLink: '',
+            slotId: slot.id
+          }
+        };
+      }
+
+      default:
+        throw new Error(`Неизвестный тип события: ${type}`);
+    }
+  } catch (error) {
+    console.error('Ошибка создания события календаря:', error);
+    throw error;
+  }
+};
+
+/**
  * Удаляет событие календаря
  * @param eventId - ID события
  */
 export const deleteCalendarEvent = async (eventId: string): Promise<void> => {
   try {
     const [type, id] = eventId.split('-');
-    
+
     switch (type) {
       case 'lesson':
         await deleteLesson(parseInt(id));
