@@ -224,7 +224,13 @@ jobs:
             artifacts/crm-system.jar \
             $DEPLOY_USER@$DEPLOY_HOST:/tmp/deployment-artifacts/crm-system.jar
         
-        # Копируем frontend build
+        # Создаем целевую директорию и копируем frontend build
+        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+          set -e
+          mkdir -p /tmp/deployment-artifacts/frontend-build/
+          echo "Frontend target directory created"
+        EOF
+        
         scp -o StrictHostKeyChecking=no -r \
             artifacts/build/ \
             $DEPLOY_USER@$DEPLOY_HOST:/tmp/deployment-artifacts/frontend-build/
