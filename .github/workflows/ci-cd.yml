@@ -158,6 +158,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-artifacts
     if: github.ref == 'refs/heads/master'
+    
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_PATH: /opt/crm-synergy
 
     steps:
     - name: Checkout code
@@ -169,12 +175,91 @@ jobs:
         name: deployment-artifacts
         path: artifacts
 
-    - name: List downloaded artifacts
-      run: ls -la artifacts/
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
 
-    - name: Deploy to production environment
+    - name: Copy deployment script to server
       run: |
-        echo "Deploying CRM System to production..."
-        # Здесь будут команды для реального деплоя
-        # Например: scp, rsync, kubectl apply, или вызов скрипта деплоя
-        echo "Deployment completed successfully"
+        echo "Copying deployment script to server..."
+        scp -o StrictHostKeyChecking=no \
+            scripts/deploy-and-restart.sh \
+            $DEPLOY_USER@$DEPLOY_HOST:/tmp/deploy-and-restart.sh
+        
+        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+          set -e
+          sudo cp /tmp/deploy-and-restart.sh /usr/local/bin/deploy-and-restart.sh
+          sudo chmod +x /usr/local/bin/deploy-and-restart.sh
+          sudo chown root:root /usr/local/bin/deploy-and-restart.sh
+          echo "Deployment script installed successfully"
+        EOF
+
+    - name: Copy artifacts to server
+      run: |
+        echo "Copying deployment artifacts to server..."
+        
+        # Создаем временную директорию на сервере
+        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+          set -e
+          mkdir -p /tmp/deployment-artifacts
+          echo "Temporary directory created"
+        EOF
+        
+        # Копируем backend JAR
+        scp -o StrictHostKeyChecking=no \
+            artifacts/crm-system.jar \
+            $DEPLOY_USER@$DEPLOY_HOST:/tmp/deployment-artifacts/crm-system.jar
+        
+        # Копируем frontend build
+        scp -o StrictHostKeyChecking=no -r \
+            artifacts/crm-system/frontend/build/ \
+            $DEPLOY_USER@$DEPLOY_HOST:/tmp/deployment-artifacts/frontend-build/
+
+    - name: Execute automated deployment
+      run: |
+        echo "Executing automated deployment with restart..."
+        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+          set -e
+          echo "Starting automated deployment process..."
+          
+          # Выполняем деплой с автоматическим перезапуском
+          sudo /usr/local/bin/deploy-and-restart.sh \
+            --jar /tmp/deployment-artifacts/crm-system.jar \
+            --frontend /tmp/deployment-artifacts/frontend-build
+          
+          echo "Deployment execution completed"
+        EOF
+
+    - name: Cleanup temporary files
+      run: |
+        echo "Cleaning up temporary files..."
+        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+          set -e
+          rm -rf /tmp/deployment-artifacts
+          rm -f /tmp/deploy-and-restart.sh
+          echo "Temporary files cleaned up"
+        EOF
+
+    - name: Final deployment verification
+      run: |
+        echo "Performing final deployment verification..."
+        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+          set -e
+          echo "=== Final Deployment Status ==="
+          echo "Backend service status:"
+          sudo systemctl status crm-synergy-backend.service --no-pager -l | head -5
+          
+          echo "Backend health check:"
+          curl -s -f https://crm-synergy.ru/api/actuator/health | grep status || echo "Health check unavailable"
+          
+          echo "Frontend directory:"
+          ls -la $DEPLOY_PATH/frontend-dist/ | head -3
+          
+          echo "Application version:"
+          sudo ls -la $DEPLOY_PATH/crm-system-0.0.1-SNAPSHOT.jar
+          
+          echo "=== Deployment Completed Successfully ==="
+        EOF
+        
+        echo "🎉 CRM System deployed and restarted successfully!"
