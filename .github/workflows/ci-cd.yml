@@ -263,21 +263,21 @@ jobs:
     - name: Final deployment verification
       run: |
         echo "Performing final deployment verification..."
-        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << EOF
           set -e
           echo "=== Final Deployment Status ==="
           echo "Backend service status:"
           sudo systemctl status crm-synergy-backend.service --no-pager -l | head -5
-          
+
           echo "Backend health check:"
           curl -s -f https://crm-synergy.ru/api/actuator/health | grep status || echo "Health check unavailable"
-          
+
           echo "Frontend directory:"
           ls -la $DEPLOY_PATH/frontend-dist/ | head -3
-          
+
           echo "Application version:"
           sudo ls -la $DEPLOY_PATH/crm-system-0.0.1-SNAPSHOT.jar
-          
+
           echo "=== Deployment Completed Successfully ==="
         EOF
         
