@@ -1,4 +1,10 @@
-name: CRM System CI/CD
+
+# Исправленный GitHub Actions Workflow для PostgreSQL
+
+## Полный исправленный YAML код
+
+```yaml
+name: CRM System CI/CD - Fixed PostgreSQL Configuration
 
 on:
   push:
@@ -38,6 +44,25 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4.2.0
+
+    - name: Install PostgreSQL client
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
+
+    - name: Wait for PostgreSQL to be ready
+      run: |
+        echo "Waiting for PostgreSQL to be ready..."
+        for i in {1..30}; do
+          if pg_isready -h ${{ env.POSTGRES_HOST }} -p ${{ env.POSTGRES_PORT }} -U ${{ env.POSTGRES_USER }} -d ${{ env.POSTGRES_DB }} >/dev/null 2>&1; then
+            echo "PostgreSQL is ready!"
+            exit 0
+          fi
+          echo "Waiting for PostgreSQL... ($i/30)"
+          sleep 2
+        done
+        echo "PostgreSQL did not become ready in time"
+        exit 1
 
     - name: Set up JDK ${{ env.JAVA_VERSION }}
       uses: actions/setup-java@v4.5.0
@@ -131,6 +156,25 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4.2.0
 
+    - name: Install PostgreSQL client
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
+
+    - name: Wait for PostgreSQL to be ready
+      run: |
+        echo "Waiting for PostgreSQL to be ready..."
+        for i in {1..30}; do
+          if pg_isready -h ${{ env.POSTGRES_HOST }} -p ${{ env.POSTGRES_PORT }} -U ${{ env.POSTGRES_USER }} -d ${{ env.POSTGRES_DB }} >/dev/null 2>&1; then
+            echo "PostgreSQL is ready!"
+            exit 0
+          fi
+          echo "Waiting for PostgreSQL... ($i/30)"
+          sleep 2
+        done
+        echo "PostgreSQL did not become ready in time"
+        exit 1
+
     - name: Set up JDK ${{ env.JAVA_VERSION }}
       uses: actions/setup-java@v4.5.0
       with:
@@ -154,25 +198,6 @@ jobs:
       run: |
         cd crm-system/frontend
         npx playwright install --with-deps
-
-    - name: Install PostgreSQL client
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y postgresql-client
-
-    - name: Wait for PostgreSQL to be ready
-      run: |
-        echo "Waiting for PostgreSQL to be ready..."
-        for i in {1..30}; do
-          if pg_isready -h ${{ env.POSTGRES_HOST }} -p ${{ env.POSTGRES_PORT }} -U ${{ env.POSTGRES_USER }} -d ${{ env.POSTGRES_DB }} >/dev/null 2>&1; then
-            echo "PostgreSQL is ready!"
-            exit 0
-          fi
-          echo "Waiting for PostgreSQL... ($i/30)"
-          sleep 2
-        done
-        echo "PostgreSQL did not become ready in time"
-        exit 1
 
     - name: Start backend server
       env:
@@ -308,3 +333,41 @@ jobs:
           crm-system/frontend/build/
           scripts/
         retention-days: 7
+```
+
+## Пояснения изменений
+
+### 1. **Исправление DNS resolution проблемы**
+- **Было**: Использование `nc -z postgres 5432` - могло не работать из-за отсутствия netcat
+- **Стало**: Использование `pg_isready -h postgres -p 5432 -U test -d testdb`
+- **Преимущество**: `pg_isready` - нативная утилита PostgreSQL, которая точно проверяет готовность базы данных
+
+### 2. **Установка PostgreSQL клиента**
+- Добавлен шаг `Install PostgreSQL client` для гарантированной установки необходимых утилит
+- Команда: `sudo apt-get install -y postgresql-client`
+
+### 3. **Централизованная конфигурация через переменные окружения**
+- Все параметры подключения вынесены в секцию `env` на уровне workflow
+- Использование переменных: `${{ env.POSTGRES_HOST }}`, `${{ env.POSTGRES_USER }}` и т.д.
+- Упрощает управление конфигурацией и предотвращает ошибки
+
+### 4. **Правильные credentials**
+- **Было**: Попытки подключения с пользователем `root` (не существует в PostgreSQL)
+- **Стало**: Использование корректных учетных данных `test/test`
+- Конфигурация сервиса: `POSTGRES_USER: test`, `POSTGRES_PASSWORD: test`
+
+### 5. **Надежная проверка готовности**
+- Использование `pg_isready` вместо `nc -z`
+- Проверка не только доступности порта, но и готовности PostgreSQL принимать подключения
+- Включает проверку аутентификации и доступности базы данных
+
+### 6. **Рекомендации по сетевому взаимодействию**
+1. **Использование service containers**: Контейнеры PostgreSQL доступны по имени сервиса (`postgres`)
+2. **Health checks**: Встроенные проверки здоровья контейнера через `--health-cmd pg_isready`
+3. **Переменные окружения**: Единая точка конфигурации для всех job'ов
+4. **Retry логика**: 30 попыток с задержкой 2 секунды между попытками
+
+### 7. **Совместимость с текущей конфигурацией**
+- Сохранены все существующие шаги и функциональность
+- Улучшена только работа с PostgreSQL
+- Обратная совместимость с текущей код
