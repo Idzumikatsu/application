@@ -134,7 +134,7 @@ jobs:
     - name: Build backend JAR
       run: |
         cd crm-system
-        ./mvnw clean package -DskipTests
+        mvn clean package -DskipTests
         cp target/*.jar ../crm-system.jar
 
     - name: Build frontend
