@@ -149,7 +149,7 @@ jobs:
       uses: actions/download-artifact@v4.1.7
       with:
         name: frontend-build
-        path: build/
+        path: .
 
     - name: Upload deployment artifacts
       uses: actions/upload-artifact@v4.3.5
@@ -157,7 +157,7 @@ jobs:
         name: deployment-artifacts
         path: |
           crm-system.jar
-          build/
+          crm-system/frontend/build/
           scripts/
         retention-days: 7
 
@@ -221,7 +221,7 @@ jobs:
         
         # Копируем frontend build
         scp -o StrictHostKeyChecking=no -r \
-            artifacts/build/ \
+            artifacts/crm-system/frontend/build/ \
             $DEPLOY_USER@$DEPLOY_HOST:/tmp/deployment-artifacts/frontend-build/
 
     - name: Execute automated deployment
