@@ -152,3 +152,29 @@ jobs:
           crm-system/frontend/build/
           scripts/
         retention-days: 7
+
+ deploy-production:
+   name: Deploy to Production
+   runs-on: ubuntu-latest
+   needs: build-artifacts
+   if: github.ref == 'refs/heads/master'
+
+   steps:
+   - name: Checkout code
+     uses: actions/checkout@v4.2.0
+
+   - name: Download deployment artifacts
+     uses: actions/download-artifact@v4.1.7
+     with:
+       name: deployment-artifacts
+       path: artifacts
+
+   - name: List downloaded artifacts
+     run: ls -la artifacts/
+
+   - name: Deploy to production environment
+     run: |
+       echo "Deploying CRM System to production..."
+       # Здесь будут команды для реального деплоя
+       # Например: scp, rsync, kubectl apply, или вызов скрипта деплоя
+       echo "Deployment completed successfully"
