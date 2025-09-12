@@ -68,6 +68,49 @@ class PackageService {
     return response.data;
   }
 
+  // Package templates - stub implementation (not implemented in backend)
+  public async getPackageTemplates(): Promise<any[]> {
+    // Return empty array as backend doesn't support templates
+    console.warn('Package templates not supported by backend - returning empty array');
+    return [];
+  }
+
+  // Package statistics - stub implementation (not implemented in backend)
+  public async getPackageStats(): Promise<any> {
+    // Return empty stats as backend doesn't support statistics
+    console.warn('Package statistics not supported by backend - returning empty stats');
+    return {
+      totalPackages: 0,
+      activePackages: 0,
+      expiredPackages: 0,
+      totalLessonsAvailable: 0,
+      totalLessonsUsed: 0
+    };
+  }
+
+  // Package operations - stub implementation (not implemented in backend)
+  public async getPackageOperations(packageId: number): Promise<any[]> {
+    // Return empty array as backend doesn't support operations history
+    console.warn(`Package operations history not supported for package ${packageId} - returning empty array`);
+    return [];
+  }
+
+  // Renew package - stub implementation
+  public async renewPackage(renewData: any): Promise<any> {
+    // This would need backend support for package renewal
+    // For now, throw an error indicating it's not supported
+    console.error('Package renewal is not supported by the backend API');
+    throw new Error('Package renewal is not supported by the backend');
+  }
+
+  // Deduct lessons - stub implementation
+  public async deductLessons(deductData: any): Promise<any> {
+    // This would need backend support for lesson deduction from packages
+    // For now, throw an error indicating it's not supported
+    console.error('Lesson deduction is not supported by the backend API');
+    throw new Error('Lesson deduction is not supported by the backend');
+  }
+
   // Notifications
   public async getExpiringPackages(daysThreshold: number = 7): Promise<LessonPackage[]> {
     const params = new URLSearchParams();
