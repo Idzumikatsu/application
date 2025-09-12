@@ -34,7 +34,7 @@ describe('AuthService', () => {
 
       const result = await authService.login(credentials);
 
-      expect(httpClient.post).toHaveBeenCalledWith('/api/auth/login', credentials);
+      expect(httpClient.post).toHaveBeenCalledWith('/api/auth/signin', credentials);
       expect(result).toEqual(mockResponse.data);
     });
 

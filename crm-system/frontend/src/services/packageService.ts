@@ -1,15 +1,7 @@
 import httpClient from './httpClient';
 import {
   LessonPackage,
-  PackageTemplate,
-  PackageOperation,
-  PackageStats,
-  BulkPackageAssignment,
-  PackageFilter,
-  PackageCreateRequest,
-  PackageRenewRequest,
-  PackageDeductRequest,
-  PackageSearchResponse
+  PackageCreateRequest
 } from '../types/packageTypes';
 
 class PackageService {
