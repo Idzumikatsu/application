@@ -49,6 +49,25 @@ class PackageService {
   // getPackageStats() - statistics not implemented
   // getPackageUsageStats() - usage statistics not implemented
 
+  // Search packages with filters
+  public async searchPackages(filters?: any): Promise<any> {
+    let url = '/lesson-packages';
+    const params = new URLSearchParams();
+
+    if (filters) {
+      // Add filter parameters if needed
+      if (filters.studentId) params.append('studentId', filters.studentId.toString());
+      if (filters.status) params.append('status', filters.status);
+      if (filters.page !== undefined) params.append('page', (filters.page || 0).toString());
+      if (filters.size !== undefined) params.append('size', (filters.size || 20).toString());
+    }
+
+    const config = params.toString() ? { params } : {};
+
+    const response = await httpClient.get<any>(url, config);
+    return response.data;
+  }
+
   // Notifications
   public async getExpiringPackages(daysThreshold: number = 7): Promise<LessonPackage[]> {
     const params = new URLSearchParams();
