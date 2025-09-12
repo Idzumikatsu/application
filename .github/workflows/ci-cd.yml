@@ -107,12 +107,16 @@ jobs:
         cd crm-system/frontend
         npm run build
 
-    - name: Upload frontend build
-      uses: actions/upload-artifact@v4.3.5
-      with:
-        name: frontend-build
-        path: crm-system/frontend/build/
-        retention-days: 1
+    - name: Verify frontend build exists
+      run: |
+        cd crm-system/frontend
+        if [ -d "build" ]; then
+          echo "Frontend build directory exists"
+          ls -la build/
+        else
+          echo "ERROR: Frontend build directory does not exist!"
+          exit 1
+        fi
 
 
   build-artifacts:
@@ -145,11 +149,12 @@ jobs:
         mvn clean package -DskipTests
         cp target/crm-system-0.0.1-SNAPSHOT.jar ../crm-system.jar
 
-    - name: Download frontend build
-      uses: actions/download-artifact@v4.1.7
-      with:
-        name: frontend-build
-        path: .
+    - name: Build frontend
+      run: |
+        cd crm-system/frontend
+        npm ci
+        npm run build
+        cp -r build/ ../../build/
 
     - name: Upload deployment artifacts
       uses: actions/upload-artifact@v4.3.5
@@ -157,7 +162,7 @@ jobs:
         name: deployment-artifacts
         path: |
           crm-system.jar
-          crm-system/frontend/build/
+          build/
           scripts/
         retention-days: 7
 
@@ -221,7 +226,7 @@ jobs:
         
         # Копируем frontend build
         scp -o StrictHostKeyChecking=no -r \
-            artifacts/crm-system/frontend/build/ \
+            artifacts/build/ \
             $DEPLOY_USER@$DEPLOY_HOST:/tmp/deployment-artifacts/frontend-build/
 
     - name: Execute automated deployment
