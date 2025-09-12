@@ -25,7 +25,7 @@ export const getTeacherLessons = async (
   endDate: string
 ): Promise<Lesson[]> => {
   try {
-    const response = await httpClient.get(`/api/lessons/teacher/${teacherId}`, {
+    const response = await httpClient.get(`/teachers/${teacherId}/lessons`, {  // backend: /api/teachers/{teacherId}/lessons
       params: { startDate, endDate }
     });
     return response.data as Lesson[];
@@ -48,7 +48,7 @@ export const getTeacherGroupLessons = async (
   endDate: string
 ): Promise<GroupLesson[]> => {
   try {
-    const response = await httpClient.get(`/api/group-lessons/teacher/${teacherId}`, {
+    const response = await httpClient.get(`/teachers/${teacherId}/group-lessons`, {  // backend: /api/teachers/{teacherId}/group-lessons
       params: { startDate, endDate }
     });
     return response.data as GroupLesson[];
@@ -160,7 +160,7 @@ export const getTeacherAvailability = async (
   endDate: string
 ): Promise<AvailabilitySlot[]> => {
   try {
-    const response = await httpClient.get(`/api/availability/teacher/${teacherId}`, {
+    const response = await httpClient.get(`/teachers/${teacherId}/availability`, {  // backend: /api/teachers/{teacherId}/availability
       params: { startDate, endDate }
     });
     return response.data as AvailabilitySlot[];
@@ -177,7 +177,7 @@ export const getTeacherAvailability = async (
  */
 export const createLesson = async (lessonData: Partial<Lesson>): Promise<Lesson> => {
   try {
-    const response = await httpClient.post('/api/lessons', lessonData);
+    const response = await httpClient.post('/lessons', lessonData);  // backend: /api/lessons
     return response.data as Lesson;
   } catch (error) {
     console.error('Ошибка создания урока:', error);
@@ -193,7 +193,7 @@ export const createLesson = async (lessonData: Partial<Lesson>): Promise<Lesson>
  */
 export const updateLesson = async (lessonId: number, lessonData: Partial<Lesson>): Promise<Lesson> => {
   try {
-    const response = await httpClient.put(`/api/lessons/${lessonId}`, lessonData);
+    const response = await httpClient.put(`/lessons/${lessonId}`, lessonData);  // backend: /api/lessons/{id}
     return response.data as Lesson;
   } catch (error) {
     console.error('Ошибка обновления урока:', error);
@@ -207,7 +207,7 @@ export const updateLesson = async (lessonId: number, lessonData: Partial<Lesson>
  */
 export const deleteLesson = async (lessonId: number): Promise<void> => {
   try {
-    await httpClient.delete(`/api/lessons/${lessonId}`);
+    await httpClient.delete(`/lessons/${lessonId}`);  // backend: /api/lessons/{id}
   } catch (error) {
     console.error('Ошибка удаления урока:', error);
     throw error;
@@ -215,48 +215,48 @@ export const deleteLesson = async (lessonId: number): Promise<void> => {
 };
 
 /**
- * Создает событие календаря на основе типа
- * @param eventData - данные события
- * @returns Созданное событие
+ * Создает слот доступности
+ * @param slotData - данные слота
+ * @returns Созданный слот
  */
-export const createCalendarEvent = async (eventData: Omit<CalendarEvent, 'id'>): Promise<CalendarEvent> => {
+export const createAvailabilitySlot = async (slotData: Partial<AvailabilitySlot>): Promise<AvailabilitySlot> => {
   try {
-    switch (eventData.type) {
-      case 'lesson':
-        const lesson = await createLesson({
-          teacherId: eventData.resource?.teacherId,
-          studentId: eventData.resource?.studentId,
-          scheduledDate: eventData.start.toISOString().split('T')[0],
-          scheduledTime: eventData.start.toTimeString().split(' ')[0],
-          durationMinutes: Math.round((eventData.end.getTime() - eventData.start.getTime()) / 60000),
-          notes: eventData.resource?.description,
-          status: eventData.status as LessonStatus
-        });
-        return {
-          ...eventData,
-          id: `lesson-${lesson.id}`,
-          resource: { ...eventData.resource, lessonId: lesson.id }
-        };
-
-      case 'availability':
-        const slot = await createAvailabilitySlot({
-          teacherId: eventData.resource?.teacherId,
-          slotDate: eventData.start.toISOString().split('T')[0],
-          slotTime: eventData.start.toTimeString().split(' ')[0],
-          durationMinutes: Math.round((eventData.end.getTime() - eventData.start.getTime()) / 60000),
-          status: eventData.status as AvailabilitySlotStatus
-        });
-        return {
-          ...eventData,
-          id: `availability-${slot.id}`,
-          resource: { ...eventData.resource, slotId: slot.id }
-        };
-
-      default:
-        throw new Error('Неизвестный тип события');
-    }
+    const response = await httpClient.post('/teachers/availability', slotData);  // backend: /api/teachers/availability
+    return response.data as AvailabilitySlot;
   } catch (error) {
-    console.error('Ошибка создания события календаря:', error);
+    console.error('Ошибка создания слота доступности:', error);
+    throw error;
+  }
+};
+
+/**
+ * Обновляет слот доступности
+ * @param slotId - ID слота
+ * @param slotData - данные для обновления
+ * @returns Обновленный слот
+ */
+export const updateAvailabilitySlot = async (
+  slotId: number,
+  slotData: Partial<AvailabilitySlot>
+): Promise<AvailabilitySlot> => {
+  try {
+    const response = await httpClient.put(`/availability-slots/${slotId}`, slotData);  // backend: /api/availability-slots/{id}
+    return response.data as AvailabilitySlot;
+  } catch (error) {
+    console.error('Ошибка обновления слота доступности:', error);
+    throw error;
+  }
+};
+
+/**
+ * Удаляет слот доступности
+ * @param slotId - ID слота
+ */
+export const deleteAvailabilitySlot = async (slotId: number): Promise<void> => {
+  try {
+    await httpClient.delete(`/availability-slots/${slotId}`);  // backend: /api/availability-slots/{id}
+  } catch (error) {
+    console.error('Ошибка удаления слота доступности:', error);
     throw error;
   }
 };
@@ -341,52 +341,7 @@ export const deleteCalendarEvent = async (eventId: string): Promise<void> => {
   }
 };
 
-/**
- * Создает слот доступности
- * @param slotData - данные слота
- * @returns Созданный слот
- */
-export const createAvailabilitySlot = async (slotData: Partial<AvailabilitySlot>): Promise<AvailabilitySlot> => {
-  try {
-    const response = await httpClient.post('/api/availability', slotData);
-    return response.data as AvailabilitySlot;
-  } catch (error) {
-    console.error('Ошибка создания слота доступности:', error);
-    throw error;
-  }
-};
-
-/**
- * Обновляет слот доступности
- * @param slotId - ID слота
- * @param slotData - данные для обновления
- * @returns Обновленный слот
- */
-export const updateAvailabilitySlot = async (
-  slotId: number,
-  slotData: Partial<AvailabilitySlot>
-): Promise<AvailabilitySlot> => {
-  try {
-    const response = await httpClient.put(`/api/availability/${slotId}`, slotData);
-    return response.data as AvailabilitySlot;
-  } catch (error) {
-    console.error('Ошибка обновления слота доступности:', error);
-    throw error;
-  }
-};
-
-/**
- * Удаляет слот доступности
- * @param slotId - ID слота
- */
-export const deleteAvailabilitySlot = async (slotId: number): Promise<void> => {
-  try {
-    await httpClient.delete(`/api/availability/${slotId}`);
-  } catch (error) {
-    console.error('Ошибка удаления слота доступности:', error);
-    throw error;
-  }
-};
+/** Duplicate functions removed - already declared above with correct endpoints **/
 
 /**
  * Проверяет конфликты расписания

@@ -2,29 +2,29 @@ import httpClient from './httpClient';
 import { User, Student, LessonPackage } from '../types';
 
 class UserService {
-  // User management
+  // User management - corrected endpoints
   public async getAllUsers(): Promise<User[]> {
-    const response = await httpClient.get<User[]>('/users');
+    const response = await httpClient.get<User[]>('/admin/manage-users'); // backend: /api/admin/manage-users
     return response.data;
   }
 
   public async getUserById(id: number): Promise<User> {
-    const response = await httpClient.get<User>(`/users/${id}`);
+    const response = await httpClient.get<User>(`/admin/manage-users/${id}`);
     return response.data;
   }
 
   public async createUser(userData: Partial<User>): Promise<User> {
-    const response = await httpClient.post<User>('/users', userData);
+    const response = await httpClient.post<User>('/admin/users', userData);
     return response.data;
   }
 
   public async updateUser(id: number, userData: Partial<User>): Promise<User> {
-    const response = await httpClient.put<User>(`/users/${id}`, userData);
+    const response = await httpClient.put<User>(`/admin/manage-users/${id}`, userData);
     return response.data;
   }
 
   public async deleteUser(id: number): Promise<void> {
-    await httpClient.delete(`/users/${id}`);
+    await httpClient.delete(`/admin/manage-users/${id}`);
   }
 
   // Student management

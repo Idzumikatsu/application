@@ -13,30 +13,12 @@ import {
 } from '../types/packageTypes';
 
 class PackageService {
-  // Package templates management
-  public async getPackageTemplates(): Promise<PackageTemplate[]> {
-    const response = await httpClient.get<PackageTemplate[]>('/lesson-packages/templates');
-    return response.data;
-  }
-
-  public async getPackageTemplateById(id: number): Promise<PackageTemplate> {
-    const response = await httpClient.get<PackageTemplate>(`/lesson-packages/templates/${id}`);
-    return response.data;
-  }
-
-  public async createPackageTemplate(templateData: Partial<PackageTemplate>): Promise<PackageTemplate> {
-    const response = await httpClient.post<PackageTemplate>('/lesson-packages/templates', templateData);
-    return response.data;
-  }
-
-  public async updatePackageTemplate(id: number, templateData: Partial<PackageTemplate>): Promise<PackageTemplate> {
-    const response = await httpClient.put<PackageTemplate>(`/lesson-packages/templates/${id}`, templateData);
-    return response.data;
-  }
-
-  public async deletePackageTemplate(id: number): Promise<void> {
-    await httpClient.delete(`/lesson-packages/templates/${id}`);
-  }
+  // Package templates management - NOT AVAILABLE in backend, removing
+  // getPackageTemplates() - templates not implemented in backend
+  // getPackageTemplateById() - templates not implemented in backend
+  // createPackageTemplate() - templates not implemented in backend
+  // updatePackageTemplate() - templates not implemented in backend
+  // deletePackageTemplate() - templates not implemented in backend
 
   // Student packages management
   public async getStudentPackages(studentId: number): Promise<LessonPackage[]> {
@@ -49,25 +31,8 @@ class PackageService {
     return response.data;
   }
 
-  public async searchPackages(filters: PackageFilter, page: number = 0, size: number = 20): Promise<PackageSearchResponse> {
-    const params = new URLSearchParams();
-    
-    if (filters.status) params.append('status', filters.status);
-    if (filters.packageType) params.append('packageType', filters.packageType);
-    if (filters.studentId) params.append('studentId', filters.studentId.toString());
-    if (filters.validFrom) params.append('validFrom', filters.validFrom);
-    if (filters.validUntil) params.append('validUntil', filters.validUntil);
-    if (filters.search) params.append('search', filters.search);
-    
-    params.append('page', page.toString());
-    params.append('size', size.toString());
-
-    const response = await httpClient.get<PackageSearchResponse>('/lesson-packages/search', { params });
-    return response.data;
-  }
-
   public async createPackage(packageData: PackageCreateRequest): Promise<LessonPackage> {
-    const response = await httpClient.post<LessonPackage>('/lesson-packages', packageData);
+    const response = await httpClient.post<LessonPackage>('/managers/lesson-packages', packageData); // backend: /api/managers/lesson-packages
     return response.data;
   }
 
@@ -80,65 +45,17 @@ class PackageService {
     await httpClient.delete(`/lesson-packages/${id}`);
   }
 
-  public async renewPackage(renewData: PackageRenewRequest): Promise<LessonPackage> {
-    const response = await httpClient.post<LessonPackage>('/lesson-packages/renew', renewData);
-    return response.data;
-  }
+  // Bulk operations - NOT AVAILABLE in backend, removing
+  // bulkAssignPackages() - bulk operations not implemented
+  // bulkRenewPackages() - bulk operations not implemented
 
-  public async deductLessons(deductData: PackageDeductRequest): Promise<LessonPackage> {
-    const response = await httpClient.post<LessonPackage>('/lesson-packages/deduct', deductData);
-    return response.data;
-  }
+  // Package operations - NOT AVAILABLE in backend, removing
+  // getPackageOperations() - operations history not implemented
+  // getStudentPackageOperations() - operations history not implemented
 
-  public async suspendPackage(packageId: number): Promise<LessonPackage> {
-    const response = await httpClient.post<LessonPackage>(`/lesson-packages/${packageId}/suspend`);
-    return response.data;
-  }
-
-  public async activatePackage(packageId: number): Promise<LessonPackage> {
-    const response = await httpClient.post<LessonPackage>(`/lesson-packages/${packageId}/activate`);
-    return response.data;
-  }
-
-  // Bulk operations
-  public async bulkAssignPackages(assignment: BulkPackageAssignment): Promise<number> {
-    const response = await httpClient.post<{ assignedCount: number }>('/lesson-packages/bulk-assign', assignment);
-    return response.data.assignedCount;
-  }
-
-  public async bulkRenewPackages(packageIds: number[], renewData: Partial<PackageRenewRequest>): Promise<number> {
-    const response = await httpClient.post<{ renewedCount: number }>('/lesson-packages/bulk-renew', {
-      packageIds,
-      ...renewData
-    });
-    return response.data.renewedCount;
-  }
-
-  // Package operations history
-  public async getPackageOperations(packageId: number): Promise<PackageOperation[]> {
-    const response = await httpClient.get<PackageOperation[]>(`/lesson-packages/${packageId}/operations`);
-    return response.data;
-  }
-
-  public async getStudentPackageOperations(studentId: number): Promise<PackageOperation[]> {
-    const response = await httpClient.get<PackageOperation[]>(`/students/${studentId}/package-operations`);
-    return response.data;
-  }
-
-  // Statistics
-  public async getPackageStats(): Promise<PackageStats> {
-    const response = await httpClient.get<PackageStats>('/lesson-packages/stats');
-    return response.data;
-  }
-
-  public async getPackageUsageStats(startDate: string, endDate: string): Promise<any> {
-    const params = new URLSearchParams();
-    params.append('startDate', startDate);
-    params.append('endDate', endDate);
-
-    const response = await httpClient.get('/lesson-packages/usage-stats', { params });
-    return response.data;
-  }
+  // Statistics - NOT AVAILABLE in backend, removing
+  // getPackageStats() - statistics not implemented
+  // getPackageUsageStats() - usage statistics not implemented
 
   // Notifications
   public async getExpiringPackages(daysThreshold: number = 7): Promise<LessonPackage[]> {
