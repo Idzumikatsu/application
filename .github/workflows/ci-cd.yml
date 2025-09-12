@@ -140,7 +140,7 @@ jobs:
     - name: Build frontend
       run: |
         cd crm-system/frontend
-        npm ci --only=production
+        npm ci
         npm run build
 
     - name: Upload deployment artifacts
