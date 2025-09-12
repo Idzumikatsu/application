@@ -3,7 +3,7 @@ import { LoginRequest, LoginResponse, User } from '../types';
 
 class AuthService {
   public async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await httpClient.post<LoginResponse>('/api/auth/login', credentials);
+    const response = await httpClient.post<LoginResponse>('/api/auth/signin', credentials);
     return response.data;
   }
 
