@@ -107,6 +107,14 @@ jobs:
         cd crm-system/frontend
         npm run build
 
+    - name: Upload frontend build
+      uses: actions/upload-artifact@v4.3.5
+      with:
+        name: frontend-build
+        path: crm-system/frontend/build/
+        retention-days: 1
+
+
   build-artifacts:
     name: Build Artifacts
     runs-on: ubuntu-latest
@@ -137,12 +145,11 @@ jobs:
         mvn clean package -DskipTests
         cp target/crm-system-0.0.1-SNAPSHOT.jar ../crm-system.jar
 
-    - name: Build frontend
-      run: |
-        cd crm-system/frontend
-        npm ci
-        npm run build
-        cp -r build/ ../../build/
+    - name: Download frontend build
+      uses: actions/download-artifact@v4.1.7
+      with:
+        name: frontend-build
+        path: build/
 
     - name: Upload deployment artifacts
       uses: actions/upload-artifact@v4.3.5
