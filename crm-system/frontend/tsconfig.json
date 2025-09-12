@@ -23,6 +23,7 @@
   },
   "include": [
     "src",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    "e2e/playwright.config.ts"
   ]
 }

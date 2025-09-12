@@ -1,6 +1,4 @@
 import { defineConfig, devices } from '@playwright/test';
-import * as path from 'path';
-import CustomReporter from './utils/custom-reporter';
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -19,7 +17,6 @@ export default defineConfig({
   reporter: [
     ['html', { outputFolder: 'test-results/html-report' }],
     ['list', { printSteps: true }],
-    [CustomReporter]
   ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
@@ -87,8 +84,8 @@ export default defineConfig({
   },
 
   /* Global setup and teardown */
-  globalSetup: require.resolve('./utils/global-setup'),
-  globalTeardown: require.resolve('./utils/global-teardown'),
+  globalSetup: './utils/global-setup',
+  globalTeardown: './utils/global-teardown',
 
   /* Timeout settings */
   timeout: 30000,
@@ -109,18 +106,5 @@ export default defineConfig({
   /* Preserve output directory */
   preserveOutput: 'always',
 
-  /* Shard tests for CI */
-  shard: process.env.CI ? {
-    total: Number(process.env.CI_NODE_TOTAL) || 1,
-    current: Number(process.env.CI_NODE_INDEX) || 0
-  } : undefined,
 
-  /* Environment variables */
-  env: {
-    NODE_ENV: 'test',
-    TEST_MODE: 'e2e',
-    API_BASE_URL: process.env.API_URL || 'http://localhost:8080/api',
-    HEADLESS: process.env.HEADLESS || 'true',
-    SLOW_MO: process.env.SLOW_MO || '100'
-  }
 });
