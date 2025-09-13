@@ -10,6 +10,7 @@ import com.crm.system.security.JwtTokenUtil;
 import com.crm.system.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -56,6 +57,13 @@ public class AuthController {
             user.getLastName(),
             user.getEmail(),
             user.getRole().name()));
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<?> testEndpoint() {
+        System.out.println("=== TEST ENDPOINT: Called successfully ===");
+        System.err.println("=== ERROR LOG: AuthController.test worked ===");
+        return ResponseEntity.ok("Test endpoint works!");
     }
 
     @PostMapping("/signup")
