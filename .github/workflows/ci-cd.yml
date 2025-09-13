@@ -269,6 +269,11 @@ jobs:
     - name: Copy deployment configuration to server
       run: |
         echo "Copying Docker deployment configuration to server..."
+
+        # Создаем целевую директорию на сервере
+        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST "mkdir -p /tmp/docker-config/"
+
+        # Копируем конфигурацию
         scp -o StrictHostKeyChecking=no -r \
             config/ \
             $DEPLOY_USER@$DEPLOY_HOST:/tmp/docker-config/
@@ -281,7 +286,7 @@ jobs:
           echo "=== Starting Docker Deployment ==="
 
           # Переходим в директорию с конфигурацией
-          cd /tmp/docker-config
+          cd /tmp/docker-config/config
 
           # Авторизуемся в registry
           echo ${{ secrets.GITHUB_TOKEN }} | docker login $REGISTRY -u ${{ github.actor }} --password-stdin
@@ -379,7 +384,7 @@ jobs:
           set -e
           echo "=== Final Deployment Status ==="
           echo "Docker containers:"
-          docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+          docker ps --format "table {{.Names}}	{{.Status}}	{{.Ports}}"
 
           echo "Docker images:"
           docker images $REGISTRY/$IMAGE_NAME/*
@@ -388,7 +393,7 @@ jobs:
           docker volume ls
 
           echo "Container logs (last 20 lines):"
-          cd /tmp/docker-config && docker-compose logs --tail=20
+          cd /tmp/docker-config/config && docker-compose logs --tail=20
 
           echo "Disk usage:"
           df -h $DEPLOY_PATH
