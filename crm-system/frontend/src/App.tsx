@@ -75,15 +75,38 @@ function App() {
 
   useEffect(() => {
     const token = AuthService.getToken();
+    console.log('🔄 App initialization - token in localStorage:', token ? 'PRESENT' : 'NOT FOUND');
+
     if (token) {
-      // Проверяем токен и восстанавливаем сессию
-      AuthService.getCurrentUser()
-        .then((userData) => {
-          dispatch(loginSuccess({ user: userData, token }));
-        })
-        .catch(() => {
+      // Проверяем, действителен ли токен перед попыткой восстановления сессии
+      if (AuthService.isAuthenticated()) {
+        console.log('🔄 Token is valid, attempting to restore session...');
+        try {
+          // Проверяем токен и восстанавливаем сессию
+          AuthService.getCurrentUser()
+            .then((userData) => {
+              console.log('✅ Session restored successfully:', userData);
+              dispatch(loginSuccess({ user: userData, token }));
+            })
+            .catch((error) => {
+              console.error('❌ Session restoration failed:', error);
+              // Очищаем недействительный токен
+              AuthService.logout();
+              dispatch(logout());
+            });
+        } catch (error) {
+          console.error('❌ Unexpected error during session restoration:', error);
+          AuthService.logout();
           dispatch(logout());
-        });
+        }
+      } else {
+        console.log('ℹ️ Token is expired or invalid, clearing session');
+        // Токен недействителен, очищаем сессию
+        AuthService.logout();
+        dispatch(logout());
+      }
+    } else {
+      console.log('ℹ️ No token found, user not authenticated');
     }
   }, [dispatch]);
 

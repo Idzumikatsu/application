@@ -41,8 +41,15 @@ class AuthService {
   }
 
   public async getCurrentUser(): Promise<User> {
-    const response = await httpClient.get<User>('/api/users/me');
-    return response.data;
+    console.log('👤 getCurrentUser called');
+    try {
+      const response = await httpClient.get<User>('/api/users/me');
+      console.log('✅ getCurrentUser success:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ getCurrentUser failed:', error.response?.status, error.response?.data || error.message);
+      throw error;
+    }
   }
 
   public logout(): void {

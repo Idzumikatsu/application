@@ -18,13 +18,19 @@ class HttpClient {
     // Add a request interceptor
     this.client.interceptors.request.use(
       (config: any) => {
+        console.log('🚀 HTTP Request Interceptor:', config.url);
         const token = AuthService.getToken();
+        console.log('🔑 Token from localStorage:', token ? 'PRESENT' : 'NOT FOUND');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
+          console.log('✅ Authorization header added');
+        } else {
+          console.log('❌ No token available, request will be unauthenticated');
         }
         return config;
       },
       (error: any) => {
+        console.error('❌ Request interceptor error:', error);
         return Promise.reject(error);
       }
     );
