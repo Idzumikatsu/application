@@ -250,8 +250,6 @@ jobs:
       DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
       DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
       DEPLOY_PATH: /opt/crm-synergy
-      REGISTRY: ${{ env.REGISTRY }}
-      IMAGE_NAME: ${{ env.IMAGE_NAME }}
 
     steps:
     - name: Checkout code
