@@ -17,15 +17,18 @@ describe('AuthService', () => {
 
   describe('login', () => {
     it('should login successfully', async () => {
-      const mockResponse = {
+      const mockApiResponse = {
         data: {
           token: 'test-token',
-          refreshToken: 'test-refresh-token',
-          user: { id: 1, email: 'test@example.com' } as User
+          id: 1,
+          firstName: 'Test',
+          lastName: 'User',
+          email: 'test@example.com',
+          role: 'ADMIN'
         }
       };
 
-      (httpClient.post as jest.Mock).mockResolvedValue(mockResponse);
+      (httpClient.post as jest.Mock).mockResolvedValue(mockApiResponse);
 
       const credentials: LoginRequest = {
         email: 'test@example.com',
@@ -35,7 +38,17 @@ describe('AuthService', () => {
       const result = await authService.login(credentials);
 
       expect(httpClient.post).toHaveBeenCalledWith('/api/auth/signin', credentials);
-      expect(result).toEqual(mockResponse.data);
+      expect(result).toEqual({
+        token: 'test-token',
+        user: {
+          id: 1,
+          firstName: 'Test',
+          lastName: 'User',
+          email: 'test@example.com',
+          role: 'ADMIN',
+          isActive: true
+        }
+      });
     });
 
     it('should handle login error', async () => {
