@@ -42,7 +42,7 @@ describe('LoginPage', () => {
     expect(screen.getByRole('button', { name: /войти/i })).toBeInTheDocument();
   });
 
-  it('should submit form with empty fields', async () => {
+  it('should show error message with empty fields', async () => {
     render(
       <BrowserRouter>
         <LoginPage />
@@ -52,13 +52,9 @@ describe('LoginPage', () => {
     const submitButton = screen.getByRole('button', { name: /войти/i });
     fireEvent.click(submitButton);
 
-    // Браузерная валидация не работает в тестовой среде, форма будет отправлена
-    await waitFor(() => {
-      expect(mockAuthService.login).toHaveBeenCalledWith({
-        email: '',
-        password: '',
-      });
-    });
+    // Форма не должна отправляться при пустых полях, должна показать ошибку
+    expect(await screen.findByText('Введите email и пароль')).toBeInTheDocument();
+    expect(mockAuthService.login).not.toHaveBeenCalled();
   });
 
   it('should submit form with invalid email format', async () => {
