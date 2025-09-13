@@ -3,8 +3,27 @@ import { LoginRequest, LoginResponse, User } from '../types';
 
 class AuthService {
   public async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await httpClient.post<LoginResponse>('/api/auth/signin', credentials);
-    return response.data;
+    try {
+      console.log('🚀 Авторизация:', credentials.email);
+      const response = await httpClient.post('/api/auth/signin', credentials);
+      console.log('✅ Ответ API:', response.data);
+
+      const data = response.data as any;
+      return {
+        token: data.token,
+        user: {
+          id: data.id,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          role: data.role,
+          isActive: true // Assume active since login succeeded
+        }
+      };
+    } catch (error: any) {
+      console.error('❌ Ошибка авторизации:', error.response?.data || error.message || error);
+      throw error;
+    }
   }
 
   public async validateToken(): Promise<boolean> {
