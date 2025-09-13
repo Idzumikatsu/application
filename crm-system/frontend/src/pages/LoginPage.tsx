@@ -28,10 +28,25 @@ const LoginPage: React.FC = () => {
     setLoading(true);
     setError(null);
 
+    // Validate inputs
+    if (!email || !password) {
+      setError('Введите email и пароль');
+      setLoading(false);
+      return;
+    }
+
     dispatch(loginStart());
 
     try {
+      console.log('🔐 Attempting login for:', email);
       const response = await AuthService.login({ email, password });
+
+      console.log('✅ Login successful, user data:', {
+        hasToken: !!response.token,
+        role: response.user?.role,
+        firstName: response.user?.firstName
+      });
+
       dispatch(loginSuccess({ user: response.user, token: response.token }));
 
       AuthService.setToken(response.token);
@@ -41,11 +56,23 @@ const LoginPage: React.FC = () => {
         AuthService.setRefreshToken((response as any).refreshToken);
       }
 
+      console.log('🏠 Navigation to dashboard...');
       navigate('/dashboard');
     } catch (err: any) {
+      console.error('❌ Login failed:', {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        message: err.response?.data?.message || err.message,
+        hasResponse: !!err.response
+      });
+
       let errorMessage = 'Ошибка входа в систему';
 
-      if (err.response?.data?.message) {
+      if (err.response?.status === 401) {
+        errorMessage = 'Неверный email или пароль';
+      } else if (err.response?.status === 400) {
+        errorMessage = 'Некорректные данные для входа';
+      } else if (err.response?.data?.message) {
         errorMessage = err.response.data.message;
       } else if (err.message) {
         errorMessage = err.message;
