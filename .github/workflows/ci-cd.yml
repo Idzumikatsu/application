@@ -14,6 +14,8 @@ env:
   POSTGRES_DB: testdb
   POSTGRES_USER: test
   POSTGRES_PASSWORD: test
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   backend-tests:
@@ -119,145 +121,257 @@ jobs:
         fi
 
 
-  build-artifacts:
-    name: Build Artifacts
+  build-and-push-images:
+    name: Build and Push Docker Images
     runs-on: ubuntu-latest
     needs: [backend-tests, frontend-tests]
     if: github.ref == 'refs/heads/master'
+    permissions:
+      contents: read
+      packages: write
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4.2.0
 
-    - name: Set up JDK ${{ env.JAVA_VERSION }}
-      uses: actions/setup-java@v4.5.0
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
       with:
-        java-version: ${{ env.JAVA_VERSION }}
-        distribution: 'temurin'
-        cache: 'maven'
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Set up Node.js ${{ env.NODE_VERSION }}
-      uses: actions/setup-node@v4.1.0
+    - name: Extract metadata for backend
+      id: meta-backend
+      uses: docker/metadata-action@v5
       with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        cache-dependency-path: crm-system/frontend/package-lock.json
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Build backend JAR
-      run: |
-        cd crm-system
-        mvn clean package -DskipTests
-        cp target/crm-system-0.0.1-SNAPSHOT.jar ../crm-system.jar
+    - name: Build and push backend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./crm-system
+        push: true
+        tags: ${{ steps.meta-backend.outputs.tags }}
+        labels: ${{ steps.meta-backend.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
-    - name: Build frontend
-      run: |
-        cd crm-system/frontend
-        npm ci
-        npm run build
-        cp -r build/ ../../build/
+    - name: Extract metadata for frontend
+      id: meta-frontend
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Upload deployment artifacts
+    - name: Build and push frontend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./crm-system/frontend
+        push: true
+        tags: ${{ steps.meta-frontend.outputs.tags }}
+        labels: ${{ steps.meta-frontend.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Extract metadata for email-service
+      id: meta-email
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/email-service
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push email-service image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./crm-system/email-service
+        push: true
+        tags: ${{ steps.meta-email.outputs.tags }}
+        labels: ${{ steps.meta-email.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Extract metadata for telegram-service
+      id: meta-telegram
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/telegram-service
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push telegram-service image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./crm-system/telegram-service
+        push: true
+        tags: ${{ steps.meta-telegram.outputs.tags }}
+        labels: ${{ steps.meta-telegram.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Upload docker-compose and config files
       uses: actions/upload-artifact@v4.3.5
       with:
-        name: deployment-artifacts
+        name: deployment-config
         path: |
-          crm-system.jar
-          build/
+          docker-compose.yml
+          .env
+          traefik/
           scripts/
         retention-days: 7
 
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: build-artifacts
+    needs: build-and-push-images
     if: github.ref == 'refs/heads/master'
-    
+
     env:
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
       DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
       DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
       DEPLOY_PATH: /opt/crm-synergy
+      REGISTRY: ${{ env.REGISTRY }}
+      IMAGE_NAME: ${{ env.IMAGE_NAME }}
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4.2.0
 
-    - name: Download deployment artifacts
+    - name: Download deployment config
       uses: actions/download-artifact@v4.1.7
       with:
-        name: deployment-artifacts
-        path: artifacts
+        name: deployment-config
+        path: config
 
     - name: Setup SSH
       uses: webfactory/ssh-agent@v0.9.0
       with:
         ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
 
-    - name: Copy deployment script to server
+    - name: Copy deployment configuration to server
       run: |
-        echo "Copying deployment script to server..."
-        scp -o StrictHostKeyChecking=no \
-            scripts/deploy-and-restart.sh \
-            $DEPLOY_USER@$DEPLOY_HOST:/tmp/deploy-and-restart.sh
-        
-        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
-          set -e
-          sudo cp /tmp/deploy-and-restart.sh /usr/local/bin/deploy-and-restart.sh
-          sudo chmod +x /usr/local/bin/deploy-and-restart.sh
-          sudo chown root:root /usr/local/bin/deploy-and-restart.sh
-          echo "Deployment script installed successfully"
-        EOF
-
-    - name: Copy artifacts to server
-      run: |
-        echo "Copying deployment artifacts to server..."
-        
-        # Создаем временную директорию на сервере
-        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
-          set -e
-          mkdir -p /tmp/deployment-artifacts
-          echo "Temporary directory created"
-        EOF
-        
-        # Копируем backend JAR
-        scp -o StrictHostKeyChecking=no \
-            artifacts/crm-system.jar \
-            $DEPLOY_USER@$DEPLOY_HOST:/tmp/deployment-artifacts/crm-system.jar
-        
-        # Создаем целевую директорию и копируем frontend build
-        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
-          set -e
-          mkdir -p /tmp/deployment-artifacts/frontend-build/
-          echo "Frontend target directory created"
-        EOF
-        
+        echo "Copying Docker deployment configuration to server..."
         scp -o StrictHostKeyChecking=no -r \
-            artifacts/build/ \
-            $DEPLOY_USER@$DEPLOY_HOST:/tmp/deployment-artifacts/frontend-build/
+            config/ \
+            $DEPLOY_USER@$DEPLOY_HOST:/tmp/docker-config/
 
-    - name: Execute automated deployment
+    - name: Deploy with Docker Compose
       run: |
-        echo "Executing automated deployment with restart..."
-        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+        echo "Starting Docker deployment process..."
+        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << EOF
           set -e
-          echo "Starting automated deployment process..."
-          
-          # Выполняем деплой с автоматическим перезапуском
-          sudo /usr/local/bin/deploy-and-restart.sh \
-            --jar /tmp/deployment-artifacts/crm-system.jar \
-            --frontend /tmp/deployment-artifacts/frontend-build
-          
-          echo "Deployment execution completed"
-        EOF
+          echo "=== Starting Docker Deployment ==="
 
-    - name: Cleanup temporary files
-      run: |
-        echo "Cleaning up temporary files..."
-        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
-          set -e
-          rm -rf /tmp/deployment-artifacts
-          rm -f /tmp/deploy-and-restart.sh
-          echo "Temporary files cleaned up"
+          # Переходим в директорию с конфигурацией
+          cd /tmp/docker-config
+
+          # Авторизуемся в registry
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login $REGISTRY -u ${{ github.actor }} --password-stdin
+
+          # Создаем backup базы данных
+          echo "Creating database backup..."
+          mkdir -p $DEPLOY_PATH/backups
+          TIMESTAMP=\$(date +%Y%m%d_%H%M%S)
+
+          # Backup PostgreSQL data volume
+          if docker volume ls | grep -q postgres_data; then
+            echo "Backing up PostgreSQL volume..."
+            docker run --rm -v postgres_data:/source -v $DEPLOY_PATH/backups:/backup alpine tar czf /backup/postgres_backup_\$TIMESTAMP.tar.gz -C /source .
+          fi
+
+          # Останавливаем текущие контейнеры
+          echo "Stopping current containers..."
+          docker-compose down || true
+
+          # Pull новых образов
+          echo "Pulling new Docker images..."
+          docker-compose pull
+
+          # Запускаем новые контейнеры
+          echo "Starting new containers..."
+          docker-compose up -d
+
+          # Ждем запуска всех сервисов
+          echo "Waiting for services to start..."
+          sleep 45
+
+          # Проверяем здоровье всех сервисов
+          echo "Checking service health..."
+
+          # Backend health check
+          echo "Backend health check:"
+          if docker-compose exec -T backend curl -f http://localhost:8080/actuator/health; then
+            echo "✅ Backend is healthy"
+          else
+            echo "❌ Backend health check failed"
+            exit 1
+          fi
+
+          # Frontend health check
+          echo "Frontend health check:"
+          if docker-compose exec -T frontend curl -f http://localhost:80; then
+            echo "✅ Frontend is healthy"
+          else
+            echo "❌ Frontend health check failed"
+            exit 1
+          fi
+
+          # PostgreSQL health check
+          echo "PostgreSQL health check:"
+          if docker-compose exec -T postgres pg_isready -U \$${POSTGRES_USER} -d \$${POSTGRES_DB}; then
+            echo "✅ PostgreSQL is healthy"
+          else
+            echo "❌ PostgreSQL health check failed"
+            exit 1
+          fi
+
+          # Email service health check (if exists)
+          echo "Email service health check:"
+          if docker-compose ps | grep -q email-service; then
+            if docker-compose exec -T email-service curl -f http://localhost:8081/actuator/health; then
+              echo "✅ Email service is healthy"
+            else
+              echo "❌ Email service health check failed"
+              exit 1
+            fi
+          else
+            echo "⚠️ Email service not running"
+          fi
+
+          # Telegram service health check (if exists)
+          echo "Telegram service health check:"
+          if docker-compose ps | grep -q telegram-service; then
+            if docker-compose exec -T telegram-service curl -f http://localhost:8082/actuator/health; then
+              echo "✅ Telegram service is healthy"
+            else
+              echo "❌ Telegram service health check failed"
+              exit 1
+            fi
+          else
+            echo "⚠️ Telegram service not running"
+          fi
+
+          echo "=== Docker Deployment Completed Successfully ==="
         EOF
 
     - name: Final deployment verification
@@ -266,19 +380,22 @@ jobs:
         ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << EOF
           set -e
           echo "=== Final Deployment Status ==="
-          echo "Backend service status:"
-          sudo systemctl status crm-synergy-backend.service --no-pager -l | head -5
+          echo "Docker containers:"
+          docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
-          echo "Backend health check:"
-          curl -s -f https://crm-synergy.ru/api/actuator/health | grep status || echo "Health check unavailable"
+          echo "Docker images:"
+          docker images $REGISTRY/$IMAGE_NAME/*
 
-          echo "Frontend directory:"
-          ls -la $DEPLOY_PATH/frontend-dist/ | head -3
+          echo "Docker volumes:"
+          docker volume ls
 
-          echo "Application version:"
-          sudo ls -la $DEPLOY_PATH/crm-system-0.0.1-SNAPSHOT.jar
+          echo "Container logs (last 20 lines):"
+          cd /tmp/docker-config && docker-compose logs --tail=20
+
+          echo "Disk usage:"
+          df -h $DEPLOY_PATH
 
           echo "=== Deployment Completed Successfully ==="
         EOF
-        
-        echo "🎉 CRM System deployed and restarted successfully!"
+
+        echo "🎉 CRM System deployed with Docker successfully!"
