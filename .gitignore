@@ -145,3 +145,10 @@ temp/
 .qwen/
 .roo/
 bin/
+
+# SSL certificates
+acme.json
+
+# Additional service logs
+logs/
+*.log
