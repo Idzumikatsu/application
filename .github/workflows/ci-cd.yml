@@ -384,7 +384,7 @@ jobs:
           set -e
           echo "=== Final Deployment Status ==="
           echo "Docker containers:"
-          docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+          docker ps --format "table {{.Names}}	{{.Status}}	{{.Ports}}"
 
           echo "Docker images:"
           docker images $REGISTRY/$IMAGE_NAME/*
