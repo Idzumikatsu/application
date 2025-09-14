@@ -1,0 +1,67 @@
+http:
+  routers:
+    traefik:
+      rule: "Host(`traefik.crm-synergy.ru`)"
+      entryPoints:
+        - websecure
+      service: traefik
+      tls:
+        certResolver: letsencrypt
+
+    backend:
+      rule: "Host(`api.crm-synergy.ru`)"
+      entryPoints:
+        - websecure
+      service: backend
+      tls:
+        certResolver: letsencrypt
+
+    frontend:
+      rule: "Host(`app.crm-synergy.ru`)"
+      entryPoints:
+        - websecure
+      service: frontend
+      tls:
+        certResolver: letsencrypt
+
+    email-service:
+      rule: "Host(`email.crm-synergy.ru`)"
+      entryPoints:
+        - websecure
+      service: email-service
+      tls:
+        certResolver: letsencrypt
+
+    telegram-service:
+      rule: "Host(`telegram.crm-synergy.ru`)"
+      entryPoints:
+        - websecure
+      service: telegram-service
+      tls:
+        certResolver: letsencrypt
+
+  services:
+    traefik:
+      loadBalancer:
+        servers:
+          - url: "http://traefik:8080"
+
+    backend:
+      loadBalancer:
+        servers:
+          - url: "http://backend:8080"
+
+    frontend:
+      loadBalancer:
+        servers:
+          - url: "http://frontend:80"
+
+    email-service:
+      loadBalancer:
+        servers:
+          - url: "http://email-service:8081"
+
+    telegram-service:
+      loadBalancer:
+        servers:
+          - url: "http://telegram-service:8082"

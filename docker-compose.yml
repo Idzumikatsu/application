@@ -46,7 +46,7 @@ services:
        retries: 5
 
   backend:
-    build: ./crm-system
+    image: ${REGISTRY}/${IMAGE_NAME}/backend:latest
     env_file:
       - .env
     depends_on:
@@ -68,7 +68,7 @@ services:
       - "traefik.http.services.backend.loadbalancer.server.port=8080"
 
   frontend:
-    build: ./crm-system/frontend
+    image: ${REGISTRY}/${IMAGE_NAME}/frontend:latest
     env_file:
       - .env
     depends_on:
@@ -88,7 +88,7 @@ services:
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
 
   email-service:
-    build: ./crm-system/email-service
+    image: ${REGISTRY}/${IMAGE_NAME}/email-service:latest
     env_file:
       - .env
     networks:
@@ -107,7 +107,7 @@ services:
       - "traefik.http.services.email-service.loadbalancer.server.port=8081"
 
   telegram-service:
-    build: ./crm-system/telegram-service
+    image: ${REGISTRY}/${IMAGE_NAME}/telegram-service:latest
     env_file:
       - .env
     networks:
