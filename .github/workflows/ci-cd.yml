@@ -256,7 +256,7 @@ jobs:
         TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
         DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
         DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-        IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+        IMAGE_NAME: ${{ secrets.IMAGE_NAME || github.repository }}
         DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
         DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
       run: |
@@ -264,13 +264,48 @@ jobs:
         
         # Debug: Check if all environment variables are set
         echo "Checking environment variables..."
-        for var in POSTGRES_USER POSTGRES_PASSWORD JWT_SECRET EMAIL_USERNAME MAIL_PASSWORD TELEGRAM_BOT_TOKEN TELEGRAM_BOT_USERNAME DATABASE_USERNAME DATABASE_PASSWORD IMAGE_NAME DEPLOY_HOST DEPLOY_USER; do
+        CRITICAL_VARS=(POSTGRES_USER POSTGRES_PASSWORD JWT_SECRET DATABASE_USERNAME DATABASE_PASSWORD)
+        OPTIONAL_VARS=(EMAIL_USERNAME MAIL_PASSWORD TELEGRAM_BOT_TOKEN TELEGRAM_BOT_USERNAME IMAGE_NAME DEPLOY_HOST DEPLOY_USER)
+        
+        # Check critical variables
+        echo "=== Critical Variables Check ==="
+        has_critical_error=false
+        for var in "${CRITICAL_VARS[@]}"; do
           if [ -z "${!var}" ]; then
-            echo "WARNING: Variable $var is empty or not set"
+            echo "❌ ERROR: Critical variable $var is empty or not set!"
+            has_critical_error=true
           else
             echo "✅ $var is set (length: ${#!var})"
           fi
         done
+        
+        # Check optional variables
+        echo "=== Optional Variables Check ==="
+        for var in "${OPTIONAL_VARS[@]}"; do
+          if [ -z "${!var}" ]; then
+            echo "⚠️ WARNING: Optional variable $var is empty or not set"
+          else
+            echo "✅ $var is set (length: ${#!var})"
+          fi
+        done
+        
+        # Exit if critical variables are missing
+        if [ "$has_critical_error" = true ]; then
+          echo "❌ Fatal error: Critical environment variables are missing!"
+          echo "Please ensure the following GitHub Secrets are configured:"
+          echo "- POSTGRES_USER"
+          echo "- POSTGRES_PASSWORD"
+          echo "- JWT_SECRET"
+          echo "- DATABASE_USERNAME"
+          echo "- DATABASE_PASSWORD"
+          exit 1
+        fi
+        
+        # Set default values for optional variables if not provided
+        if [ -z "$IMAGE_NAME" ]; then
+          IMAGE_NAME="${{ github.repository }}"
+          echo "ℹ️ Using default IMAGE_NAME: $IMAGE_NAME"
+        fi
         
         # Create .env file from template with GitHub Secrets
         echo "POSTGRES_DB=crm_system" > .env
@@ -422,6 +457,29 @@ jobs:
     - name: Create production environment files for deployment
       run: |
         echo "=== Creating production environment files for deployment ==="
+        
+        # Check critical variables before proceeding
+        echo "Checking critical environment variables..."
+        CRITICAL_VARS=(POSTGRES_USER POSTGRES_PASSWORD JWT_SECRET DATABASE_USERNAME DATABASE_PASSWORD)
+        has_critical_error=false
+        
+        for var in "${CRITICAL_VARS[@]}"; do
+          if [ -z "${!var}" ]; then
+            echo "❌ ERROR: Critical variable $var is empty or not set!"
+            has_critical_error=true
+          fi
+        done
+        
+        if [ "$has_critical_error" = true ]; then
+          echo "❌ Fatal error: Critical environment variables are missing!"
+          exit 1
+        fi
+        
+        # Set default values for optional variables if not provided
+        if [ -z "$IMAGE_NAME" ]; then
+          IMAGE_NAME="${{ github.repository }}"
+          echo "ℹ️ Using default IMAGE_NAME: $IMAGE_NAME"
+        fi
         
         # Create .env.production file with actual values from secrets
         echo "POSTGRES_DB=crm_system" > .env.production
