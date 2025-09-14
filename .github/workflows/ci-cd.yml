@@ -235,10 +235,17 @@ jobs:
         path: |
           docker-compose.yml
           .env
-          ${{ github.workspace }}/.env.production
+          .env.production
           traefik/
           scripts/
         retention-days: 7
+
+    - name: Verify uploaded files
+      run: |
+        echo "=== Verifying uploaded files ==="
+        ls -la docker-compose.yml .env .env.production || echo "Some files missing!"
+        echo "Contents of .env.production:"
+        head -5 .env.production
 
   deploy-production:
     name: Deploy to Production
