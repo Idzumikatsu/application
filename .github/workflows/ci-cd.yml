@@ -273,14 +273,13 @@ jobs:
       uses: actions/download-artifact@v4.1.7
       with:
         name: deployment-config
-        path: config
+        path: .
 
     - name: Install envsubst
       run: sudo apt-get update && sudo apt-get install -y gettext-base
 
     - name: Create production environment file
       run: |
-        cd config
         envsubst < .env.production > .env.production.tmp
         mv .env.production.tmp .env.production
 
@@ -297,8 +296,12 @@ jobs:
         ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST "mkdir -p /tmp/docker-config/"
 
         # Копируем конфигурацию
-        scp -o StrictHostKeyChecking=no -r \
-            config/ \
+        scp -o StrictHostKeyChecking=no \
+            docker-compose.yml \
+            .env \
+            .env.production \
+            -r traefik \
+            -r scripts \
             $DEPLOY_USER@$DEPLOY_HOST:/tmp/docker-config/
 
     - name: Deploy with Docker Compose
@@ -309,7 +312,7 @@ jobs:
           echo "=== Starting Docker Deployment ==="
 
           # Переходим в директорию с конфигурацией
-          cd /tmp/docker-config/config
+          cd /tmp/docker-config
 
           # Авторизуемся в registry
           echo ${{ secrets.GITHUB_TOKEN }} | docker login $REGISTRY -u ${{ github.actor }} --password-stdin
@@ -416,7 +419,7 @@ jobs:
           docker volume ls
 
           echo "Container logs (last 20 lines):"
-          cd /tmp/docker-config/config && docker compose logs --tail=20
+          docker compose logs --tail=20
 
           echo "Disk usage:"
           df -h $DEPLOY_PATH
