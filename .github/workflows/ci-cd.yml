@@ -228,6 +228,23 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
+    - name: Debug - Log environment variables
+      run: |
+        echo "=== Debug: Environment variables ==="
+        echo "POSTGRES_USER: $POSTGRES_USER"
+        echo "POSTGRES_PASSWORD: $POSTGRES_PASSWORD"
+        echo "JWT_SECRET: $JWT_SECRET"
+        echo "EMAIL_USERNAME: $EMAIL_USERNAME"
+        echo "MAIL_PASSWORD: $MAIL_PASSWORD"
+        echo "TELEGRAM_BOT_TOKEN: $TELEGRAM_BOT_TOKEN"
+        echo "TELEGRAM_BOT_USERNAME: $TELEGRAM_BOT_USERNAME"
+        echo "DATABASE_USERNAME: $DATABASE_USERNAME"
+        echo "DATABASE_PASSWORD: $DATABASE_PASSWORD"
+        echo "IMAGE_NAME: $IMAGE_NAME"
+        echo "DEPLOY_HOST: $DEPLOY_HOST"
+        echo "DEPLOY_USER: $DEPLOY_USER"
+        echo "=== End debug ==="
+
     - name: Create production environment files from templates
       env:
         POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
@@ -245,8 +262,18 @@ jobs:
       run: |
         echo "=== Creating production environment files ==="
         
+        # Debug: Check if all environment variables are set
+        echo "Checking environment variables..."
+        for var in POSTGRES_USER POSTGRES_PASSWORD JWT_SECRET EMAIL_USERNAME MAIL_PASSWORD TELEGRAM_BOT_TOKEN TELEGRAM_BOT_USERNAME DATABASE_USERNAME DATABASE_PASSWORD IMAGE_NAME DEPLOY_HOST DEPLOY_USER; do
+          if [ -z "${!var}" ]; then
+            echo "WARNING: Variable $var is empty or not set"
+          else
+            echo "✅ $var is set (length: ${#!var})"
+          fi
+        done
+        
         # Create .env file from template with GitHub Secrets
-        cat > .env << EOF
+        cat > .env << 'EOF'
 # Production Environment Variables for CRM Synergy Docker Deployment
 # Generated automatically from GitHub Actions secrets
 
@@ -344,9 +371,18 @@ EOF
         echo "✅ Created .env file with GitHub Secrets"
         echo "Contents of .env (first 5 lines):"
         head -5 .env
+        
+        # Validate .env file syntax
+        echo "Validating .env file syntax..."
+        if grep -q "[^a-zA-Z0-9_=:/.-]" .env; then
+          echo "WARNING: .env file contains potentially problematic characters"
+          grep -n "[^a-zA-Z0-9_=:/.-]" .env || true
+        else
+          echo "✅ .env file syntax looks good"
+        fi
 
         # Create .env.production file (simplified version for deployment)
-        cat > .env.production << EOF
+        cat > .env.production << 'EOF'
 # Production Environment Variables for Deployment
 # Minimal version for Docker Compose deployment
 
@@ -370,6 +406,15 @@ EOF
         echo "✅ Created .env.production file with GitHub Secrets"
         echo "Contents of .env.production (first 5 lines):"
         head -5 .env.production
+        
+        # Validate .env.production file syntax
+        echo "Validating .env.production file syntax..."
+        if grep -q "[^a-zA-Z0-9_=:/.-]" .env.production; then
+          echo "WARNING: .env.production file contains potentially problematic characters"
+          grep -n "[^a-zA-Z0-9_=:/.-]" .env.production || true
+        else
+          echo "✅ .env.production file syntax looks good"
+        fi
 
     - name: Verify created deployment files
       run: |
