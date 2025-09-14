@@ -207,6 +207,31 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
+    - name: Verify email-service image was pushed
+      run: |
+        echo "=== Verifying email-service image push ==="
+        REGISTRY="ghcr.io"
+        IMAGE_NAME="${{ github.repository }}"
+        EMAIL_IMAGE="$REGISTRY/$IMAGE_NAME/email-service:latest"
+        
+        echo "Checking if email-service image exists in GHCR: $EMAIL_IMAGE"
+        
+        # Проверяем доступность образа после push
+        if docker manifest inspect "$EMAIL_IMAGE" >/dev/null 2>&1; then
+          echo "✅ email-service image successfully pushed to GHCR"
+          echo "Image details:"
+          docker manifest inspect "$EMAIL_IMAGE" | jq '.schemaVersion, .mediaType, .config.digest' 2>/dev/null || echo "Cannot get detailed manifest info"
+        else
+          echo "❌ email-service image NOT found in GHCR after push operation"
+          echo "This indicates a problem with the build/push process for email-service"
+          echo "Please check:"
+          echo "1. Dockerfile syntax in crm-system/email-service/"
+          echo "2. Maven build process for email-service"
+          echo "3. GitHub Packages permissions"
+          echo "4. Network connectivity during push"
+          exit 1
+        fi
+
     - name: Extract metadata for telegram-service
       id: meta-telegram
       uses: docker/metadata-action@v5
@@ -445,6 +470,51 @@ jobs:
         ls -la docker-compose.yml .env .env.production
         echo "File verification completed successfully!"
 
+    - name: Verify Docker images availability
+      run: |
+        echo "=== Verifying Docker images availability in GHCR ==="
+        
+        # Проверяем доступность каждого образа в registry
+        SERVICES=("backend" "frontend" "email-service" "telegram-service")
+        REGISTRY="ghcr.io"
+        IMAGE_NAME="${{ github.repository }}"
+        
+        has_image_error=false
+        
+        for service in "${SERVICES[@]}"; do
+          image="$REGISTRY/$IMAGE_NAME/$service:latest"
+          echo "Checking availability of $image..."
+          
+          # Используем docker manifest inspect для проверки доступности образа
+          if docker manifest inspect "$image" >/dev/null 2>&1; then
+            echo "✅ $image: AVAILABLE in GHCR"
+          else
+            echo "❌ $image: NOT AVAILABLE in GHCR - MANIFEST UNKNOWN"
+            has_image_error=true
+            
+            # Детальная диагностика для email-service
+            if [ "$service" = "email-service" ]; then
+              echo "=== Email Service Image Debug ==="
+              echo "Image path: $image"
+              echo "Build context: crm-system/email-service/"
+              echo "Checking if Dockerfile exists:"
+              ls -la crm-system/email-service/Dockerfile || echo "Dockerfile not found!"
+              echo "Checking if source files exist:"
+              ls -la crm-system/email-service/ || echo "Email service directory not found!"
+              echo "=== End Email Service Debug ==="
+            fi
+          fi
+        done
+        
+        if [ "$has_image_error" = true ]; then
+          echo "❌ Fatal error: Some Docker images are not available in GHCR!"
+          echo "Please check the build logs and ensure all images were pushed successfully."
+          echo "Particularly check email-service build and push operations."
+          exit 1
+        fi
+        
+        echo "✅ All Docker images are available in GHCR"
+
     - name: Upload docker-compose and config files
       uses: actions/upload-artifact@v4.3.5
       with:
@@ -588,6 +658,17 @@ jobs:
           # Переходим в директорию с конфигурацией
           cd /tmp/docker-config
 
+          # Детальное логирование конфигурации
+          echo "=== Deployment Configuration Details ==="
+          echo "REGISTRY: \$REGISTRY"
+          echo "IMAGE_NAME: \$IMAGE_NAME"
+          echo "Working directory: \$(pwd)"
+          echo "Files in directory:"
+          ls -la
+          echo "Contents of .env.production:"
+          cat .env.production
+          echo "=== End Configuration Details ==="
+
           # Авторизуемся в registry
           echo ${{ secrets.GITHUB_TOKEN }} | docker login $REGISTRY -u ${{ github.actor }} --password-stdin
 
@@ -606,9 +687,56 @@ jobs:
           echo "Stopping current containers..."
           docker compose --env-file .env.production down || true
 
-          # Pull новых образов
+          # Детальное логирование перед pull образов
+          echo "=== Docker Image Pull Details ==="
+          echo "Pulling images with tags:"
+          echo "- backend: \$REGISTRY/\$IMAGE_NAME/backend:latest"
+          echo "- frontend: \$REGISTRY/\$IMAGE_NAME/frontend:latest"
+          echo "- email-service: \$REGISTRY/\$IMAGE_NAME/email-service:latest"
+          echo "- telegram-service: \$REGISTRY/\$IMAGE_NAME/telegram-service:latest"
+          echo "=== End Image Details ==="
+
+          # Pull новых образов с детальным логированием
           echo "Pulling new Docker images..."
-          docker compose --env-file .env.production pull
+          
+          # Pull каждого образа отдельно с логированием
+          echo "Pulling backend image..."
+          docker pull \$REGISTRY/\$IMAGE_NAME/backend:latest || echo "❌ Backend pull failed"
+          
+          echo "Pulling frontend image..."
+          docker pull \$REGISTRY/\$IMAGE_NAME/frontend:latest || echo "❌ Frontend pull failed"
+          
+          echo "Pulling email-service image..."
+          docker pull \$REGISTRY/\$IMAGE_NAME/email-service:latest || echo "❌ Email-service pull failed - MANIFEST UNKNOWN ERROR"
+          
+          echo "Pulling telegram-service image..."
+          docker pull \$REGISTRY/\$IMAGE_NAME/telegram-service:latest || echo "❌ Telegram-service pull failed"
+          
+          # Проверка доступности всех образов перед продолжением
+          echo "=== Image Availability Check ==="
+          IMAGES=(
+            "\$REGISTRY/\$IMAGE_NAME/backend:latest"
+            "\$REGISTRY/\$IMAGE_NAME/frontend:latest"
+            "\$REGISTRY/\$IMAGE_NAME/email-service:latest"
+            "\$REGISTRY/\$IMAGE_NAME/telegram-service:latest"
+          )
+          
+          has_image_error=false
+          for image in "\${IMAGES[@]}"; do
+            if docker image inspect "\$image" >/dev/null 2>&1; then
+              echo "✅ \$image: AVAILABLE"
+            else
+              echo "❌ \$image: NOT AVAILABLE"
+              has_image_error=true
+            fi
+          done
+          
+          if [ "\$has_image_error" = true ]; then
+            echo "❌ Fatal error: Some Docker images are not available!"
+            echo "Please check the build logs and ensure all images were pushed successfully."
+            exit 1
+          fi
+          echo "=== End Image Availability Check ==="
 
           # Запускаем новые контейнеры
           echo "Starting new containers..."
