@@ -596,7 +596,7 @@ EOF
 
           # PostgreSQL health check
           echo "PostgreSQL health check:"
-          if docker compose exec -T postgres pg_isready -U \$${POSTGRES_USER} -d \$${POSTGRES_DB}; then
+          if docker compose exec -T postgres pg_isready -U $POSTGRES_USER -d $POSTGRES_DB; then
             echo "✅ PostgreSQL is healthy"
           else
             echo "❌ PostgreSQL health check failed"
