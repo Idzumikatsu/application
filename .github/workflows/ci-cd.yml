@@ -235,7 +235,7 @@ jobs:
         path: |
           docker-compose.yml
           .env
-          .env.production
+          ${{ github.workspace }}/.env.production
           traefik/
           scripts/
         retention-days: 7
@@ -280,8 +280,12 @@ jobs:
 
     - name: Create production environment file
       run: |
-        envsubst < .env.production > .env.production.tmp
-        mv .env.production.tmp .env.production
+        if [ ! -f "${{ github.workspace }}/.env.production" ]; then
+          echo "ERROR: .env.production file not found at ${{ github.workspace }}/.env.production"
+          exit 1
+        fi
+        envsubst < ${{ github.workspace }}/.env.production > ${{ github.workspace }}/.env.production.tmp
+        mv ${{ github.workspace }}/.env.production.tmp ${{ github.workspace }}/.env.production
 
     - name: Setup SSH
       uses: webfactory/ssh-agent@v0.9.0
@@ -297,11 +301,11 @@ jobs:
 
         # Копируем конфигурацию
         scp -o StrictHostKeyChecking=no \
-            docker-compose.yml \
-            .env \
-            .env.production \
-            -r traefik \
-            -r scripts \
+            ${{ github.workspace }}/docker-compose.yml \
+            ${{ github.workspace }}/.env \
+            ${{ github.workspace }}/.env.production \
+            -r ${{ github.workspace }}/traefik \
+            -r ${{ github.workspace }}/scripts \
             $DEPLOY_USER@$DEPLOY_HOST:/tmp/docker-config/
 
     - name: Deploy with Docker Compose
