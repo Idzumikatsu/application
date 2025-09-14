@@ -570,8 +570,12 @@ jobs:
             ${{ github.workspace }}/docker-compose.yml \
             ${{ github.workspace }}/.env \
             ${{ github.workspace }}/.env.production \
-            -r ${{ github.workspace }}/traefik \
-            -r ${{ github.workspace }}/scripts \
+            $DEPLOY_USER@$DEPLOY_HOST:/tmp/docker-config/
+
+        # Рекурсивно копируем директории
+        scp -r -o StrictHostKeyChecking=no \
+            ${{ github.workspace }}/traefik \
+            ${{ github.workspace }}/scripts \
             $DEPLOY_USER@$DEPLOY_HOST:/tmp/docker-config/
 
     - name: Deploy with Docker Compose
