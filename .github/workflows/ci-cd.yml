@@ -228,6 +228,15 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
+    - name: Verify uploaded files
+      run: |
+        echo "=== Verifying deployment files ==="
+        ls -la docker-compose.yml .env .env.production || echo "Some files missing!"
+        echo "Contents of .env.production:"
+        head -5 .env.production
+        echo "Contents of .env:"
+        head -5 .env
+
     - name: Upload docker-compose and config files
       uses: actions/upload-artifact@v4.3.5
       with:
@@ -239,13 +248,6 @@ jobs:
           traefik/
           scripts/
         retention-days: 7
-
-    - name: Verify uploaded files
-      run: |
-        echo "=== Verifying uploaded files ==="
-        ls -la docker-compose.yml .env .env.production || echo "Some files missing!"
-        echo "Contents of .env.production:"
-        head -5 .env.production
 
   deploy-production:
     name: Deploy to Production
