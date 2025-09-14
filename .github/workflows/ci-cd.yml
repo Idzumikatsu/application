@@ -273,101 +273,58 @@ jobs:
         done
         
         # Create .env file from template with GitHub Secrets
-        # Using HEREDOC without quotes to allow variable expansion
-        cat > .env << EOF
-# Production Environment Variables for CRM Synergy Docker Deployment
-# Generated automatically from GitHub Actions secrets
-
-# PostgreSQL Database Configuration
-POSTGRES_DB=crm_system
-POSTGRES_USER=$POSTGRES_USER
-POSTGRES_PASSWORD=$POSTGRES_PASSWORD
-
-# JWT Security Configuration
-JWT_SECRET=$JWT_SECRET
-JWT_EXPIRATION=86400
-
-# Server Configuration
-PORT=8080
-
-# Email Service Configuration (Yandex SMTP)
-MAIL_HOST=smtp.yandex.ru
-MAIL_PORT=465
-EMAIL_USERNAME=$EMAIL_USERNAME
-MAIL_PASSWORD=$MAIL_PASSWORD
-MAIL_PROTOCOL=smtps
-MAIL_SMTP_AUTH=true
-MAIL_SMTP_STARTTLS_ENABLE=true
-MAIL_SMTP_SSL_ENABLE=true
-MAIL_SMTP_CONNECTIONTIMEOUT=5000
-MAIL_SMTP_TIMEOUT=5000
-MAIL_SMTP_WRITETIMEOUT=5000
-
-# Telegram Bot Configuration
-TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
-TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME
-
-# Database Connection Variables (Unified for all services)
-DATABASE_URL=jdbc:postgresql://postgres:5432/crm_system
-DATABASE_USERNAME=$DATABASE_USERNAME
-DATABASE_PASSWORD=$DATABASE_PASSWORD
-
-# Application Configuration
-APP_DOMAIN=https://crm-synergy.ru
-APP_FRONTEND_URL=https://crm-synergy.ru
-APP_ALLOWED_ORIGINS=https://crm-synergy.ru,https://www.crm-synergy.ru
-
-# File Upload Configuration
-SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE=10MB
-SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE=10MB
-
-# Session Management
-SERVER_SERVLET_SESSION_TIMEOUT=30m
-SPRING_SESSION_STORE_TYPE=jdbc
-SPRING_SESSION_JDBC_INITIALIZE_SCHEMA=always
-
-# Performance Optimization
-SPRING_MAIN_LAZY_INITIALIZATION=true
-
-# Logging Configuration (Production)
-LOGGING_LEVEL_COM_CRM_SYSTEM=INFO
-LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=INFO
-LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=INFO
-
-# Redis Configuration (Optional)
-REDIS_URL=redis://redis:6379
-
-# RabbitMQ Configuration (Optional)
-RABBITMQ_DEFAULT_USER=guest
-RABBITMQ_DEFAULT_PASS=guest
-
-# Docker Registry Configuration
-REGISTRY=ghcr.io
-IMAGE_NAME=$IMAGE_NAME
-
-# Deployment Configuration
-DEPLOY_HOST=$DEPLOY_HOST
-DEPLOY_USER=$DEPLOY_USER
-DEPLOY_PATH=/opt/crm-synergy
-
-# Health Check Configuration
-HEALTH_CHECK_TIMEOUT=30
-HEALTH_CHECK_INTERVAL=10
-
-# PostgreSQL Health Check Variables
-POSTGRES_HEALTHCHECK_USER=$POSTGRES_USER
-POSTGRES_HEALTHCHECK_PASSWORD=$POSTGRES_PASSWORD
-POSTGRES_HEALTHCHECK_DB=crm_system
-
-# Spring Boot Health Check Variables
-SPRING_BOOT_HEALTHCHECK_ENABLED=true
-SPRING_BOOT_HEALTHCHECK_PATH=/actuator/health
-SPRING_BOOT_HEALTHCHECK_TIMEOUT=30s
-SPRING_BOOT_HEALTHCHECK_INTERVAL=10s
-
-# Backup Configuration
-BACKUP_RETENTION_DAYS=7
-EOF
+        echo "POSTGRES_DB=crm_system" > .env
+        echo "POSTGRES_USER=$POSTGRES_USER" >> .env
+        echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> .env
+        echo "JWT_SECRET=$JWT_SECRET" >> .env
+        echo "JWT_EXPIRATION=86400" >> .env
+        echo "PORT=8080" >> .env
+        echo "MAIL_HOST=smtp.yandex.ru" >> .env
+        echo "MAIL_PORT=465" >> .env
+        echo "EMAIL_USERNAME=$EMAIL_USERNAME" >> .env
+        echo "MAIL_PASSWORD=$MAIL_PASSWORD" >> .env
+        echo "MAIL_PROTOCOL=smtps" >> .env
+        echo "MAIL_SMTP_AUTH=true" >> .env
+        echo "MAIL_SMTP_STARTTLS_ENABLE=true" >> .env
+        echo "MAIL_SMTP_SSL_ENABLE=true" >> .env
+        echo "MAIL_SMTP_CONNECTIONTIMEOUT=5000" >> .env
+        echo "MAIL_SMTP_TIMEOUT=5000" >> .env
+        echo "MAIL_SMTP_WRITETIMEOUT=5000" >> .env
+        echo "TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN" >> .env
+        echo "TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME" >> .env
+        echo "DATABASE_URL=jdbc:postgresql://postgres:5432/crm_system" >> .env
+        echo "DATABASE_USERNAME=$DATABASE_USERNAME" >> .env
+        echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> .env
+        echo "APP_DOMAIN=https://crm-synergy.ru" >> .env
+        echo "APP_FRONTEND_URL=https://crm-synergy.ru" >> .env
+        echo "APP_ALLOWED_ORIGINS=https://crm-synergy.ru,https://www.crm-synergy.ru" >> .env
+        echo "SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE=10MB" >> .env
+        echo "SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE=10MB" >> .env
+        echo "SERVER_SERVLET_SESSION_TIMEOUT=30m" >> .env
+        echo "SPRING_SESSION_STORE_TYPE=jdbc" >> .env
+        echo "SPRING_SESSION_JDBC_INITIALIZE_SCHEMA=always" >> .env
+        echo "SPRING_MAIN_LAZY_INITIALIZATION=true" >> .env
+        echo "LOGGING_LEVEL_COM_CRM_SYSTEM=INFO" >> .env
+        echo "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=INFO" >> .env
+        echo "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=INFO" >> .env
+        echo "REDIS_URL=redis://redis:6379" >> .env
+        echo "RABBITMQ_DEFAULT_USER=guest" >> .env
+        echo "RABBITMQ_DEFAULT_PASS=guest" >> .env
+        echo "REGISTRY=ghcr.io" >> .env
+        echo "IMAGE_NAME=$IMAGE_NAME" >> .env
+        echo "DEPLOY_HOST=$DEPLOY_HOST" >> .env
+        echo "DEPLOY_USER=$DEPLOY_USER" >> .env
+        echo "DEPLOY_PATH=/opt/crm-synergy" >> .env
+        echo "HEALTH_CHECK_TIMEOUT=30" >> .env
+        echo "HEALTH_CHECK_INTERVAL=10" >> .env
+        echo "POSTGRES_HEALTHCHECK_USER=$POSTGRES_USER" >> .env
+        echo "POSTGRES_HEALTHCHECK_PASSWORD=$POSTGRES_PASSWORD" >> .env
+        echo "POSTGRES_HEALTHCHECK_DB=crm_system" >> .env
+        echo "SPRING_BOOT_HEALTHCHECK_ENABLED=true" >> .env
+        echo "SPRING_BOOT_HEALTHCHECK_PATH=/actuator/health" >> .env
+        echo "SPRING_BOOT_HEALTHCHECK_TIMEOUT=30s" >> .env
+        echo "SPRING_BOOT_HEALTHCHECK_INTERVAL=10s" >> .env
+        echo "BACKUP_RETENTION_DAYS=7" >> .env
 
         echo "✅ Created .env file with GitHub Secrets"
         echo "Contents of .env (first 5 lines):"
@@ -383,26 +340,24 @@ EOF
         fi
 
         # Create .env.production file (simplified version for deployment)
-        cat > .env.production << EOF
-# Production Environment Variables for Deployment
-# Minimal version for Docker Compose deployment
-
-POSTGRES_DB=crm_system
-POSTGRES_USER=$POSTGRES_USER
-POSTGRES_PASSWORD=$POSTGRES_PASSWORD
-JWT_SECRET=$JWT_SECRET
-EMAIL_USERNAME=$EMAIL_USERNAME
-MAIL_PASSWORD=$MAIL_PASSWORD
-TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
-TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME
-DATABASE_USERNAME=$DATABASE_USERNAME
-DATABASE_PASSWORD=$DATABASE_PASSWORD
-REGISTRY=ghcr.io
-IMAGE_NAME=$IMAGE_NAME
-DEPLOY_HOST=$DEPLOY_HOST
-DEPLOY_USER=$DEPLOY_USER
-DEPLOY_PATH=/opt/crm-synergy
-EOF
+        echo "# Production Environment Variables for Deployment" > .env.production
+        echo "# Minimal version for Docker Compose deployment" >> .env.production
+        echo "" >> .env.production
+        echo "POSTGRES_DB=crm_system" >> .env.production
+        echo "POSTGRES_USER=$POSTGRES_USER" >> .env.production
+        echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> .env.production
+        echo "JWT_SECRET=$JWT_SECRET" >> .env.production
+        echo "EMAIL_USERNAME=$EMAIL_USERNAME" >> .env.production
+        echo "MAIL_PASSWORD=$MAIL_PASSWORD" >> .env.production
+        echo "TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN" >> .env.production
+        echo "TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME" >> .env.production
+        echo "DATABASE_USERNAME=$DATABASE_USERNAME" >> .env.production
+        echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> .env.production
+        echo "REGISTRY=ghcr.io" >> .env.production
+        echo "IMAGE_NAME=$IMAGE_NAME" >> .env.production
+        echo "DEPLOY_HOST=$DEPLOY_HOST" >> .env.production
+        echo "DEPLOY_USER=$DEPLOY_USER" >> .env.production
+        echo "DEPLOY_PATH=/opt/crm-synergy" >> .env.production
 
         echo "✅ Created .env.production file with GitHub Secrets"
         echo "Contents of .env.production (first 5 lines):"
@@ -469,46 +424,42 @@ EOF
         echo "=== Creating production environment files for deployment ==="
         
         # Create .env.production file with actual values from secrets
-        cat > .env.production << EOF
-POSTGRES_DB=crm_system
-POSTGRES_USER=$POSTGRES_USER
-POSTGRES_PASSWORD=$POSTGRES_PASSWORD
-JWT_SECRET=$JWT_SECRET
-EMAIL_USERNAME=$EMAIL_USERNAME
-MAIL_PASSWORD=$MAIL_PASSWORD
-TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
-TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME
-DATABASE_USERNAME=$DATABASE_USERNAME
-DATABASE_PASSWORD=$DATABASE_PASSWORD
-REGISTRY=ghcr.io
-IMAGE_NAME=$IMAGE_NAME
-DEPLOY_HOST=$DEPLOY_HOST
-DEPLOY_USER=$DEPLOY_USER
-DEPLOY_PATH=/opt/crm-synergy
-EOF
+        echo "POSTGRES_DB=crm_system" > .env.production
+        echo "POSTGRES_USER=$POSTGRES_USER" >> .env.production
+        echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> .env.production
+        echo "JWT_SECRET=$JWT_SECRET" >> .env.production
+        echo "EMAIL_USERNAME=$EMAIL_USERNAME" >> .env.production
+        echo "MAIL_PASSWORD=$MAIL_PASSWORD" >> .env.production
+        echo "TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN" >> .env.production
+        echo "TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME" >> .env.production
+        echo "DATABASE_USERNAME=$DATABASE_USERNAME" >> .env.production
+        echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> .env.production
+        echo "REGISTRY=ghcr.io" >> .env.production
+        echo "IMAGE_NAME=$IMAGE_NAME" >> .env.production
+        echo "DEPLOY_HOST=$DEPLOY_HOST" >> .env.production
+        echo "DEPLOY_USER=$DEPLOY_USER" >> .env.production
+        echo "DEPLOY_PATH=/opt/crm-synergy" >> .env.production
 
         echo "✅ Created .env.production for deployment"
         echo "Contents:"
         cat .env.production
 
         # Create .env file for completeness (though it may not be needed for deployment)
-        cat > .env << EOF
-POSTGRES_DB=crm_system
-POSTGRES_USER=$POSTGRES_USER
-POSTGRES_PASSWORD=$POSTGRES_PASSWORD
-JWT_SECRET=$JWT_SECRET
-EMAIL_USERNAME=$EMAIL_USERNAME
-MAIL_PASSWORD=$MAIL_PASSWORD
-TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
-TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME
-DATABASE_USERNAME=$DATABASE_USERNAME
-DATABASE_PASSWORD=$DATABASE_PASSWORD
-REGISTRY=ghcr.io
-IMAGE_NAME=$IMAGE_NAME
-DEPLOY_HOST=$DEPLOY_HOST
-DEPLOY_USER=$DEPLOY_USER
-DEPLOY_PATH=/opt/crm-synergy
-EOF
+        echo "POSTGRES_DB=crm_system" > .env
+        echo "POSTGRES_USER=$POSTGRES_USER" >> .env
+        echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> .env
+        echo "JWT_SECRET=$JWT_SECRET" >> .env
+        echo "EMAIL_USERNAME=$EMAIL_USERNAME" >> .env
+        echo "MAIL_PASSWORD=$MAIL_PASSWORD" >> .env
+        echo "TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN" >> .env
+        echo "TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME" >> .env
+        echo "DATABASE_USERNAME=$DATABASE_USERNAME" >> .env
+        echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> .env
+        echo "REGISTRY=ghcr.io" >> .env
+        echo "IMAGE_NAME=$IMAGE_NAME" >> .env
+        echo "DEPLOY_HOST=$DEPLOY_HOST" >> .env
+        echo "DEPLOY_USER=$DEPLOY_USER" >> .env
+        echo "DEPLOY_PATH=/opt/crm-synergy" >> .env
 
         echo "✅ Created .env file for deployment"
 
