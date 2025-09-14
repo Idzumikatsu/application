@@ -228,21 +228,32 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-    - name: Debug - Log environment variables
+    - name: Debug - Log environment variables and secrets availability
       run: |
-        echo "=== Debug: Environment variables ==="
-        echo "POSTGRES_USER: $POSTGRES_USER"
-        echo "POSTGRES_PASSWORD: $POSTGRES_PASSWORD"
-        echo "JWT_SECRET: $JWT_SECRET"
-        echo "EMAIL_USERNAME: $EMAIL_USERNAME"
-        echo "MAIL_PASSWORD: $MAIL_PASSWORD"
-        echo "TELEGRAM_BOT_TOKEN: $TELEGRAM_BOT_TOKEN"
-        echo "TELEGRAM_BOT_USERNAME: $TELEGRAM_BOT_USERNAME"
-        echo "DATABASE_USERNAME: $DATABASE_USERNAME"
-        echo "DATABASE_PASSWORD: $DATABASE_PASSWORD"
-        echo "IMAGE_NAME: $IMAGE_NAME"
-        echo "DEPLOY_HOST: $DEPLOY_HOST"
-        echo "DEPLOY_USER: $DEPLOY_USER"
+        echo "=== Debug: Environment variables and secrets availability ==="
+        echo "Checking availability of secrets in workflow context..."
+        
+        # Check each secret individually
+        SECRETS_TO_CHECK=(
+          "POSTGRES_USER" "POSTGRES_PASSWORD" "JWT_SECRET"
+          "DATABASE_USERNAME" "DATABASE_PASSWORD" "EMAIL_USERNAME"
+          "MAIL_PASSWORD" "TELEGRAM_BOT_TOKEN" "TELEGRAM_BOT_USERNAME"
+          "DEPLOY_HOST" "DEPLOY_USER" "DEPLOY_SSH_KEY"
+        )
+        
+        for secret in "${SECRETS_TO_CHECK[@]}"; do
+          if [ -n "${!secret}" ]; then
+            echo "✅ $secret: AVAILABLE (length: ${#!secret})"
+          else
+            echo "❌ $secret: NOT AVAILABLE or EMPTY"
+          fi
+        done
+        
+        echo "=== GitHub Context Secrets ==="
+        echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
+        echo "GITHUB_WORKFLOW: $GITHUB_WORKFLOW"
+        echo "GITHUB_RUN_ID: $GITHUB_RUN_ID"
+        
         echo "=== End debug ==="
 
     - name: Create production environment files from templates
@@ -262,10 +273,27 @@ jobs:
       run: |
         echo "=== Creating production environment files ==="
         
-        # Debug: Check if all environment variables are set
-        echo "Checking environment variables..."
+        # Debug: Check if all environment variables are set with detailed info
+        echo "=== Detailed Secrets Availability Check ==="
+        echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
+        echo "GITHUB_WORKFLOW: $GITHUB_WORKFLOW"
+        echo "GITHUB_RUN_ID: $GITHUB_RUN_ID"
+        echo ""
+        
         CRITICAL_VARS=(POSTGRES_USER POSTGRES_PASSWORD JWT_SECRET DATABASE_USERNAME DATABASE_PASSWORD)
         OPTIONAL_VARS=(EMAIL_USERNAME MAIL_PASSWORD TELEGRAM_BOT_TOKEN TELEGRAM_BOT_USERNAME IMAGE_NAME DEPLOY_HOST DEPLOY_USER)
+        
+        echo "Checking critical variables availability:"
+        for var in "${CRITICAL_VARS[@]}"; do
+          if [ -n "${!var}" ]; then
+            var_value="${!var}"
+            echo "✅ $var: AVAILABLE (length: ${#var_value})"
+          else
+            echo "❌ $var: NOT AVAILABLE or EMPTY"
+            echo "   Expected in GitHub Secrets as: $var"
+          fi
+        done
+        echo ""
         
         # Check critical variables
         echo "=== Critical Variables Check ==="
@@ -275,19 +303,22 @@ jobs:
             echo "❌ ERROR: Critical variable $var is empty or not set!"
             has_critical_error=true
           else
-            echo "✅ $var is set (length: ${#!var})"
+            var_value="${!var}"
+            echo "✅ $var is set (length: ${#var_value})"
           fi
         done
         
-        # Check optional variables
-        echo "=== Optional Variables Check ==="
+        # Check optional variables with detailed info
+        echo "=== Optional Variables Availability Check ==="
         for var in "${OPTIONAL_VARS[@]}"; do
-          if [ -z "${!var}" ]; then
-            echo "⚠️ WARNING: Optional variable $var is empty or not set"
+          if [ -n "${!var}" ]; then
+            var_value="${!var}"
+            echo "✅ $var: AVAILABLE (length: ${#var_value})"
           else
-            echo "✅ $var is set (length: ${#!var})"
+            echo "⚠️ $var: NOT AVAILABLE or EMPTY (optional)"
           fi
         done
+        echo ""
         
         # Exit if critical variables are missing
         if [ "$has_critical_error" = true ]; then
