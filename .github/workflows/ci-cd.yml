@@ -273,7 +273,8 @@ jobs:
         done
         
         # Create .env file from template with GitHub Secrets
-        cat > .env << 'EOF'
+        # Using HEREDOC without quotes to allow variable expansion
+        cat > .env << EOF
 # Production Environment Variables for CRM Synergy Docker Deployment
 # Generated automatically from GitHub Actions secrets
 
@@ -382,7 +383,7 @@ EOF
         fi
 
         # Create .env.production file (simplified version for deployment)
-        cat > .env.production << 'EOF'
+        cat > .env.production << EOF
 # Production Environment Variables for Deployment
 # Minimal version for Docker Compose deployment
 
