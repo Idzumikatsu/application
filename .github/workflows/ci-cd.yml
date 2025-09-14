@@ -243,7 +243,8 @@ jobs:
         
         for secret in "${SECRETS_TO_CHECK[@]}"; do
           if [ -n "${!secret}" ]; then
-            echo "✅ $secret: AVAILABLE (length: ${#!secret})"
+            secret_value="${!secret}"
+            echo "✅ $secret: AVAILABLE (length: ${#secret_value})"
           else
             echo "❌ $secret: NOT AVAILABLE or EMPTY"
           fi
