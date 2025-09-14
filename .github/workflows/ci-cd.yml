@@ -5,6 +5,7 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
 
 env:
   JAVA_VERSION: '17'
@@ -15,7 +16,7 @@ env:
   POSTGRES_USER: test
   POSTGRES_PASSWORD: test
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: idzumikatsu/application
 
 jobs:
   backend-tests:
@@ -211,7 +212,7 @@ jobs:
       run: |
         echo "=== Verifying email-service image push ==="
         REGISTRY="ghcr.io"
-        IMAGE_NAME="${{ github.repository }}"
+        IMAGE_NAME="idzumikatsu/application"
         EMAIL_IMAGE="$REGISTRY/$IMAGE_NAME/email-service:latest"
         
         echo "Checking if email-service image exists in GHCR: $EMAIL_IMAGE"
@@ -477,7 +478,7 @@ jobs:
         # Проверяем доступность каждого образа в registry
         SERVICES=("backend" "frontend" "email-service" "telegram-service")
         REGISTRY="ghcr.io"
-        IMAGE_NAME="${{ github.repository }}"
+        IMAGE_NAME="idzumikatsu/application"
         
         has_image_error=false
         
@@ -550,7 +551,7 @@ jobs:
       TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
       DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
       DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-      IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
+      IMAGE_NAME: idzumikatsu/application
 
     steps:
     - name: Checkout code
@@ -595,7 +596,7 @@ jobs:
         echo "DATABASE_USERNAME=$DATABASE_USERNAME" >> .env.production
         echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> .env.production
         echo "REGISTRY=ghcr.io" >> .env.production
-        echo "IMAGE_NAME=$IMAGE_NAME" >> .env.production
+        echo "IMAGE_NAME=idzumikatsu/application" >> .env.production
         echo "DEPLOY_HOST=$DEPLOY_HOST" >> .env.production
         echo "DEPLOY_USER=$DEPLOY_USER" >> .env.production
         echo "DEPLOY_PATH=/opt/crm-synergy" >> .env.production
