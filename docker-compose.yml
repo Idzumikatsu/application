@@ -29,6 +29,8 @@ services:
 
   postgres:
     image: postgres:15
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: crm_system
       POSTGRES_USER: ${POSTGRES_USER}
@@ -38,10 +40,10 @@ services:
     networks:
       - crm-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+       interval: 10s
+       timeout: 5s
+       retries: 5
 
   backend:
     build: ./crm-system
@@ -52,11 +54,12 @@ services:
         condition: service_healthy
     networks:
       - crm-network
-    # healthcheck:
-    #   test: ["CMD-SHELL", "ps aux | grep java || exit 1"]
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 3
+    healthcheck:
+       test: ["CMD", "curl", "-f", "http://0.0.0.0:8084/actuator/health"]
+       interval: 30s
+       timeout: 10s
+       retries: 3
+       start_period: 60s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`api.crm-synergy.ru`)"
@@ -90,11 +93,12 @@ services:
       - .env
     networks:
       - crm-network
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: ${SPRING_BOOT_HEALTHCHECK_INTERVAL:-30s}
+      timeout: ${SPRING_BOOT_HEALTHCHECK_TIMEOUT:-10s}
+      retries: 3
+      start_period: 60s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.email-service.rule=Host(`email.crm-synergy.ru`)"
@@ -108,11 +112,12 @@ services:
       - .env
     networks:
       - crm-network
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: ${SPRING_BOOT_HEALTHCHECK_INTERVAL:-30s}
+      timeout: ${SPRING_BOOT_HEALTHCHECK_TIMEOUT:-10s}
+      retries: 3
+      start_period: 60s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.telegram-service.rule=Host(`telegram.crm-synergy.ru`)"

@@ -235,6 +235,7 @@ jobs:
         path: |
           docker-compose.yml
           .env
+          .env.production
           traefik/
           scripts/
         retention-days: 7
@@ -250,6 +251,19 @@ jobs:
       DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
       DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
       DEPLOY_PATH: /opt/crm-synergy
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: crm_system
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+      MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
+      DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
+      DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+      IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
 
     steps:
     - name: Checkout code
@@ -260,6 +274,15 @@ jobs:
       with:
         name: deployment-config
         path: config
+
+    - name: Install envsubst
+      run: sudo apt-get update && sudo apt-get install -y gettext-base
+
+    - name: Create production environment file
+      run: |
+        cd config
+        envsubst < .env.production > .env.production.tmp
+        mv .env.production.tmp .env.production
 
     - name: Setup SSH
       uses: webfactory/ssh-agent@v0.9.0
@@ -304,15 +327,15 @@ jobs:
 
           # Останавливаем текущие контейнеры
           echo "Stopping current containers..."
-          docker compose down || true
+          docker compose --env-file .env.production down || true
 
           # Pull новых образов
           echo "Pulling new Docker images..."
-          docker compose pull
+          docker compose --env-file .env.production pull
 
           # Запускаем новые контейнеры
           echo "Starting new containers..."
-          docker compose up -d
+          docker compose --env-file .env.production up -d
 
           # Ждем запуска всех сервисов
           echo "Waiting for services to start..."
