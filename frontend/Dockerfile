@@ -1,7 +1,7 @@
 FROM node:20-alpine as build
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --platform=linux --arch=x64
+RUN npm install --ignore-optional --platform=linux --arch=x64
 COPY . .
 RUN npm run build
 
