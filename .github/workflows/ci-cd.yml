@@ -47,6 +47,20 @@ jobs:
         cd frontend
         npm run test:coverage
 
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+
+    - name: Serve frontend for E2E
+      run: |
+        cd frontend
+        npx serve -s dist -l 3000 &
+        export SERVE_PID=$!
+        sleep 5  # Ждем запуска сервера
+        # Проверяем, что сервер работает
+        curl -f http://localhost:3000 || (kill $SERVE_PID && exit 1)
+
     - name: Install Playwright browsers
       run: |
         cd frontend
@@ -56,6 +70,8 @@ jobs:
       run: |
         cd frontend
         npx playwright test --project=chromium
+      env:
+        BASE_URL: http://localhost:3000
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -63,11 +79,6 @@ jobs:
       with:
         name: frontend-test-results
         path: frontend/coverage/
-
-    - name: Build frontend
-      run: |
-        cd frontend
-        npm run build
 
     - name: Verify frontend build exists
       run: |
