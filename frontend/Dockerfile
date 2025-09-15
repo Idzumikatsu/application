@@ -1,8 +1,12 @@
-FROM node:20-alpine as build
+FROM node:20-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --platform=linux --arch=x64
+# Install dependencies with platform specific binaries
+RUN npm ci --platform=linux --arch=x64 --prefer-dedupe
+# Install the missing rollup package explicitly
+RUN npm install @rollup/rollup-linux-x64-musl
 COPY . .
+# Build the application
 RUN npm run build
 
 FROM nginx:alpine
