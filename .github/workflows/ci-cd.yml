@@ -37,10 +37,15 @@ jobs:
         cd frontend
         npm ci --legacy-peer-deps
 
+    - name: TypeScript check
+      run: |
+        cd frontend
+        npx tsc --noEmit
+
     - name: Run unit tests
       run: |
         cd frontend
-        npm run test:coverage
+        npm run test:coverage -- --coverage.reporter=text --coverage.reporter=lcov --coverage.reporter=html
 
     - name: Install Playwright browsers
       run: |
@@ -50,7 +55,7 @@ jobs:
     - name: Run e2e tests
       run: |
         cd frontend
-        npx playwright test
+        npx playwright test --project=chromium
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
