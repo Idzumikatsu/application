@@ -55,19 +55,20 @@ jobs:
     - name: Serve frontend for E2E
       run: |
         cd frontend
-        npx serve -s dist -l 3000 -n &
+        # Используем Python http.server (встроен в Ubuntu CI, не требует установки)
+        python3 -m http.server 3000 --directory dist --bind 0.0.0.0 &
         SERVE_PID=$!
         echo $SERVE_PID > serve.pid
-        sleep 10  # Дать время на запуск
-        # Проверка готовности
-        for i in {1..30}; do
-          if curl -f http://localhost:3000 >/dev/null 2>&1; then
-            echo "Serve ready!"
+        sleep 5  # Короткий sleep
+        # Проверка готовности с увеличенным таймаутом
+        for i in {1..60}; do
+          if curl -f http://localhost:3000/index.html >/dev/null 2>&1; then
+            echo "Server ready on port 3000!"
             break
           fi
-          echo "Waiting for serve... ($i/30)"
-          sleep 2
-        done || (kill $SERVE_PID && rm -f serve.pid && exit 1)
+          echo "Waiting for server... ($i/60)"
+          sleep 1
+        done || (kill $SERVE_PID 2>/dev/null || true; rm -f serve.pid; exit 1)
 
     - name: Install Playwright browsers
       run: |
@@ -82,12 +83,12 @@ jobs:
         BASE_URL: http://localhost:3000
         CI: true
 
-    - name: Cleanup serve
+    - name: Cleanup server
       if: always()
       run: |
         cd frontend
         if [ -f serve.pid ]; then
-          kill $(cat serve.pid) || true
+          kill $(cat serve.pid) 2>/dev/null || true
           rm -f serve.pid
         fi
 
