@@ -1,8 +1,9 @@
 import { exportToCSV } from '../exportUtils';
 import { CalendarEvent } from '../../types';
+import { vi } from 'vitest';
 
 // Мокаем jsPDF до импорта exportUtils
-jest.mock('jspdf', () => {
+vi.mock('jspdf', () => {
   return jest.fn().mockImplementation(() => ({
     internal: {
       pageSize: {
@@ -19,7 +20,7 @@ jest.mock('jspdf-autotable', () => jest.fn());
 
 // Полифил для TextEncoder
 if (typeof TextEncoder === 'undefined') {
-  global.TextEncoder = require('util').TextEncoder;
+  window.TextEncoder = require('util').TextEncoder;
 }
 
 describe('CSV Export', () => {
@@ -48,9 +49,9 @@ describe('CSV Export', () => {
 
   beforeEach(() => {
     // Мокаем DOM функции
-    global.URL.createObjectURL = jest.fn(() => 'blob:test');
-    global.URL.revokeObjectURL = jest.fn();
-    global.Blob = jest.fn(() => ({})) as any;
+    window.URL.createObjectURL = jest.fn(() => 'blob:test');
+    window.URL.revokeObjectURL = jest.fn();
+    window.Blob = jest.fn(() => ({})) as any;
     
     const mockLink = {
       href: '',

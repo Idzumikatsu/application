@@ -1,9 +1,10 @@
+import { vi } from 'vitest';
 import exportService from '../exportService';
 import httpClient from '../httpClient';
 import { ExportOptions, ExportResult, Student, FilterCriteria, SortCriteria } from '../../types';
 
 // Mock the httpClient
-jest.mock('../httpClient');
+vi.mock('../httpClient');
 
 describe('ExportService', () => {
   beforeEach(() => {

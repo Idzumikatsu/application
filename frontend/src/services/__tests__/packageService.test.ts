@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import packageService from '../packageService';
 import httpClient from '../httpClient';
 import {
@@ -8,7 +9,7 @@ import {
 } from '../../types/packageTypes';
 
 // Mock the httpClient
-jest.mock('../httpClient');
+vi.mock('../httpClient');
 
 describe('PackageService', () => {
   beforeEach(() => {

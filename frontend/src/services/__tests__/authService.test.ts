@@ -1,9 +1,10 @@
+import { vi } from 'vitest';
 import httpClient from '../httpClient';
 import authService from '../authService';
 import { LoginRequest, User, UserRole } from '../../types';
 
 // Mock httpClient
-jest.mock('../httpClient');
+vi.mock('../httpClient');
 
 describe('AuthService', () => {
   beforeEach(() => {

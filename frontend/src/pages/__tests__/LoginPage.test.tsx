@@ -2,9 +2,10 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import LoginPage from '../LoginPage';
+import { vi } from 'vitest';
 
 // Mock the authService and redux hooks
-jest.mock('../../services/authService', () => ({
+vi.mock('../../services/authService', () => ({
   __esModule: true,
   default: {
     login: jest.fn(),
@@ -13,12 +14,12 @@ jest.mock('../../services/authService', () => ({
   },
 }));
 
-jest.mock('react-redux', () => ({
+vi.mock('react-redux', () => ({
   useDispatch: () => jest.fn(),
   useSelector: jest.fn(),
 }));
 
-jest.mock('react-router-dom', () => ({
+vi.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => jest.fn(),
 }));

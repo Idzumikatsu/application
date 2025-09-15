@@ -4,9 +4,10 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import App from '../App';
 import authReducer from '../store/authSlice';
+import { vi } from 'vitest';
 
 // Mock для react-router-dom
-jest.mock('react-router-dom', () => ({
+vi.mock('react-router-dom', () => ({
   BrowserRouter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Routes: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Route: ({ element }: { element: React.ReactNode }) => <div>{element}</div>,
@@ -15,15 +16,15 @@ jest.mock('react-router-dom', () => ({
 }));
 
 // Mock для компонентов, которые могут вызывать ошибки при рендеринге
-jest.mock('../components/Navbar', () => () => <div>Navbar</div>);
-jest.mock('../components/Sidebar', () => () => <div>Sidebar</div>);
-jest.mock('../pages/LoginPage', () => () => <div>LoginPage</div>);
-jest.mock('../components/AuthErrorHandler', () => () => <div>AuthErrorHandler</div>);
-jest.mock('../components/LessonStatus/LessonStatusAutomation', () => () => <div>LessonStatusAutomation</div>);
-jest.mock('../components/NotificationPanel', () => () => <div>NotificationPanel</div>);
+vi.mock('../components/Navbar', () => () => <div>Navbar</div>);
+vi.mock('../components/Sidebar', () => () => <div>Sidebar</div>);
+vi.mock('../pages/LoginPage', () => () => <div>LoginPage</div>);
+vi.mock('../components/AuthErrorHandler', () => () => <div>AuthErrorHandler</div>);
+vi.mock('../components/LessonStatus/LessonStatusAutomation', () => () => <div>LessonStatusAutomation</div>);
+vi.mock('../components/NotificationPanel', () => () => <div>NotificationPanel</div>);
 
 // Mock для сервисов
-jest.mock('../services/authService', () => ({
+vi.mock('../services/authService', () => ({
   getToken: jest.fn(() => null),
   getCurrentUser: jest.fn(),
   shouldRefreshToken: jest.fn(() => false),

@@ -56,17 +56,5 @@
     "vite": "^5.0.10",
     "vitest": "^0.34.6",
     "web-vitals": "^3.5.2"
-  },
-  "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.{js,jsx,ts,tsx}",
-      "!src/**/*.d.ts",
-      "!src/index.tsx"
-    ],
-    "coverageReporters": [
-      "text",
-      "lcov",
-      "html"
-    ]
   }
 }
