@@ -55,11 +55,19 @@ jobs:
     - name: Serve frontend for E2E
       run: |
         cd frontend
-        npx serve -s dist -l 3000 &
-        export SERVE_PID=$!
-        sleep 5  # Ждем запуска сервера
-        # Проверяем, что сервер работает
-        curl -f http://localhost:3000 || (kill $SERVE_PID && exit 1)
+        npx serve -s dist -l 3000 -n &
+        SERVE_PID=$!
+        echo $SERVE_PID > serve.pid
+        sleep 10  # Дать время на запуск
+        # Проверка готовности
+        for i in {1..30}; do
+          if curl -f http://localhost:3000 >/dev/null 2>&1; then
+            echo "Serve ready!"
+            break
+          fi
+          echo "Waiting for serve... ($i/30)"
+          sleep 2
+        done || (kill $SERVE_PID && rm -f serve.pid && exit 1)
 
     - name: Install Playwright browsers
       run: |
@@ -72,6 +80,16 @@ jobs:
         npx playwright test --project=chromium
       env:
         BASE_URL: http://localhost:3000
+        CI: true
+
+    - name: Cleanup serve
+      if: always()
+      run: |
+        cd frontend
+        if [ -f serve.pid ]; then
+          kill $(cat serve.pid) || true
+          rm -f serve.pid
+        fi
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
