@@ -3,18 +3,18 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { ToastContainer } from 'react-toastify';
+
+import { Navbar, Sidebar } from '@/components';
+import ProtectedRoute from '@/routes/ProtectedRoute';
+import { ManagerRoutes, StudentRoutes, TeacherRoutes } from '@/routes';
+import LoginPage from '@/pages/LoginPage';
+import UnauthorizedPage from '@/pages/UnauthorizedPage';
 import { RootState, AppDispatch } from './store';
 import { loginSuccess, logout } from './store/authSlice';
 import AuthService from './services/authService';
-import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
-import TeacherPage from './pages/TeacherPage';
-import ManagerPage from './pages/ManagerPage';
-import StudentPage from './pages/StudentPage';
-import UnauthorizedPage from './pages/UnauthorizedPage';
-import AuthErrorHandler from './components/AuthErrorHandler';
-import LessonStatusAutomation from './components/LessonStatus/LessonStatusAutomation';
-import NotificationPanel from './components/NotificationPanel';
+import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 
 const theme = createTheme({
@@ -153,62 +153,51 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <div className="app-container">
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route 
-            path="/dashboard" 
-            element={renderProtectedRoute(<DashboardPage />)} 
-          />
-          
-          {/* Teacher routes */}
-          <Route 
-            path="/teacher/*" 
-            element={renderRoleBasedRoute(['TEACHER'], <TeacherPage />)} 
-          />
-          
-          {/* Manager routes */}
-          <Route 
-            path="/manager/*" 
-            element={renderRoleBasedRoute(['MANAGER', 'ADMIN'], <ManagerPage />)} 
-          />
-          
-          {/* Student routes */}
-          <Route 
-            path="/student/*" 
-            element={renderRoleBasedRoute(['STUDENT'], <StudentPage />)} 
-          />
-          
-          {/* Admin routes */}
-          <Route
-            path="/admin/*"
-            element={renderRoleBasedRoute(['ADMIN'], <ManagerPage />)}
-          />
-          
-          {/* Unauthorized route */}
-          <Route
-            path="/unauthorized"
-            element={<UnauthorizedPage />}
-          />
-          
-          {/* Default route */}
-          <Route
-            path="/"
-            element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />}
-          />
-        </Routes>
-        
-        {/* Global authentication error handler */}
-        <AuthErrorHandler />
-        
-        {/* Global lesson status automation */}
-        {isAuthenticated && (
-          <LessonStatusAutomation />
-        )}
-        
-        {/* Global notification panel */}
-        {isAuthenticated && (
-          <NotificationPanel />
-        )}
+        {user && <Sidebar />}
+        <div className="main-content">
+          {user && <Navbar />}
+          <div className="routes-container">
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/unauthorized" element={<UnauthorizedPage />} />
+              <Route 
+                path="/dashboard" 
+                element={renderProtectedRoute(<DashboardPage />)} 
+              />
+              
+              {/* Teacher routes */}
+              <Route 
+                path="/teacher/*" 
+                element={renderRoleBasedRoute(['TEACHER'], <TeacherRoutes />)} 
+              />
+              
+              {/* Manager routes */}
+              <Route 
+                path="/manager/*" 
+                element={renderRoleBasedRoute(['MANAGER', 'ADMIN'], <ManagerRoutes />)} 
+              />
+              
+              {/* Student routes */}
+              <Route 
+                path="/student/*" 
+                element={renderRoleBasedRoute(['STUDENT'], <StudentRoutes />)} 
+              />
+              
+              {/* Admin routes */}
+              <Route
+                path="/admin/*"
+                element={renderRoleBasedRoute(['ADMIN'], <ManagerRoutes />)}
+              />
+              
+              {/* Default route */}
+              <Route
+                path="/"
+                element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />}
+              />
+            </Routes>
+          </div>
+          <ToastContainer />
+        </div>
       </div>
     </ThemeProvider>
   );

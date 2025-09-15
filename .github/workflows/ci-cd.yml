@@ -35,15 +35,22 @@ jobs:
     - name: Install dependencies
       run: |
         cd frontend
-        if [ ! -f package-lock.json ]; then
-          npm install
-        else
-          npm ci
-        fi
+        npm ci --legacy-peer-deps
 
     - name: Run unit tests
-      continue-on-error: true
-      run: cd frontend && mkdir -p coverage && exit 0
+      run: |
+        cd frontend
+        npm run test:coverage
+
+    - name: Install Playwright browsers
+      run: |
+        cd frontend
+        npx playwright install --with-deps
+
+    - name: Run e2e tests
+      run: |
+        cd frontend
+        npx playwright test
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -60,9 +67,9 @@ jobs:
     - name: Verify frontend build exists
       run: |
         cd frontend
-        if [ -d "dist" ] || [ -d "build" ]; then
+        if [ -d "dist" ]; then
           echo "Frontend build directory exists"
-          ls -la dist/ build/ 2>/dev/null || true
+          ls -la dist/
         else
           echo "ERROR: Frontend build directory does not exist!"
           exit 1
