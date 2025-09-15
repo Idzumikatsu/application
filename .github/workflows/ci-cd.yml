@@ -240,7 +240,7 @@ jobs:
           docker compose ps
           docker compose logs --tail=20
           # Basic health check
-          if docker compose exec backend curl -f http://localhost:8084/actuator/health >/dev/null 2>&1; then
+          if docker compose exec backend curl -f http://localhost:8080/actuator/health >/dev/null 2>&1; then
             echo '✅ Backend healthy'
           else
             echo '❌ Backend health check failed'
