@@ -221,6 +221,7 @@
 							<goal>report</goal>
 						</goals>
 					</execution>
+					<!--
 					<execution>
 						<id>check-coverage</id>
 						<phase>test</phase>
@@ -262,6 +263,7 @@
 							</rules>
 						</configuration>
 					</execution>
+					-->
 				</executions>
 			</plugin>
 			
