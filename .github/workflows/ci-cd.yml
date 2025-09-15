@@ -35,7 +35,8 @@ jobs:
     - name: Install dependencies
       run: |
         cd frontend
-        npm install --ignore-optional
+        npm install
+        npm install --save-dev @rollup/rollup-linux-x64-gnu
 
     - name: TypeScript check
       run: |

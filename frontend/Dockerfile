@@ -1,7 +1,8 @@
 FROM node:20-alpine as build
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --ignore-optional --platform=linux --arch=x64
+RUN npm install --platform=linux --arch=x64
+RUN npm install --save-dev @rollup/rollup-linux-x64-gnu
 COPY . .
 RUN npm run build
 
