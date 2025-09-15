@@ -62,6 +62,8 @@ jobs:
     - name: Run unit tests
       run: |
         cd frontend
+        # Rebuild native modules for CI environment to fix rollup issue
+        npm rebuild --platform=linux --arch=x64
         npm run test:coverage
       env:
         CI: true
