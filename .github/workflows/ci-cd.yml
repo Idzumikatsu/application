@@ -25,13 +25,13 @@ jobs:
     
     services:
       postgres:
-        image: postgres:14-alpine
+        image: postgres:15-alpine
         env:
           POSTGRES_DB: ${{ env.POSTGRES_DB }}
           POSTGRES_USER: ${{ env.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
         options: >-
-          --health-cmd "pg_isready -h localhost -p 5432 -U $POSTGRES_USER -d $POSTGRES_DB"
+          --health-cmd "pg_isready -U ${{ env.POSTGRES_USER }} -d ${{ env.POSTGRES_DB }}"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -40,10 +40,29 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4.2.0
+      uses: actions/checkout@v4
+
+    - name: Install PostgreSQL client
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y postgresql-client
+
+    - name: Wait for PostgreSQL to be ready
+      run: |
+        echo "Waiting for PostgreSQL to be ready..."
+        for i in {1..30}; do
+          if pg_isready -h localhost -p 5432 -U ${{ env.POSTGRES_USER }} -d ${{ env.POSTGRES_DB }} >/dev/null 2>&1; then
+            echo "PostgreSQL is ready!"
+            exit 0
+          fi
+          echo "Waiting... ($i/30)"
+          sleep 2
+        done
+        echo "PostgreSQL not ready in time"
+        exit 1
 
     - name: Set up JDK ${{ env.JAVA_VERSION }}
-      uses: actions/setup-java@v4.5.0
+      uses: actions/setup-java@v4
       with:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'temurin'
@@ -51,7 +70,7 @@ jobs:
 
     - name: Build and test backend
       env:
-        DATABASE_URL: jdbc:postgresql://${{ env.POSTGRES_HOST }}:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
+        DATABASE_URL: jdbc:postgresql://localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
         DATABASE_USERNAME: ${{ env.POSTGRES_USER }}
         DATABASE_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
       run: |
@@ -59,14 +78,14 @@ jobs:
         mvn clean test -Dspring.profiles.active=test
 
     - name: Upload test results
-      uses: actions/upload-artifact@v4.3.5
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: backend-test-results
         path: crm-system/target/surefire-reports/
 
     - name: Upload coverage report
-      uses: actions/upload-artifact@v4.3.5
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: backend-coverage-report
@@ -79,48 +98,47 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4.2.0
+      uses: actions/checkout@v4
 
     - name: Set up Node.js ${{ env.NODE_VERSION }}
-      uses: actions/setup-node@v4.1.0
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-        cache-dependency-path: crm-system/frontend/package-lock.json
+        cache-dependency-path: frontend/package-lock.json
 
     - name: Install dependencies
       run: |
-        cd crm-system/frontend
+        cd frontend
         npm ci
 
     - name: Run unit tests
       run: |
-        cd crm-system/frontend
+        cd frontend
         npm test -- --coverage --watchAll=false
 
     - name: Upload test results
-      uses: actions/upload-artifact@v4.3.5
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: frontend-test-results
-        path: crm-system/frontend/coverage/
+        path: frontend/coverage/
 
     - name: Build frontend
       run: |
-        cd crm-system/frontend
+        cd frontend
         npm run build
 
     - name: Verify frontend build exists
       run: |
-        cd crm-system/frontend
-        if [ -d "build" ]; then
+        cd frontend
+        if [ -d "dist" ]; then
           echo "Frontend build directory exists"
-          ls -la build/
+          ls -la dist/
         else
           echo "ERROR: Frontend build directory does not exist!"
           exit 1
         fi
-
 
   build-and-push-images:
     name: Build and Push Docker Images
@@ -133,7 +151,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4.2.0
+      uses: actions/checkout@v4
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -145,388 +163,55 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Extract metadata for backend
-      id: meta-backend
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest
-
     - name: Build and push backend image
       uses: docker/build-push-action@v5
       with:
-        context: ./crm-system
+        context: .
+        file: crm-system/Dockerfile
         push: true
-        tags: ${{ steps.meta-backend.outputs.tags }}
-        labels: ${{ steps.meta-backend.outputs.labels }}
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
-
-    - name: Extract metadata for frontend
-      id: meta-frontend
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest
 
     - name: Build and push frontend image
       uses: docker/build-push-action@v5
       with:
-        context: ./crm-system/frontend
+        context: .
+        file: frontend/Dockerfile
         push: true
-        tags: ${{ steps.meta-frontend.outputs.tags }}
-        labels: ${{ steps.meta-frontend.outputs.labels }}
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
-
-    - name: Extract metadata for email-service
-      id: meta-email
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/email-service
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest
 
     - name: Build and push email-service image
       uses: docker/build-push-action@v5
       with:
-        context: ./crm-system/email-service
+        context: .
+        file: email-service/Dockerfile
         push: true
-        tags: ${{ steps.meta-email.outputs.tags }}
-        labels: ${{ steps.meta-email.outputs.labels }}
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/email-service:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-    - name: Verify email-service image was pushed
+    - name: Verify email-service image push
       run: |
-        echo "=== Verifying email-service image push ==="
-        REGISTRY="ghcr.io"
-        IMAGE_NAME="idzumikatsu/application"
-        EMAIL_IMAGE="$REGISTRY/$IMAGE_NAME/email-service:latest"
-        
-        echo "Checking if email-service image exists in GHCR: $EMAIL_IMAGE"
-        
-        # Проверяем доступность образа после push
-        if docker manifest inspect "$EMAIL_IMAGE" >/dev/null 2>&1; then
-          echo "✅ email-service image successfully pushed to GHCR"
-          echo "Image details:"
-          docker manifest inspect "$EMAIL_IMAGE" | jq '.schemaVersion, .mediaType, .config.digest' 2>/dev/null || echo "Cannot get detailed manifest info"
+        IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/email-service:latest"
+        if docker manifest inspect $IMAGE >/dev/null 2>&1; then
+          echo "✅ email-service pushed successfully"
         else
-          echo "❌ email-service image NOT found in GHCR after push operation"
-          echo "This indicates a problem with the build/push process for email-service"
-          echo "Please check:"
-          echo "1. Dockerfile syntax in crm-system/email-service/"
-          echo "2. Maven build process for email-service"
-          echo "3. GitHub Packages permissions"
-          echo "4. Network connectivity during push"
+          echo "❌ email-service push failed"
           exit 1
         fi
-
-    - name: Extract metadata for telegram-service
-      id: meta-telegram
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/telegram-service
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest
 
     - name: Build and push telegram-service image
       uses: docker/build-push-action@v5
       with:
-        context: ./crm-system/telegram-service
+        context: .
+        file: telegram-service/Dockerfile
         push: true
-        tags: ${{ steps.meta-telegram.outputs.tags }}
-        labels: ${{ steps.meta-telegram.outputs.labels }}
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/telegram-service:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
-
-    - name: Debug - Log environment variables and secrets availability
-      run: |
-        echo "=== Debug: Environment variables and secrets availability ==="
-        echo "Checking availability of secrets in workflow context..."
-        
-        # Check each secret individually
-        SECRETS_TO_CHECK=(
-          "POSTGRES_USER" "POSTGRES_PASSWORD" "JWT_SECRET"
-          "DATABASE_USERNAME" "DATABASE_PASSWORD" "EMAIL_USERNAME"
-          "MAIL_PASSWORD" "TELEGRAM_BOT_TOKEN" "TELEGRAM_BOT_USERNAME"
-          "DEPLOY_HOST" "DEPLOY_USER" "DEPLOY_SSH_KEY"
-        )
-        
-        for secret in "${SECRETS_TO_CHECK[@]}"; do
-          if [ -n "${!secret}" ]; then
-            secret_value="${!secret}"
-            echo "✅ $secret: AVAILABLE (length: ${#secret_value})"
-          else
-            echo "❌ $secret: NOT AVAILABLE or EMPTY"
-          fi
-        done
-        
-        echo "=== GitHub Context Secrets ==="
-        echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
-        echo "GITHUB_WORKFLOW: $GITHUB_WORKFLOW"
-        echo "GITHUB_RUN_ID: $GITHUB_RUN_ID"
-        
-        echo "=== End debug ==="
-
-    - name: Create production environment files from templates
-      env:
-        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-        JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
-        MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
-        DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
-        DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-        IMAGE_NAME: ${{ secrets.IMAGE_NAME || github.repository }}
-        DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-        DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-      run: |
-        echo "=== Creating production environment files ==="
-        
-        # Debug: Check if all environment variables are set with detailed info
-        echo "=== Detailed Secrets Availability Check ==="
-        echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
-        echo "GITHUB_WORKFLOW: $GITHUB_WORKFLOW"
-        echo "GITHUB_RUN_ID: $GITHUB_RUN_ID"
-        echo ""
-        
-        CRITICAL_VARS=(POSTGRES_USER POSTGRES_PASSWORD JWT_SECRET DATABASE_USERNAME DATABASE_PASSWORD)
-        OPTIONAL_VARS=(EMAIL_USERNAME MAIL_PASSWORD TELEGRAM_BOT_TOKEN TELEGRAM_BOT_USERNAME IMAGE_NAME DEPLOY_HOST DEPLOY_USER)
-        
-        echo "Checking critical variables availability:"
-        for var in "${CRITICAL_VARS[@]}"; do
-          if [ -n "${!var}" ]; then
-            var_value="${!var}"
-            echo "✅ $var: AVAILABLE (length: ${#var_value})"
-          else
-            echo "❌ $var: NOT AVAILABLE or EMPTY"
-            echo "   Expected in GitHub Secrets as: $var"
-          fi
-        done
-        echo ""
-        
-        # Check critical variables
-        echo "=== Critical Variables Check ==="
-        has_critical_error=false
-        for var in "${CRITICAL_VARS[@]}"; do
-          if [ -z "${!var}" ]; then
-            echo "❌ ERROR: Critical variable $var is empty or not set!"
-            has_critical_error=true
-          else
-            var_value="${!var}"
-            echo "✅ $var is set (length: ${#var_value})"
-          fi
-        done
-        
-        # Check optional variables with detailed info
-        echo "=== Optional Variables Availability Check ==="
-        for var in "${OPTIONAL_VARS[@]}"; do
-          if [ -n "${!var}" ]; then
-            var_value="${!var}"
-            echo "✅ $var: AVAILABLE (length: ${#var_value})"
-          else
-            echo "⚠️ $var: NOT AVAILABLE or EMPTY (optional)"
-          fi
-        done
-        echo ""
-        
-        # Exit if critical variables are missing
-        if [ "$has_critical_error" = true ]; then
-          echo "❌ Fatal error: Critical environment variables are missing!"
-          echo "Please ensure the following GitHub Secrets are configured:"
-          echo "- POSTGRES_USER"
-          echo "- POSTGRES_PASSWORD"
-          echo "- JWT_SECRET"
-          echo "- DATABASE_USERNAME"
-          echo "- DATABASE_PASSWORD"
-          exit 1
-        fi
-        
-        # Set default values for optional variables if not provided
-        if [ -z "$IMAGE_NAME" ]; then
-          IMAGE_NAME="${{ github.repository }}"
-          echo "ℹ️ Using default IMAGE_NAME: $IMAGE_NAME"
-        fi
-        
-        # Create .env file from template with GitHub Secrets
-        echo "POSTGRES_DB=crm_system" > .env
-        echo "POSTGRES_USER=$POSTGRES_USER" >> .env
-        echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> .env
-        echo "JWT_SECRET=$JWT_SECRET" >> .env
-        echo "JWT_EXPIRATION=86400" >> .env
-        echo "PORT=8080" >> .env
-        echo "MAIL_HOST=smtp.yandex.ru" >> .env
-        echo "MAIL_PORT=465" >> .env
-        echo "EMAIL_USERNAME=$EMAIL_USERNAME" >> .env
-        echo "MAIL_PASSWORD=$MAIL_PASSWORD" >> .env
-        echo "MAIL_PROTOCOL=smtps" >> .env
-        echo "MAIL_SMTP_AUTH=true" >> .env
-        echo "MAIL_SMTP_STARTTLS_ENABLE=true" >> .env
-        echo "MAIL_SMTP_SSL_ENABLE=true" >> .env
-        echo "MAIL_SMTP_CONNECTIONTIMEOUT=5000" >> .env
-        echo "MAIL_SMTP_TIMEOUT=5000" >> .env
-        echo "MAIL_SMTP_WRITETIMEOUT=5000" >> .env
-        echo "TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN" >> .env
-        echo "TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME" >> .env
-        echo "DATABASE_URL=jdbc:postgresql://postgres:5432/crm_system" >> .env
-        echo "DATABASE_USERNAME=$DATABASE_USERNAME" >> .env
-        echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> .env
-        echo "APP_DOMAIN=https://crm-synergy.ru" >> .env
-        echo "APP_FRONTEND_URL=https://crm-synergy.ru" >> .env
-        echo "APP_ALLOWED_ORIGINS=https://crm-synergy.ru,https://www.crm-synergy.ru" >> .env
-        echo "SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE=10MB" >> .env
-        echo "SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE=10MB" >> .env
-        echo "SERVER_SERVLET_SESSION_TIMEOUT=30m" >> .env
-        echo "SPRING_SESSION_STORE_TYPE=jdbc" >> .env
-        echo "SPRING_SESSION_JDBC_INITIALIZE_SCHEMA=always" >> .env
-        echo "SPRING_MAIN_LAZY_INITIALIZATION=true" >> .env
-        echo "LOGGING_LEVEL_COM_CRM_SYSTEM=INFO" >> .env
-        echo "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=INFO" >> .env
-        echo "LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=INFO" >> .env
-        echo "REDIS_URL=redis://redis:6379" >> .env
-        echo "RABBITMQ_DEFAULT_USER=guest" >> .env
-        echo "RABBITMQ_DEFAULT_PASS=guest" >> .env
-        echo "REGISTRY=ghcr.io" >> .env
-        echo "IMAGE_NAME=$IMAGE_NAME" >> .env
-        echo "DEPLOY_HOST=$DEPLOY_HOST" >> .env
-        echo "DEPLOY_USER=$DEPLOY_USER" >> .env
-        echo "DEPLOY_PATH=/opt/crm-synergy" >> .env
-        echo "HEALTH_CHECK_TIMEOUT=30" >> .env
-        echo "HEALTH_CHECK_INTERVAL=10" >> .env
-        echo "POSTGRES_HEALTHCHECK_USER=$POSTGRES_USER" >> .env
-        echo "POSTGRES_HEALTHCHECK_PASSWORD=$POSTGRES_PASSWORD" >> .env
-        echo "POSTGRES_HEALTHCHECK_DB=crm_system" >> .env
-        echo "SPRING_BOOT_HEALTHCHECK_ENABLED=true" >> .env
-        echo "SPRING_BOOT_HEALTHCHECK_PATH=/actuator/health" >> .env
-        echo "SPRING_BOOT_HEALTHCHECK_TIMEOUT=30s" >> .env
-        echo "SPRING_BOOT_HEALTHCHECK_INTERVAL=10s" >> .env
-        echo "BACKUP_RETENTION_DAYS=7" >> .env
-
-        echo "✅ Created .env file with GitHub Secrets"
-        echo "Contents of .env (first 5 lines):"
-        head -5 .env
-        
-        # Validate .env file syntax
-        echo "Validating .env file syntax..."
-        if grep -q "[^a-zA-Z0-9_=:/.-]" .env; then
-          echo "WARNING: .env file contains potentially problematic characters"
-          grep -n "[^a-zA-Z0-9_=:/.-]" .env || true
-        else
-          echo "✅ .env file syntax looks good"
-        fi
-
-        # Create .env.production file (simplified version for deployment)
-        echo "# Production Environment Variables for Deployment" > .env.production
-        echo "# Minimal version for Docker Compose deployment" >> .env.production
-        echo "" >> .env.production
-        echo "POSTGRES_DB=crm_system" >> .env.production
-        echo "POSTGRES_USER=$POSTGRES_USER" >> .env.production
-        echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> .env.production
-        echo "JWT_SECRET=$JWT_SECRET" >> .env.production
-        echo "EMAIL_USERNAME=$EMAIL_USERNAME" >> .env.production
-        echo "MAIL_PASSWORD=$MAIL_PASSWORD" >> .env.production
-        echo "TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN" >> .env.production
-        echo "TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME" >> .env.production
-        echo "DATABASE_USERNAME=$DATABASE_USERNAME" >> .env.production
-        echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> .env.production
-        echo "REGISTRY=ghcr.io" >> .env.production
-        echo "IMAGE_NAME=$IMAGE_NAME" >> .env.production
-        echo "DEPLOY_HOST=$DEPLOY_HOST" >> .env.production
-        echo "DEPLOY_USER=$DEPLOY_USER" >> .env.production
-        echo "DEPLOY_PATH=/opt/crm-synergy" >> .env.production
-
-        echo "✅ Created .env.production file with GitHub Secrets"
-        echo "Contents of .env.production (first 5 lines):"
-        head -5 .env.production
-        
-        # Validate .env.production file syntax
-        echo "Validating .env.production file syntax..."
-        if grep -q "[^a-zA-Z0-9_=:/.-]" .env.production; then
-          echo "WARNING: .env.production file contains potentially problematic characters"
-          grep -n "[^a-zA-Z0-9_=:/.-]" .env.production || true
-        else
-          echo "✅ .env.production file syntax looks good"
-        fi
-
-    - name: Verify created deployment files
-      run: |
-        echo "=== Verifying deployment files ==="
-        ls -la docker-compose.yml .env .env.production
-        echo "File verification completed successfully!"
-
-    - name: Verify Docker images availability
-      run: |
-        echo "=== Verifying Docker images availability in GHCR ==="
-        
-        # Проверяем доступность каждого образа в registry
-        SERVICES=("backend" "frontend" "email-service" "telegram-service")
-        REGISTRY="ghcr.io"
-        IMAGE_NAME="idzumikatsu/application"
-        
-        has_image_error=false
-        
-        for service in "${SERVICES[@]}"; do
-          image="$REGISTRY/$IMAGE_NAME/$service:latest"
-          echo "Checking availability of $image..."
-          
-          # Используем docker manifest inspect для проверки доступности образа
-          if docker manifest inspect "$image" >/dev/null 2>&1; then
-            echo "✅ $image: AVAILABLE in GHCR"
-          else
-            echo "❌ $image: NOT AVAILABLE in GHCR - MANIFEST UNKNOWN"
-            has_image_error=true
-            
-            # Детальная диагностика для email-service
-            if [ "$service" = "email-service" ]; then
-              echo "=== Email Service Image Debug ==="
-              echo "Image path: $image"
-              echo "Build context: crm-system/email-service/"
-              echo "Checking if Dockerfile exists:"
-              ls -la crm-system/email-service/Dockerfile || echo "Dockerfile not found!"
-              echo "Checking if source files exist:"
-              ls -la crm-system/email-service/ || echo "Email service directory not found!"
-              echo "=== End Email Service Debug ==="
-            fi
-          fi
-        done
-        
-        if [ "$has_image_error" = true ]; then
-          echo "❌ Fatal error: Some Docker images are not available in GHCR!"
-          echo "Please check the build logs and ensure all images were pushed successfully."
-          echo "Particularly check email-service build and push operations."
-          exit 1
-        fi
-        
-        echo "✅ All Docker images are available in GHCR"
-
-    - name: Upload docker-compose and config files
-      uses: actions/upload-artifact@v4.3.5
-      with:
-        name: deployment-config
-        path: |
-          docker-compose.yml
-          .env
-          .env.production
-          traefik/
-          scripts/
-        retention-days: 7
 
   deploy-production:
     name: Deploy to Production
@@ -534,300 +219,22 @@ jobs:
     needs: build-and-push-images
     if: github.ref == 'refs/heads/master'
 
-    env:
-      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-      DEPLOY_PATH: /opt/crm-synergy
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: crm_system
-      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
-      MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
-      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
-      DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
-      DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-      IMAGE_NAME: idzumikatsu/application
-
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4.2.0
-
-    - name: Create production environment files for deployment
-      run: |
-        echo "=== Creating production environment files for deployment ==="
-        
-        # Check critical variables before proceeding
-        echo "Checking critical environment variables..."
-        CRITICAL_VARS=(POSTGRES_USER POSTGRES_PASSWORD JWT_SECRET DATABASE_USERNAME DATABASE_PASSWORD)
-        has_critical_error=false
-        
-        for var in "${CRITICAL_VARS[@]}"; do
-          if [ -z "${!var}" ]; then
-            echo "❌ ERROR: Critical variable $var is empty or not set!"
-            has_critical_error=true
-          fi
-        done
-        
-        if [ "$has_critical_error" = true ]; then
-          echo "❌ Fatal error: Critical environment variables are missing!"
-          exit 1
-        fi
-        
-        # Set default values for optional variables if not provided
-        if [ -z "$IMAGE_NAME" ]; then
-          IMAGE_NAME="${{ github.repository }}"
-          echo "ℹ️ Using default IMAGE_NAME: $IMAGE_NAME"
-        fi
-        
-        # Create .env.production file with actual values from secrets
-        echo "POSTGRES_DB=crm_system" > .env.production
-        echo "POSTGRES_USER=$POSTGRES_USER" >> .env.production
-        echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> .env.production
-        echo "JWT_SECRET=$JWT_SECRET" >> .env.production
-        echo "EMAIL_USERNAME=$EMAIL_USERNAME" >> .env.production
-        echo "MAIL_PASSWORD=$MAIL_PASSWORD" >> .env.production
-        echo "TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN" >> .env.production
-        echo "TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME" >> .env.production
-        echo "DATABASE_USERNAME=$DATABASE_USERNAME" >> .env.production
-        echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> .env.production
-        echo "REGISTRY=ghcr.io" >> .env.production
-        echo "IMAGE_NAME=idzumikatsu/application" >> .env.production
-        echo "DEPLOY_HOST=$DEPLOY_HOST" >> .env.production
-        echo "DEPLOY_USER=$DEPLOY_USER" >> .env.production
-        echo "DEPLOY_PATH=/opt/crm-synergy" >> .env.production
-
-        echo "✅ Created .env.production for deployment"
-        echo "Contents:"
-        cat .env.production
-
-        # Create .env file for completeness (though it may not be needed for deployment)
-        echo "POSTGRES_DB=crm_system" > .env
-        echo "POSTGRES_USER=$POSTGRES_USER" >> .env
-        echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> .env
-        echo "JWT_SECRET=$JWT_SECRET" >> .env
-        echo "EMAIL_USERNAME=$EMAIL_USERNAME" >> .env
-        echo "MAIL_PASSWORD=$MAIL_PASSWORD" >> .env
-        echo "TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN" >> .env
-        echo "TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME" >> .env
-        echo "DATABASE_USERNAME=$DATABASE_USERNAME" >> .env
-        echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> .env
-        echo "REGISTRY=ghcr.io" >> .env
-        echo "IMAGE_NAME=$IMAGE_NAME" >> .env
-        echo "DEPLOY_HOST=$DEPLOY_HOST" >> .env
-        echo "DEPLOY_USER=$DEPLOY_USER" >> .env
-        echo "DEPLOY_PATH=/opt/crm-synergy" >> .env
-
-        echo "✅ Created .env file for deployment"
+      uses: actions/checkout@v4
 
     - name: Setup SSH
       uses: webfactory/ssh-agent@v0.9.0
       with:
         ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
 
-    - name: Copy deployment configuration to server
-      run: |
-        echo "Copying Docker deployment configuration to server..."
-
-        # Создаем целевую директорию на сервере
-        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST "mkdir -p /tmp/docker-config/"
-
-        # Копируем конфигурацию
-        scp -o StrictHostKeyChecking=no \
-            ${{ github.workspace }}/docker-compose.yml \
-            ${{ github.workspace }}/.env \
-            ${{ github.workspace }}/.env.production \
-            $DEPLOY_USER@$DEPLOY_HOST:/tmp/docker-config/
-
-        # Рекурсивно копируем директории
-        scp -r -o StrictHostKeyChecking=no \
-            ${{ github.workspace }}/traefik \
-            ${{ github.workspace }}/scripts \
-            $DEPLOY_USER@$DEPLOY_HOST:/tmp/docker-config/
-
     - name: Deploy with Docker Compose
       run: |
-        echo "Starting Docker deployment process..."
-        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << EOF
-          set -e
-          echo "=== Starting Docker Deployment ==="
-
-          # Переходим в директорию с конфигурацией
-          cd /tmp/docker-config
-
-          # Детальное логирование конфигурации
-          echo "=== Deployment Configuration Details ==="
-          echo "REGISTRY: \$REGISTRY"
-          echo "IMAGE_NAME: \$IMAGE_NAME"
-          echo "Working directory: \$(pwd)"
-          echo "Files in directory:"
-          ls -la
-          echo "Contents of .env.production:"
-          cat .env.production
-          echo "=== End Configuration Details ==="
-
-          # Авторизуемся в registry
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login $REGISTRY -u ${{ github.actor }} --password-stdin
-
-          # Создаем backup базы данных
-          echo "Creating database backup..."
-          mkdir -p $DEPLOY_PATH/backups
-          TIMESTAMP=\$(date +%Y%m%d_%H%M%S)
-
-          # Backup PostgreSQL data volume
-          if docker volume ls | grep -q postgres_data; then
-            echo "Backing up PostgreSQL volume..."
-            docker run --rm -v postgres_data:/source -v $DEPLOY_PATH/backups:/backup alpine tar czf /backup/postgres_backup_\$TIMESTAMP.tar.gz -C /source .
-          fi
-
-          # Останавливаем текущие контейнеры
-          echo "Stopping current containers..."
-          docker compose --env-file .env.production down || true
-
-          # Детальное логирование перед pull образов
-          echo "=== Docker Image Pull Details ==="
-          echo "Pulling images with tags:"
-          echo "- backend: \$REGISTRY/\$IMAGE_NAME/backend:latest"
-          echo "- frontend: \$REGISTRY/\$IMAGE_NAME/frontend:latest"
-          echo "- email-service: \$REGISTRY/\$IMAGE_NAME/email-service:latest"
-          echo "- telegram-service: \$REGISTRY/\$IMAGE_NAME/telegram-service:latest"
-          echo "=== End Image Details ==="
-
-          # Pull новых образов с детальным логированием
-          echo "Pulling new Docker images..."
-          
-          # Pull каждого образа отдельно с логированием
-          echo "Pulling backend image..."
-          docker pull \$REGISTRY/\$IMAGE_NAME/backend:latest || echo "❌ Backend pull failed"
-          
-          echo "Pulling frontend image..."
-          docker pull \$REGISTRY/\$IMAGE_NAME/frontend:latest || echo "❌ Frontend pull failed"
-          
-          echo "Pulling email-service image..."
-          docker pull \$REGISTRY/\$IMAGE_NAME/email-service:latest || echo "❌ Email-service pull failed - MANIFEST UNKNOWN ERROR"
-          
-          echo "Pulling telegram-service image..."
-          docker pull \$REGISTRY/\$IMAGE_NAME/telegram-service:latest || echo "❌ Telegram-service pull failed"
-          
-          # Проверка доступности всех образов перед продолжением
-          echo "=== Image Availability Check ==="
-          IMAGES=(
-            "\$REGISTRY/\$IMAGE_NAME/backend:latest"
-            "\$REGISTRY/\$IMAGE_NAME/frontend:latest"
-            "\$REGISTRY/\$IMAGE_NAME/email-service:latest"
-            "\$REGISTRY/\$IMAGE_NAME/telegram-service:latest"
-          )
-          
-          has_image_error=false
-          for image in "\${IMAGES[@]}"; do
-            if docker image inspect "\$image" >/dev/null 2>&1; then
-              echo "✅ \$image: AVAILABLE"
-            else
-              echo "❌ \$image: NOT AVAILABLE"
-              has_image_error=true
-            fi
-          done
-          
-          if [ "\$has_image_error" = true ]; then
-            echo "❌ Fatal error: Some Docker images are not available!"
-            echo "Please check the build logs and ensure all images were pushed successfully."
-            exit 1
-          fi
-          echo "=== End Image Availability Check ==="
-
-          # Запускаем новые контейнеры
-          echo "Starting new containers..."
-          docker compose --env-file .env.production up -d
-
-          # Ждем запуска всех сервисов
-          echo "Waiting for services to start..."
-          sleep 45
-
-          # Проверяем здоровье всех сервисов
-          echo "Checking service health..."
-
-          # Backend health check
-          echo "Backend health check:"
-          if docker compose exec -T backend curl -f http://localhost:8080/actuator/health; then
-            echo "✅ Backend is healthy"
-          else
-            echo "❌ Backend health check failed"
-            exit 1
-          fi
-
-          # Frontend health check
-          echo "Frontend health check:"
-          if docker compose exec -T frontend curl -f http://localhost:80; then
-            echo "✅ Frontend is healthy"
-          else
-            echo "❌ Frontend health check failed"
-            exit 1
-          fi
-
-          # PostgreSQL health check
-          echo "PostgreSQL health check:"
-          if docker compose exec -T postgres pg_isready -U $POSTGRES_USER -d $POSTGRES_DB; then
-            echo "✅ PostgreSQL is healthy"
-          else
-            echo "❌ PostgreSQL health check failed"
-            exit 1
-          fi
-
-          # Email service health check (if exists)
-          echo "Email service health check:"
-          if docker compose ps | grep -q email-service; then
-            if docker compose exec -T email-service curl -f http://localhost:8081/actuator/health; then
-              echo "✅ Email service is healthy"
-            else
-              echo "❌ Email service health check failed"
-              exit 1
-            fi
-          else
-            echo "⚠️ Email service not running"
-          fi
-
-          # Telegram service health check (if exists)
-          echo "Telegram service health check:"
-          if docker compose ps | grep -q telegram-service; then
-            if docker compose exec -T telegram-service curl -f http://localhost:8082/actuator/health; then
-              echo "✅ Telegram service is healthy"
-            else
-              echo "❌ Telegram service health check failed"
-              exit 1
-            fi
-          else
-            echo "⚠️ Telegram service not running"
-          fi
-
-          echo "=== Docker Deployment Completed Successfully ==="
-        EOF
-
-    - name: Final deployment verification
-      run: |
-        echo "Performing final deployment verification..."
-        ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << EOF
-          set -e
-          echo "=== Final Deployment Status ==="
-          echo "Docker containers:"
-          docker ps --format "table {{.Names}}	{{.Status}}	{{.Ports}}"
-
-          echo "Docker images:"
-          docker images $REGISTRY/$IMAGE_NAME/*
-
-          echo "Docker volumes:"
-          docker volume ls
-
-          echo "Container logs (last 20 lines):"
-          docker compose logs --tail=20
-
-          echo "Disk usage:"
-          df -h $DEPLOY_PATH
-
-          echo "=== Deployment Completed Successfully ==="
-        EOF
-
-        echo "🎉 CRM System deployed with Docker successfully!"
+        ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "
+          cd /opt/application
+          docker compose pull
+          docker compose up -d --remove-orphans
+          docker compose ps
+          sleep 30
+          docker compose logs --tail=50
+        "
