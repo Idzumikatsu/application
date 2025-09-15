@@ -49,10 +49,10 @@ jobs:
         cd frontend
         npm ci
 
-    - name: Rebuild native modules for CI environment
+    - name: Install rollup native module for CI environment
       run: |
         cd frontend
-        npm rebuild --platform=linux --arch=x64
+        npm install --no-save @rollup/rollup-linux-x64-gnu
 
     - name: TypeScript check
       run: |
@@ -62,8 +62,6 @@ jobs:
     - name: Run unit tests
       run: |
         cd frontend
-        # Rebuild native modules for CI environment to fix rollup issue
-        npm rebuild --platform=linux --arch=x64
         npm run test:coverage
       env:
         CI: true
