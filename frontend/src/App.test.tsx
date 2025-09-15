@@ -11,6 +11,6 @@ describe('App', () => {
       </BrowserRouter>
     );
     const button = screen.getByRole('button', { name: /войти/i });
-    expect(button).toBeInTheDocument();
+    expect(button).toBeTruthy();
   });
 });
