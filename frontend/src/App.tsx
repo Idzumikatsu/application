@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CssBaseline, Box } from '@mui/material';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -72,6 +72,7 @@ const theme = createTheme({
 function App() {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const dispatch: AppDispatch = useDispatch();
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const token = AuthService.getToken();
@@ -152,11 +153,15 @@ function App() {
   const allowedRoles = ['ADMIN', 'STUDENT', 'TEACHER'] as const;
   const userRole = user?.role as typeof allowedRoles[number] | undefined;
 
+  const handleDrawerClose = () => {
+    setOpen(false);
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-        {user && <Sidebar />}
+        {user && <Sidebar open={open} onClose={handleDrawerClose} />}
         <Box component="main" sx={{ flexGrow: 1 }}>
           {user && <Navbar />}
           <Box sx={{ p: 3 }}>
