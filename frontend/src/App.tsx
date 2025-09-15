@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
+import { CssBaseline, Box } from '@mui/material';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
 import { ToastContainer } from 'react-toastify';
 
 import { Navbar, Sidebar } from '@/components';
@@ -149,14 +149,17 @@ function App() {
     return <Navigate to="/dashboard" replace />;
   };
 
+  const allowedRoles = ['ADMIN', 'STUDENT', 'TEACHER'] as const;
+  const userRole = user?.role as typeof allowedRoles[number] | undefined;
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <div className="app-container">
+      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
         {user && <Sidebar />}
-        <div className="main-content">
+        <Box component="main" sx={{ flexGrow: 1 }}>
           {user && <Navbar />}
-          <div className="routes-container">
+          <Box sx={{ p: 3 }}>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
@@ -195,10 +198,10 @@ function App() {
                 element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />}
               />
             </Routes>
-          </div>
+          </Box>
           <ToastContainer />
-        </div>
-      </div>
+        </Box>
+      </Box>
     </ThemeProvider>
   );
 }

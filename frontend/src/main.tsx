@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from '@mui/material/styles'
 import { ToastContainer } from 'react-toastify'
 
-import App from './App.tsx'
+import App from './App'
 import reportWebVitals from './reportWebVitals'
 import { store } from './store'
 import theme from './theme'
