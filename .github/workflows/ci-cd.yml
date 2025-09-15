@@ -10,8 +10,6 @@ on:
 env:
   JAVA_VERSION: '17'
   NODE_VERSION: '18'
-  POSTGRES_HOST: postgres
-  POSTGRES_PORT: 5432
   POSTGRES_DB: testdb
   POSTGRES_USER: test
   POSTGRES_PASSWORD: test
@@ -31,7 +29,7 @@ jobs:
           POSTGRES_USER: ${{ env.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
         options: >-
-          --health-cmd "pg_isready -U ${{ env.POSTGRES_USER }} -d ${{ env.POSTGRES_DB }}"
+          --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -70,7 +68,7 @@ jobs:
 
     - name: Build and test backend
       env:
-        DATABASE_URL: jdbc:postgresql://localhost:${{ env.POSTGRES_PORT }}/${{ env.POSTGRES_DB }}
+        DATABASE_URL: jdbc:postgresql://localhost:5432/${{ env.POSTGRES_DB }}
         DATABASE_USERNAME: ${{ env.POSTGRES_USER }}
         DATABASE_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
       run: |
@@ -132,9 +130,9 @@ jobs:
     - name: Verify frontend build exists
       run: |
         cd frontend
-        if [ -d "dist" ]; then
+        if [ -d "dist" ] || [ -d "build" ]; then
           echo "Frontend build directory exists"
-          ls -la dist/
+          ls -la dist/ build/ 2>/dev/null || true
         else
           echo "ERROR: Frontend build directory does not exist!"
           exit 1
@@ -166,8 +164,8 @@ jobs:
     - name: Build and push backend image
       uses: docker/build-push-action@v5
       with:
-        context: .
-        file: crm-system/Dockerfile
+        context: ./crm-system
+        file: ./crm-system/Dockerfile
         push: true
         tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
         cache-from: type=gha
@@ -176,8 +174,8 @@ jobs:
     - name: Build and push frontend image
       uses: docker/build-push-action@v5
       with:
-        context: .
-        file: frontend/Dockerfile
+        context: ./frontend
+        file: ./frontend/Dockerfile
         push: true
         tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
         cache-from: type=gha
@@ -186,8 +184,8 @@ jobs:
     - name: Build and push email-service image
       uses: docker/build-push-action@v5
       with:
-        context: .
-        file: email-service/Dockerfile
+        context: ./email-service
+        file: ./email-service/Dockerfile
         push: true
         tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/email-service:latest
         cache-from: type=gha
@@ -199,15 +197,16 @@ jobs:
         if docker manifest inspect $IMAGE >/dev/null 2>&1; then
           echo "✅ email-service pushed successfully"
         else
-          echo "❌ email-service push failed"
+          echo "❌ email-service push failed - check Dockerfile/pom.xml in email-service/"
+          ls -la email-service/ || echo "Directory missing!"
           exit 1
         fi
 
     - name: Build and push telegram-service image
       uses: docker/build-push-action@v5
       with:
-        context: .
-        file: telegram-service/Dockerfile
+        context: ./telegram-service
+        file: ./telegram-service/Dockerfile
         push: true
         tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/telegram-service:latest
         cache-from: type=gha
@@ -232,9 +231,18 @@ jobs:
       run: |
         ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "
           cd /opt/application
-          docker compose pull
-          docker compose up -d --remove-orphans
-          docker compose ps
+          git pull origin master
+          docker compose --env-file .env.production pull
+          docker compose up -d --remove-orphans --force-recreate
           sleep 30
-          docker compose logs --tail=50
+          docker compose ps
+          docker compose logs --tail=20
+          # Basic health check
+          if docker compose exec backend curl -f http://localhost:8080/actuator/health >/dev/null 2>&1; then
+            echo '✅ Backend healthy'
+          else
+            echo '❌ Backend health check failed'
+            docker compose logs backend
+            exit 1
+          fi
         "
