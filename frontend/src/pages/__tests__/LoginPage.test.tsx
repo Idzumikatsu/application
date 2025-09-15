@@ -6,29 +6,26 @@ import { vi } from 'vitest';
 
 // Mock the authService and redux hooks
 vi.mock('../../services/authService', () => ({
-  __esModule: true,
   default: {
-    login: jest.fn(),
-    setToken: jest.fn(),
-    setRefreshToken: jest.fn(),
+    login: vi.fn(),
+    setToken: vi.fn(),
+    setRefreshToken: vi.fn(),
   },
 }));
 
 vi.mock('react-redux', () => ({
-  useDispatch: () => jest.fn(),
-  useSelector: jest.fn(),
+  useDispatch: () => vi.fn(),
+  useSelector: vi.fn(),
 }));
 
 vi.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: () => jest.fn(),
+  ...vi.importActual('react-router-dom'),
+  useNavigate: () => vi.fn(),
 }));
 
 describe('LoginPage', () => {
-  const mockAuthService = require('../../services/authService').default;
-
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render login form', () => {
@@ -55,7 +52,7 @@ describe('LoginPage', () => {
 
     // Форма не должна отправляться при пустых полях, должна показать ошибку
     expect(await screen.findByText('Введите email и пароль')).toBeInTheDocument();
-    expect(mockAuthService.login).not.toHaveBeenCalled();
+    expect(vi.mocked(require('../../services/authService').default.login)).not.toHaveBeenCalled();
   });
 
   it('should submit form with invalid email format', async () => {
@@ -75,7 +72,7 @@ describe('LoginPage', () => {
 
     // Компонент не имеет встроенной валидации email, поэтому форма будет отправлена
     await waitFor(() => {
-      expect(mockAuthService.login).toHaveBeenCalledWith({
+      expect(vi.mocked(require('../../services/authService').default.login)).toHaveBeenCalledWith({
         email: 'invalid-email',
         password: 'password123',
       });
@@ -83,7 +80,7 @@ describe('LoginPage', () => {
   });
 
   it('should submit form with valid credentials', async () => {
-    mockAuthService.login.mockResolvedValue({
+    vi.mocked(require('../../services/authService').default.login).mockResolvedValue({
       user: { id: 1, email: 'test@example.com' },
       token: 'test-token',
     });
@@ -103,7 +100,7 @@ describe('LoginPage', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(mockAuthService.login).toHaveBeenCalledWith({
+      expect(vi.mocked(require('../../services/authService').default.login)).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'password123',
       });
@@ -111,7 +108,7 @@ describe('LoginPage', () => {
   });
 
   it('should show loading state during form submission', async () => {
-    mockAuthService.login.mockImplementation(() => new Promise(() => {})); // Never resolves
+    vi.mocked(require('../../services/authService').default.login).mockImplementation(() => new Promise(() => {})); // Never resolves
 
     render(
       <BrowserRouter>
@@ -133,7 +130,7 @@ describe('LoginPage', () => {
 
   it('should show error message on login failure', async () => {
     const errorMessage = 'Неверные учетные данные';
-    mockAuthService.login.mockRejectedValue(new Error(errorMessage));
+    vi.mocked(require('../../services/authService').default.login).mockRejectedValue(new Error(errorMessage));
 
     render(
       <BrowserRouter>

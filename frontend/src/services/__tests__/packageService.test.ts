@@ -9,11 +9,13 @@ import {
 } from '../../types/packageTypes';
 
 // Mock the httpClient
-vi.mock('../httpClient');
+vi.mock('../httpClient', () => ({
+  default: vi.fn(),
+}));
 
 describe('PackageService', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   const mockPackage: LessonPackage = {

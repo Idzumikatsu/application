@@ -1,5 +1,6 @@
 import { exportToCSV } from '../exportUtils';
 import { CalendarEvent } from '../../types';
+import { vi } from 'vitest';
 
 // Полифил для TextEncoder
 if (typeof TextEncoder === 'undefined') {
@@ -32,24 +33,24 @@ describe('exportUtils - exportToCSV', () => {
 
   beforeEach(() => {
     // Мокаем DOM функции
-    global.URL.createObjectURL = jest.fn(() => 'blob:test');
-    global.URL.revokeObjectURL = jest.fn();
-    global.Blob = jest.fn(() => ({})) as any;
+    window.URL.createObjectURL = vi.fn(() => 'blob:test');
+    window.URL.revokeObjectURL = vi.fn();
+    window.Blob = vi.fn(() => ({}));
     
     const mockLink = {
       href: '',
       download: '',
-      click: jest.fn(),
+      click: vi.fn(),
       style: {}
     };
     
-    global.document.createElement = jest.fn(() => mockLink as any);
-    global.document.body.appendChild = jest.fn();
-    global.document.body.removeChild = jest.fn();
+    global.document.createElement = vi.fn(() => mockLink as any);
+    global.document.body.appendChild = vi.fn();
+    global.document.body.removeChild = vi.fn();
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should not throw when called', () => {
@@ -96,6 +97,6 @@ describe('exportUtils - exportToCSV', () => {
 
   it('should call URL.createObjectURL', () => {
     exportToCSV(mockEvents);
-    expect(global.URL.createObjectURL).toHaveBeenCalled();
+    expect(window.URL.createObjectURL).toHaveBeenCalled();
   });
 });

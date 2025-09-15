@@ -4,11 +4,13 @@ import httpClient from '../httpClient';
 import { ExportOptions, ExportResult, Student, FilterCriteria, SortCriteria } from '../../types';
 
 // Mock the httpClient
-vi.mock('../httpClient');
+vi.mock('../httpClient', () => ({
+  default: vi.fn(),
+}));
 
 describe('ExportService', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   const mockExportOptions: ExportOptions = {

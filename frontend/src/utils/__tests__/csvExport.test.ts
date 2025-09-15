@@ -1,26 +1,27 @@
 import { exportToCSV } from '../exportUtils';
 import { CalendarEvent } from '../../types';
 import { vi } from 'vitest';
+import * as util from 'util'; // For TextEncoder if needed
 
 // Мокаем jsPDF до импорта exportUtils
-vi.mock('jspdf', () => {
-  return jest.fn().mockImplementation(() => ({
+vi.mock('jspdf', () => ({
+  default: vi.fn().mockImplementation(() => ({
     internal: {
       pageSize: {
         getWidth: () => 595
       }
     },
-    setFontSize: jest.fn(),
-    text: jest.fn(),
-    save: jest.fn()
-  }));
-});
+    setFontSize: vi.fn(),
+    text: vi.fn(),
+    save: vi.fn()
+  }))
+}));
 
-jest.mock('jspdf-autotable', () => jest.fn());
+jest.mock('jspdf-autotable', () => vi.fn());
 
 // Полифил для TextEncoder
 if (typeof TextEncoder === 'undefined') {
-  window.TextEncoder = require('util').TextEncoder;
+  window.TextEncoder = util.TextEncoder;
 }
 
 describe('CSV Export', () => {
@@ -49,20 +50,20 @@ describe('CSV Export', () => {
 
   beforeEach(() => {
     // Мокаем DOM функции
-    window.URL.createObjectURL = jest.fn(() => 'blob:test');
-    window.URL.revokeObjectURL = jest.fn();
-    window.Blob = jest.fn(() => ({})) as any;
+    (window.URL.createObjectURL as unknown as jest.Mock) = jest.fn(() => 'blob:test');
+    (window.URL.revokeObjectURL as unknown as jest.Mock) = jest.fn();
+    (window.Blob as unknown as jest.Mock) = jest.fn(() => ({}));
     
     const mockLink = {
       href: '',
       download: '',
-      click: jest.fn(),
+      click: vi.fn(),
       style: {}
     };
     
-    global.document.createElement = jest.fn(() => mockLink as any);
-    global.document.body.appendChild = jest.fn();
-    global.document.body.removeChild = jest.fn();
+    global.document.createElement = vi.fn(() => mockLink as any);
+    global.document.body.appendChild = vi.fn();
+    global.document.body.removeChild = vi.fn();
   });
 
   afterEach(() => {

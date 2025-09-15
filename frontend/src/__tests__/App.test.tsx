@@ -15,9 +15,12 @@ vi.mock('react-router-dom', () => ({
   useNavigate: () => jest.fn(),
 }));
 
-// Mock для компонентов, которые могут вызывать ошибки при рендеринге
-vi.mock('../components/Navbar', () => () => <div>Navbar</div>);
-vi.mock('../components/Sidebar', () => () => <div>Sidebar</div>);
+vi.mock('../components/Navbar', () => ({
+  default: () => <div>Navbar</div>
+}));
+vi.mock('../components/Sidebar', () => ({
+  default: () => <div>Sidebar</div>
+}));
 vi.mock('../pages/LoginPage', () => () => <div>LoginPage</div>);
 vi.mock('../components/AuthErrorHandler', () => () => <div>AuthErrorHandler</div>);
 vi.mock('../components/LessonStatus/LessonStatusAutomation', () => () => <div>LessonStatusAutomation</div>);
@@ -25,12 +28,14 @@ vi.mock('../components/NotificationPanel', () => () => <div>NotificationPanel</d
 
 // Mock для сервисов
 vi.mock('../services/authService', () => ({
-  getToken: jest.fn(() => null),
-  getCurrentUser: jest.fn(),
-  shouldRefreshToken: jest.fn(() => false),
-  refreshToken: jest.fn(),
-  setToken: jest.fn(),
-  logout: jest.fn(),
+  default: {
+    getToken: vi.fn(() => null),
+    getCurrentUser: vi.fn(),
+    shouldRefreshToken: vi.fn(() => false),
+    refreshToken: vi.fn(),
+    setToken: vi.fn(),
+    logout: vi.fn(),
+  }
 }));
 
 describe('App Component', () => {
