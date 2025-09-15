@@ -14,7 +14,7 @@ pids
 *.pid.lock
 
 # Coverage directory used by tools like istanbul
-coverage
+coverage/
 *.lcov
 
 # nyc test coverage
@@ -99,7 +99,7 @@ out
 
 # Nuxt.js build / generate output
 .nuxt
-dist
+dist/
 
 # Gatsby files
 .cache/
@@ -181,3 +181,15 @@ acme.json
 # Additional service logs
 logs/
 *.log
+
+# Vite build output (frontend)
+frontend/dist/
+frontend/build/
+
+# Playwright reports
+**/playwright-report/
+frontend/e2e/playwright-report/
+
+# Frontend-specific
+frontend/node_modules/
+frontend/.env.local
