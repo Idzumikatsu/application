@@ -49,6 +49,11 @@ jobs:
         cd frontend
         npm ci
 
+    - name: Rebuild native modules for CI environment
+      run: |
+        cd frontend
+        npm rebuild --platform=linux --arch=x64
+
     - name: TypeScript check
       run: |
         cd frontend
