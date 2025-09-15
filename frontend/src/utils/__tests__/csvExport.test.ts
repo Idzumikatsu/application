@@ -64,7 +64,7 @@ describe('CSV Export', () => {
     vi.spyOn(document, 'createElement').mockReturnValue({ download: '', href: '', click: vi.fn() } as any);
     vi.spyOn(document.body, 'appendChild').mockReturnValue(undefined as any);
     vi.spyOn(document.body, 'removeChild').mockReturnValue(undefined as any);
-    window.TextEncoder = TextEncoder;
+    (window as any).TextEncoder = TextEncoder;
   });
 
   afterEach(() => {

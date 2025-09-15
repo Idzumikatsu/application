@@ -3,6 +3,7 @@ import * as React from 'react'; // Wait, no, this is JS file, but TS.
 import { vi } from 'vitest';
 import { default as httpClient } from '../httpClient';
 import type { AxiosResponse } from 'axios';
+import { AxiosHeaders } from 'axios';
 
 vi.mock('../httpClient', () => ({
   default: {
@@ -22,11 +23,6 @@ import {
   LessonPackage,
   PackageCreateRequest
 } from '../../types/packageTypes';
-
-// Mock the httpClient
-vi.mock('../httpClient', () => ({
-  default: vi.fn(),
-}));
 
 describe('PackageService', () => {
   beforeEach(() => {
@@ -59,9 +55,9 @@ describe('PackageService', () => {
     data: [mockPackage],
     status: 200,
     statusText: 'OK',
-    headers: {},
+    headers: {} as any,
     config: {
-      headers: { 'Content-Type': 'application/json' },
+      headers: new AxiosHeaders({ 'Content-Type': 'application/json' }),
     },
   };
 
@@ -70,22 +66,22 @@ describe('PackageService', () => {
     data: mockPackage,
     status: 200,
     statusText: 'OK',
-    headers: {},
+    headers: {} as any,
     config: {
-      headers: { 'Content-Type': 'application/json' },
+      headers: new AxiosHeaders({ 'Content-Type': 'application/json' }),
     },
   };
 
   // For delete:
-  mockedHttpClient.delete.mockResolvedValue({
+  const deleteResponse: AxiosResponse = {
     data: {},
     status: 200,
     statusText: 'OK',
-    headers: {},
+    headers: {} as any,
     config: {
-      headers: { 'Content-Type': 'application/json' },
+      headers: new AxiosHeaders({ 'Content-Type': 'application/json' }),
     },
-  });
+  };
 
   // Package templates management - REMOVED (not implemented in backend)
 
@@ -117,8 +113,7 @@ describe('PackageService', () => {
         validUntil: '2024-12-31',
         autoRenew: false
       };
-      const mockResponse = { data: mockPackage };
-      mockedHttpClient.post.mockResolvedValue(mockResponse);
+      mockedHttpClient.post.mockResolvedValue(singleResponse);
 
       const result = await packageService.createPackage(packageData);
 
@@ -128,8 +123,7 @@ describe('PackageService', () => {
 
     it('should update package', async () => {
       const packageData = { autoRenew: true };
-      const mockResponse = { data: mockPackage };
-      mockedHttpClient.put.mockResolvedValue(mockResponse);
+      mockedHttpClient.put.mockResolvedValue(singleResponse);
 
       const result = await packageService.updatePackage(1, packageData);
 
@@ -138,25 +132,13 @@ describe('PackageService', () => {
     });
 
     it('should delete package', async () => {
-      mockedHttpClient.delete.mockResolvedValue({
-        data: {},
-        status: 200,
-        statusText: 'OK',
-        headers: {},
-        config: {
-          headers: { 'Content-Type': 'application/json' },
-        },
-      });
+      mockedHttpClient.delete.mockResolvedValue(deleteResponse);
 
       await packageService.deletePackage(1);
 
       expect(mockedHttpClient.delete).toHaveBeenCalledWith('/lesson-packages/1');
     });
-
-
   });
-
-
 
   // REMOVED sections for methods not implemented in backend:
   // - Bulk operations (bulkAssignPackages, bulkRenewPackages)
@@ -200,8 +182,7 @@ describe('PackageService', () => {
     });
 
     it('should auto deduct lesson', async () => {
-      const mockResponse = { data: mockPackage };
-      mockedHttpClient.post.mockResolvedValue(mockResponse);
+      mockedHttpClient.post.mockResolvedValue(singleResponse);
 
       const result = await packageService.autoDeductLesson(1, 456);
 

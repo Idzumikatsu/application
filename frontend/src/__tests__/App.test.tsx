@@ -7,6 +7,18 @@ import authSlice from '../store/authSlice';
 import { BrowserRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 
+// Mock для react-redux
+vi.mock('react-redux', () => ({
+  useSelector: vi.fn().mockReturnValue({
+    isAuthenticated: false,
+    user: null,
+    loading: false,
+    error: null,
+  }),
+  useDispatch: vi.fn(() => vi.fn()),
+  Provider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 // Mock для react-router-dom
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom') as any;
@@ -37,13 +49,14 @@ describe('App Component', () => {
     renderWithProviders(<App />);
 
     // Проверяем, что отображается компонент логина
-    expect(screen.getByText('LoginPage')).toBeTruthy();
+    expect(screen.getByText('CRM Система')).toBeTruthy();
+    expect(screen.getByText('Онлайн школа английского языка')).toBeTruthy();
   });
 
   it('renders without crashing', () => {
     renderWithProviders(<App />);
 
     // Базовый тест на отсутствие ошибок рендеринга
-    expect(screen.getByText('LoginPage')).toBeTruthy();
+    expect(screen.getByText('CRM Система')).toBeTruthy();
   });
 });

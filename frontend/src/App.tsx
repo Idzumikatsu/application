@@ -1,9 +1,10 @@
 import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { CssBaseline, Box } from '@mui/material';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { ToastContainer } from 'react-toastify';
+import { useSelector, useDispatch } from 'react-redux';
 
 import { Navbar, Sidebar } from '@/components';
 import ProtectedRoute from '@/routes/ProtectedRoute';

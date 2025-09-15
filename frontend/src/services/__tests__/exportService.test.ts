@@ -62,7 +62,7 @@ describe('ExportService', () => {
     statusText: 'OK',
     headers: {},
     config: {
-      headers: { 'Content-Type': 'application/json' }, // Simple header
+      headers: { 'Content-Type': 'application/json' } as any,
     },
   };
 
@@ -226,7 +226,7 @@ describe('ExportService', () => {
         statusText: 'OK',
         headers: {},
         config: {
-          headers: { 'Content-Type': 'application/json' }, // Simple header
+          headers: { 'Content-Type': 'application/json' } as any,
         },
       };
       mockedHttpClient.get.mockResolvedValue(mockBlobResponse);
@@ -251,7 +251,7 @@ describe('ExportService', () => {
         statusText: 'OK',
         headers: {},
         config: {
-          headers: { 'Content-Type': 'application/json' }, // Simple header
+          headers: { 'Content-Type': 'application/json' } as any,
         },
       };
       mockedHttpClient.get.mockResolvedValue(mockHistoryResponse);
@@ -272,7 +272,7 @@ describe('ExportService', () => {
         statusText: 'OK',
         headers: {},
         config: {
-          headers: { 'Content-Type': 'application/json' }, // Simple header
+          headers: { 'Content-Type': 'application/json' } as any,
         },
       });
 
