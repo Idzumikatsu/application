@@ -1,16 +1,15 @@
-import React from 'react';
+import * as React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { BrowserRouter } from 'react-router-dom';
 import LoginPage from '../../pages/LoginPage';
 import authSlice from '../../store/authSlice';
-import { vi } from 'vitest';
 
 vi.mock('../../services/authService', () => ({
   default: {
     login: vi.fn(),
-  },
+  }
 }));
 
 const mockedAuthService = vi.mocked((await import('../../services/authService')).default);
@@ -21,12 +20,12 @@ vi.mock('react-redux', () => ({
 }));
 
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
+  const actual = await vi.importActual('react-router-dom') as any;
   return {
     ...actual,
     useNavigate: vi.fn(),
   };
-}));
+});
 
 const store = configureStore({
   reducer: {

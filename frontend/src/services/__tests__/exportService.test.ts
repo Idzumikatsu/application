@@ -56,12 +56,14 @@ describe('ExportService', () => {
     direction: 'asc'
   };
 
-  const mockResponse: AxiosResponse = {
+  const mockResponse: AxiosResponse<ExportResult> = {
     data: mockExportResult,
     status: 200,
     statusText: 'OK',
     headers: {},
-    config: {},
+    config: {
+      headers: { 'Content-Type': 'application/json' }, // Simple header
+    },
   };
 
   // Student data export
@@ -218,12 +220,14 @@ describe('ExportService', () => {
   describe('Download exported file', () => {
     it('should download export file', async () => {
       const mockBlob = new Blob(['test content']);
-      const mockBlobResponse: AxiosResponse = {
+      const mockBlobResponse: AxiosResponse<Blob> = {
         data: mockBlob,
         status: 200,
         statusText: 'OK',
         headers: {},
-        config: {},
+        config: {
+          headers: { 'Content-Type': 'application/json' }, // Simple header
+        },
       };
       mockedHttpClient.get.mockResolvedValue(mockBlobResponse);
 
@@ -241,7 +245,16 @@ describe('ExportService', () => {
     it('should get export history', async () => {
       const mockHistory = [{ id: 'export-123', fileName: 'test.csv' }];
       const mockResponse = { data: mockHistory };
-      (httpClient.get as jest.Mock).mockResolvedValue(mockResponse);
+      const mockHistoryResponse: AxiosResponse = {
+        data: mockHistory,
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {
+          headers: { 'Content-Type': 'application/json' }, // Simple header
+        },
+      };
+      mockedHttpClient.get.mockResolvedValue(mockHistoryResponse);
 
       const result = await exportService.getExportHistory();
 
@@ -253,7 +266,15 @@ describe('ExportService', () => {
   // Delete exported file
   describe('Delete exported file', () => {
     it('should delete export file', async () => {
-      (httpClient.delete as jest.Mock).mockResolvedValue({});
+      mockedHttpClient.delete.mockResolvedValue({
+        data: {},
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {
+          headers: { 'Content-Type': 'application/json' }, // Simple header
+        },
+      });
 
       await exportService.deleteExport('export-123');
 
@@ -286,20 +307,20 @@ describe('ExportService', () => {
 
     it('should download blob correctly', () => {
       // Mock DOM methods
-      const createElementSpy = jest.spyOn(document, 'createElement');
-      const appendChildSpy = jest.spyOn(document.body, 'appendChild');
-      const removeChildSpy = jest.spyOn(document.body, 'removeChild');
+      const createElementSpy = vi.spyOn(document, 'createElement');
+      const appendChildSpy = vi.spyOn(document.body, 'appendChild');
+      const removeChildSpy = vi.spyOn(document.body, 'removeChild');
       
       // Mock URL methods
       const originalCreateObjectURL = URL.createObjectURL;
       const originalRevokeObjectURL = URL.revokeObjectURL;
       
-      URL.createObjectURL = jest.fn().mockReturnValue('blob:test-url');
-      URL.revokeObjectURL = jest.fn();
+      URL.createObjectURL = vi.fn().mockReturnValue('blob:test-url');
+      URL.revokeObjectURL = vi.fn();
 
       // Create a real DOM element instead of mocking
       const realLink = document.createElement('a');
-      const clickSpy = jest.spyOn(realLink, 'click');
+      const clickSpy = vi.spyOn(realLink, 'click');
       
       createElementSpy.mockReturnValue(realLink);
 
@@ -333,7 +354,7 @@ describe('ExportService', () => {
 
     it('should handle errors in downloadExport', async () => {
       const error = new Error('Download failed');
-      (httpClient.get as jest.Mock).mockRejectedValue(error);
+      mockedHttpClient.get.mockRejectedValue(error);
 
       await expect(exportService.downloadExport('export-123')).rejects.toThrow('Download failed');
     });

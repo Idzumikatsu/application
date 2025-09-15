@@ -5,15 +5,11 @@ import { TextEncoder } from 'util'; // Node builtin, but for browser, polyfill i
 
 // Мокаем jsPDF до импорта exportUtils
 vi.mock('jspdf', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    internal: {
-      pageSize: {
-        getWidth: () => 595
-      }
-    },
-    setFontSize: vi.fn(),
+  default: vi.fn(() => ({
+    addImage: vi.fn(),
     text: vi.fn(),
-    save: vi.fn()
+    save: vi.fn(),
+    // ...other methods with vi.fn()
   }))
 }));
 
@@ -46,14 +42,28 @@ describe('CSV Export', () => {
   ];
 
   beforeEach(() => {
-    // window mocks with vi.fn()
-    const mockLink = { download: '', href: '', click: vi.fn() } as any;
-    document.createElement = vi.fn(() => mockLink);
-    document.body.appendChild = vi.fn();
-    document.body.removeChild = vi.fn();
-    window.URL.createObjectURL = vi.fn(() => 'blob:test');
-    window.URL.revokeObjectURL = vi.fn();
-    window.Blob = vi.fn(() => new Blob([]));
+    Object.defineProperty(window, 'URL', {
+      value: {
+        createObjectURL: vi.fn(() => 'blob:test'),
+        revokeObjectURL: vi.fn(),
+      },
+      writable: true
+    });
+
+    const mockBlob = {
+      size: 0,
+      type: '',
+      arrayBuffer: vi.fn(() => Promise.resolve(new ArrayBuffer(0))),
+      // Minimal Blob interface
+    };
+    Object.defineProperty(window, 'Blob', {
+      value: vi.fn(() => mockBlob),
+      writable: true
+    });
+
+    vi.spyOn(document, 'createElement').mockReturnValue({ download: '', href: '', click: vi.fn() } as any);
+    vi.spyOn(document.body, 'appendChild').mockReturnValue(undefined as any);
+    vi.spyOn(document.body, 'removeChild').mockReturnValue(undefined as any);
     window.TextEncoder = TextEncoder;
   });
 

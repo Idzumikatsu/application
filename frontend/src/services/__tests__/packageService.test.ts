@@ -1,4 +1,7 @@
+import * as React from 'react'; // Wait, no, this is JS file, but TS.
+
 import { vi } from 'vitest';
+import { default as httpClient } from '../httpClient';
 import type { AxiosResponse } from 'axios';
 
 vi.mock('../httpClient', () => ({
@@ -52,13 +55,37 @@ describe('PackageService', () => {
     }
   };
 
-  const mockResponse: AxiosResponse = {
+  const mockResponse: AxiosResponse<LessonPackage[]> = {
     data: [mockPackage],
     status: 200,
     statusText: 'OK',
     headers: {},
-    config: {},
+    config: {
+      headers: { 'Content-Type': 'application/json' },
+    },
   };
+
+  // For single:
+  const singleResponse: AxiosResponse<LessonPackage> = {
+    data: mockPackage,
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {
+      headers: { 'Content-Type': 'application/json' },
+    },
+  };
+
+  // For delete:
+  mockedHttpClient.delete.mockResolvedValue({
+    data: {},
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {
+      headers: { 'Content-Type': 'application/json' },
+    },
+  });
 
   // Package templates management - REMOVED (not implemented in backend)
 
@@ -69,23 +96,16 @@ describe('PackageService', () => {
 
       const result = await packageService.getStudentPackages(123);
 
-      expect(httpClient.get).toHaveBeenCalledWith('/students/123/lesson-packages');
+      expect(mockedHttpClient.get).toHaveBeenCalledWith('/students/123/lesson-packages');
       expect(result).toEqual([mockPackage]);
     });
 
     it('should get package by id', async () => {
-      const singleResponse: AxiosResponse = {
-        data: mockPackage,
-        status: 200,
-        statusText: 'OK',
-        headers: {},
-        config: {},
-      };
       mockedHttpClient.get.mockResolvedValue(singleResponse);
 
       const result = await packageService.getPackageById(1);
 
-      expect(httpClient.get).toHaveBeenCalledWith('/lesson-packages/1');
+      expect(mockedHttpClient.get).toHaveBeenCalledWith('/lesson-packages/1');
       expect(result).toEqual(mockPackage);
     });
 
@@ -102,7 +122,7 @@ describe('PackageService', () => {
 
       const result = await packageService.createPackage(packageData);
 
-      expect(httpClient.post).toHaveBeenCalledWith('/managers/lesson-packages', packageData); // corrected path
+      expect(mockedHttpClient.post).toHaveBeenCalledWith('/managers/lesson-packages', packageData); // corrected path
       expect(result).toEqual(mockPackage);
     });
 
@@ -113,16 +133,24 @@ describe('PackageService', () => {
 
       const result = await packageService.updatePackage(1, packageData);
 
-      expect(httpClient.put).toHaveBeenCalledWith('/lesson-packages/1', packageData);
+      expect(mockedHttpClient.put).toHaveBeenCalledWith('/lesson-packages/1', packageData);
       expect(result).toEqual(mockPackage);
     });
 
     it('should delete package', async () => {
-      mockedHttpClient.delete.mockResolvedValue({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {} });
+      mockedHttpClient.delete.mockResolvedValue({
+        data: {},
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {
+          headers: { 'Content-Type': 'application/json' },
+        },
+      });
 
       await packageService.deletePackage(1);
 
-      expect(httpClient.delete).toHaveBeenCalledWith('/lesson-packages/1');
+      expect(mockedHttpClient.delete).toHaveBeenCalledWith('/lesson-packages/1');
     });
 
 
@@ -142,7 +170,7 @@ describe('PackageService', () => {
 
       const result = await packageService.getExpiringPackages(7);
 
-      expect(httpClient.get).toHaveBeenCalledWith('/lesson-packages/expiring', {
+      expect(mockedHttpClient.get).toHaveBeenCalledWith('/lesson-packages/expiring', {
         params: expect.any(URLSearchParams)
       });
       expect(result).toEqual([mockPackage]);
@@ -153,7 +181,7 @@ describe('PackageService', () => {
 
       const result = await packageService.getLowBalancePackages(3);
 
-      expect(httpClient.get).toHaveBeenCalledWith('/lesson-packages/low-balance', {
+      expect(mockedHttpClient.get).toHaveBeenCalledWith('/lesson-packages/low-balance', {
         params: expect.any(URLSearchParams)
       });
       expect(result).toEqual([mockPackage]);
@@ -167,7 +195,7 @@ describe('PackageService', () => {
 
       const result = await packageService.getPackagesForLessonDeduction(123);
 
-      expect(httpClient.get).toHaveBeenCalledWith('/students/123/packages-for-deduction');
+      expect(mockedHttpClient.get).toHaveBeenCalledWith('/students/123/packages-for-deduction');
       expect(result).toEqual([mockPackage]);
     });
 
@@ -177,7 +205,7 @@ describe('PackageService', () => {
 
       const result = await packageService.autoDeductLesson(1, 456);
 
-      expect(httpClient.post).toHaveBeenCalledWith('/lesson-packages/1/auto-deduct', { lessonId: 456 });
+      expect(mockedHttpClient.post).toHaveBeenCalledWith('/lesson-packages/1/auto-deduct', { lessonId: 456 });
       expect(result).toEqual(mockPackage);
     });
   });
