@@ -1,6 +1,8 @@
 import { FullConfig } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { chromium } from '@playwright/test';
+import { setupMSW } from './msw-setup';
 
 /**
  * Global setup script that runs before all tests
@@ -62,27 +64,6 @@ async function globalSetup(config: FullConfig) {
     console.log('✅ Loaded environment variables from .env.test');
   }
 
-  // Verify backend API is available
-  const apiUrl = process.env.API_URL || 'http://localhost:8080/api';
-  console.log(`🔍 Checking backend API at: ${apiUrl}`);
-  
-  try {
-    const response = await fetch(`${apiUrl}/health`, {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' },
-      timeout: 10000
-    });
-    
-    if (response.ok) {
-      console.log('✅ Backend API is available and healthy');
-    } else {
-      console.warn('⚠️ Backend API responded with non-200 status:', response.status);
-    }
-  } catch (error) {
-    console.warn('⚠️ Backend API health check failed:', error.message);
-    console.log('⚠️ Tests may fail if backend is not running');
-  }
-
   // Verify frontend is available
   const frontendUrl = process.env.BASE_URL || 'http://localhost:3000';
   console.log(`🔍 Checking frontend at: ${frontendUrl}`);
@@ -142,4 +123,8 @@ async function globalSetup(config: FullConfig) {
   console.log('========================================');
 }
 
+const mswServer = setupMSW();
+
 export default globalSetup;
+
+export { mswServer };
