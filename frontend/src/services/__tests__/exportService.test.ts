@@ -1,12 +1,19 @@
 import { vi } from 'vitest';
+import type { AxiosResponse } from 'axios';
 import exportService from '../exportService';
-import httpClient from '../httpClient';
+import { default as httpClient } from '../httpClient'; // Import for mocking
 import { ExportOptions, ExportResult, Student, FilterCriteria, SortCriteria } from '../../types';
 
 // Mock the httpClient
 vi.mock('../httpClient', () => ({
-  default: vi.fn(),
+  default: {
+    post: vi.fn(),
+    get: vi.fn(),
+    delete: vi.fn(),
+  }
 }));
+
+const mockedHttpClient = vi.mocked(httpClient);
 
 describe('ExportService', () => {
   beforeEach(() => {
@@ -49,15 +56,22 @@ describe('ExportService', () => {
     direction: 'asc'
   };
 
+  const mockResponse: AxiosResponse = {
+    data: mockExportResult,
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {},
+  };
+
   // Student data export
   describe('Student data export', () => {
     it('should export students with data', async () => {
-      const mockResponse = { data: mockExportResult };
-      (httpClient.post as jest.Mock).mockResolvedValue(mockResponse);
+      mockedHttpClient.post.mockResolvedValue(mockResponse);
 
       const result = await exportService.exportStudents(mockExportOptions, [mockStudent]);
 
-      expect(httpClient.post).toHaveBeenCalledWith('/export/students', {
+      expect(mockedHttpClient.post).toHaveBeenCalledWith('/export/students', {
         options: mockExportOptions,
         data: [mockStudent]
       });
@@ -65,12 +79,11 @@ describe('ExportService', () => {
     });
 
     it('should export students without data', async () => {
-      const mockResponse = { data: mockExportResult };
-      (httpClient.post as jest.Mock).mockResolvedValue(mockResponse);
+      mockedHttpClient.post.mockResolvedValue(mockResponse);
 
       const result = await exportService.exportStudents(mockExportOptions);
 
-      expect(httpClient.post).toHaveBeenCalledWith('/export/students', {
+      expect(mockedHttpClient.post).toHaveBeenCalledWith('/export/students', {
         options: mockExportOptions,
         data: undefined
       });
@@ -81,12 +94,11 @@ describe('ExportService', () => {
   // Lesson data export
   describe('Lesson data export', () => {
     it('should export lessons with filters and sort', async () => {
-      const mockResponse = { data: mockExportResult };
-      (httpClient.post as jest.Mock).mockResolvedValue(mockResponse);
+      mockedHttpClient.post.mockResolvedValue(mockResponse);
 
       const result = await exportService.exportLessons(mockExportOptions, [mockFilter], [mockSort]);
 
-      expect(httpClient.post).toHaveBeenCalledWith('/export/lessons', {
+      expect(mockedHttpClient.post).toHaveBeenCalledWith('/export/lessons', {
         options: mockExportOptions,
         filters: [mockFilter],
         sort: [mockSort]
@@ -95,12 +107,11 @@ describe('ExportService', () => {
     });
 
     it('should export lessons without filters and sort', async () => {
-      const mockResponse = { data: mockExportResult };
-      (httpClient.post as jest.Mock).mockResolvedValue(mockResponse);
+      mockedHttpClient.post.mockResolvedValue(mockResponse);
 
       const result = await exportService.exportLessons(mockExportOptions);
 
-      expect(httpClient.post).toHaveBeenCalledWith('/export/lessons', {
+      expect(mockedHttpClient.post).toHaveBeenCalledWith('/export/lessons', {
         options: mockExportOptions,
         filters: undefined,
         sort: undefined
@@ -112,12 +123,11 @@ describe('ExportService', () => {
   // Teacher data export
   describe('Teacher data export', () => {
     it('should export teachers with filters and sort', async () => {
-      const mockResponse = { data: mockExportResult };
-      (httpClient.post as jest.Mock).mockResolvedValue(mockResponse);
+      mockedHttpClient.post.mockResolvedValue(mockResponse);
 
       const result = await exportService.exportTeachers(mockExportOptions, [mockFilter], [mockSort]);
 
-      expect(httpClient.post).toHaveBeenCalledWith('/export/teachers', {
+      expect(mockedHttpClient.post).toHaveBeenCalledWith('/export/teachers', {
         options: mockExportOptions,
         filters: [mockFilter],
         sort: [mockSort]
@@ -129,12 +139,11 @@ describe('ExportService', () => {
   // Package data export
   describe('Package data export', () => {
     it('should export packages with filters and sort', async () => {
-      const mockResponse = { data: mockExportResult };
-      (httpClient.post as jest.Mock).mockResolvedValue(mockResponse);
+      mockedHttpClient.post.mockResolvedValue(mockResponse);
 
       const result = await exportService.exportPackages(mockExportOptions, [mockFilter], [mockSort]);
 
-      expect(httpClient.post).toHaveBeenCalledWith('/export/packages', {
+      expect(mockedHttpClient.post).toHaveBeenCalledWith('/export/packages', {
         options: mockExportOptions,
         filters: [mockFilter],
         sort: [mockSort]
@@ -146,8 +155,7 @@ describe('ExportService', () => {
   // Financial data export
   describe('Financial data export', () => {
     it('should export financial data with filters', async () => {
-      const mockResponse = { data: mockExportResult };
-      (httpClient.post as jest.Mock).mockResolvedValue(mockResponse);
+      mockedHttpClient.post.mockResolvedValue(mockResponse);
 
       const result = await exportService.exportFinancial(
         mockExportOptions,
@@ -156,7 +164,7 @@ describe('ExportService', () => {
         [mockFilter]
       );
 
-      expect(httpClient.post).toHaveBeenCalledWith('/export/financial', {
+      expect(mockedHttpClient.post).toHaveBeenCalledWith('/export/financial', {
         options: mockExportOptions,
         startDate: '2024-01-01',
         endDate: '2024-12-31',
@@ -166,8 +174,7 @@ describe('ExportService', () => {
     });
 
     it('should export financial data without filters', async () => {
-      const mockResponse = { data: mockExportResult };
-      (httpClient.post as jest.Mock).mockResolvedValue(mockResponse);
+      mockedHttpClient.post.mockResolvedValue(mockResponse);
 
       const result = await exportService.exportFinancial(
         mockExportOptions,
@@ -175,7 +182,7 @@ describe('ExportService', () => {
         '2024-12-31'
       );
 
-      expect(httpClient.post).toHaveBeenCalledWith('/export/financial', {
+      expect(mockedHttpClient.post).toHaveBeenCalledWith('/export/financial', {
         options: mockExportOptions,
         startDate: '2024-01-01',
         endDate: '2024-12-31',
@@ -188,8 +195,7 @@ describe('ExportService', () => {
   // Attendance data export
   describe('Attendance data export', () => {
     it('should export attendance data with filters', async () => {
-      const mockResponse = { data: mockExportResult };
-      (httpClient.post as jest.Mock).mockResolvedValue(mockResponse);
+      mockedHttpClient.post.mockResolvedValue(mockResponse);
 
       const result = await exportService.exportAttendance(
         mockExportOptions,
@@ -198,7 +204,7 @@ describe('ExportService', () => {
         [mockFilter]
       );
 
-      expect(httpClient.post).toHaveBeenCalledWith('/export/attendance', {
+      expect(mockedHttpClient.post).toHaveBeenCalledWith('/export/attendance', {
         options: mockExportOptions,
         startDate: '2024-01-01',
         endDate: '2024-12-31',
@@ -212,8 +218,14 @@ describe('ExportService', () => {
   describe('Download exported file', () => {
     it('should download export file', async () => {
       const mockBlob = new Blob(['test content']);
-      const mockResponse = { data: mockBlob };
-      (httpClient.get as jest.Mock).mockResolvedValue(mockResponse);
+      const mockBlobResponse: AxiosResponse = {
+        data: mockBlob,
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {},
+      };
+      mockedHttpClient.get.mockResolvedValue(mockBlobResponse);
 
       const result = await exportService.downloadExport('export-123');
 
@@ -314,7 +326,7 @@ describe('ExportService', () => {
   describe('Error handling', () => {
     it('should handle errors in exportStudents', async () => {
       const error = new Error('Export failed');
-      (httpClient.post as jest.Mock).mockRejectedValue(error);
+      mockedHttpClient.post.mockRejectedValue(error);
 
       await expect(exportService.exportStudents(mockExportOptions)).rejects.toThrow('Export failed');
     });

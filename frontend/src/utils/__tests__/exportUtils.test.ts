@@ -35,18 +35,10 @@ describe('exportUtils - exportToCSV', () => {
     // Мокаем DOM функции
     window.URL.createObjectURL = vi.fn(() => 'blob:test');
     window.URL.revokeObjectURL = vi.fn();
-    window.Blob = vi.fn(() => ({}));
-    
-    const mockLink = {
-      href: '',
-      download: '',
-      click: vi.fn(),
-      style: {}
-    };
-    
-    global.document.createElement = vi.fn(() => mockLink as any);
-    global.document.body.appendChild = vi.fn();
-    global.document.body.removeChild = vi.fn();
+    window.Blob = vi.fn(() => ({} as Blob));
+    document.createElement = vi.fn(() => ({ download: '', href: '', click: vi.fn() } as any));
+    document.body.appendChild = vi.fn();
+    document.body.removeChild = vi.fn();
   });
 
   afterEach(() => {
@@ -92,7 +84,7 @@ describe('exportUtils - exportToCSV', () => {
 
   it('should call document.createElement with "a"', () => {
     exportToCSV(mockEvents);
-    expect(global.document.createElement).toHaveBeenCalledWith('a');
+    expect(document.createElement).toHaveBeenCalledWith('a');
   });
 
   it('should call URL.createObjectURL', () => {

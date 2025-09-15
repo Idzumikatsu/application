@@ -1,7 +1,7 @@
 import { exportToCSV } from '../exportUtils';
 import { CalendarEvent } from '../../types';
 import { vi } from 'vitest';
-import * as util from 'util'; // For TextEncoder if needed
+import { TextEncoder } from 'util'; // Node builtin, but for browser, polyfill if needed
 
 // Мокаем jsPDF до импорта exportUtils
 vi.mock('jspdf', () => ({
@@ -17,12 +17,9 @@ vi.mock('jspdf', () => ({
   }))
 }));
 
-jest.mock('jspdf-autotable', () => vi.fn());
-
-// Полифил для TextEncoder
-if (typeof TextEncoder === 'undefined') {
-  window.TextEncoder = util.TextEncoder;
-}
+vi.mock('jspdf-autotable', () => ({
+  default: vi.fn(),
+}));
 
 describe('CSV Export', () => {
   const mockEvents: CalendarEvent[] = [
@@ -49,25 +46,19 @@ describe('CSV Export', () => {
   ];
 
   beforeEach(() => {
-    // Мокаем DOM функции
-    (window.URL.createObjectURL as unknown as jest.Mock) = jest.fn(() => 'blob:test');
-    (window.URL.revokeObjectURL as unknown as jest.Mock) = jest.fn();
-    (window.Blob as unknown as jest.Mock) = jest.fn(() => ({}));
-    
-    const mockLink = {
-      href: '',
-      download: '',
-      click: vi.fn(),
-      style: {}
-    };
-    
-    global.document.createElement = vi.fn(() => mockLink as any);
-    global.document.body.appendChild = vi.fn();
-    global.document.body.removeChild = vi.fn();
+    // window mocks with vi.fn()
+    const mockLink = { download: '', href: '', click: vi.fn() } as any;
+    document.createElement = vi.fn(() => mockLink);
+    document.body.appendChild = vi.fn();
+    document.body.removeChild = vi.fn();
+    window.URL.createObjectURL = vi.fn(() => 'blob:test');
+    window.URL.revokeObjectURL = vi.fn();
+    window.Blob = vi.fn(() => new Blob([]));
+    window.TextEncoder = TextEncoder;
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should not throw when called', () => {
@@ -109,11 +100,11 @@ describe('CSV Export', () => {
 
   it('should call document.createElement with "a"', () => {
     exportToCSV(mockEvents);
-    expect(global.document.createElement).toHaveBeenCalledWith('a');
+    expect(document.createElement).toHaveBeenCalledWith('a');
   });
 
   it('should call URL.createObjectURL', () => {
     exportToCSV(mockEvents);
-    expect(global.URL.createObjectURL).toHaveBeenCalled();
+    expect(window.URL.createObjectURL).toHaveBeenCalled();
   });
 });

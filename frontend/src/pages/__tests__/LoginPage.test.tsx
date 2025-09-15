@@ -1,27 +1,48 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import { BrowserRouter } from 'react-router-dom';
-import LoginPage from '../LoginPage';
+import LoginPage from '../../pages/LoginPage';
+import authSlice from '../../store/authSlice';
 import { vi } from 'vitest';
 
-// Mock the authService and redux hooks
 vi.mock('../../services/authService', () => ({
   default: {
     login: vi.fn(),
-    setToken: vi.fn(),
-    setRefreshToken: vi.fn(),
   },
 }));
 
+const mockedAuthService = vi.mocked((await import('../../services/authService')).default);
+
 vi.mock('react-redux', () => ({
-  useDispatch: () => vi.fn(),
   useSelector: vi.fn(),
+  useDispatch: vi.fn(),
 }));
 
-vi.mock('react-router-dom', () => ({
-  ...vi.importActual('react-router-dom'),
-  useNavigate: () => vi.fn(),
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: vi.fn(),
+  };
 }));
+
+const store = configureStore({
+  reducer: {
+    auth: authSlice,
+  },
+});
+
+const renderWithProviders = (component: React.ReactElement) => {
+  return render(
+    <Provider store={store}>
+      <BrowserRouter>
+        {component}
+      </BrowserRouter>
+    </Provider>
+  );
+};
 
 describe('LoginPage', () => {
   beforeEach(() => {
@@ -29,11 +50,7 @@ describe('LoginPage', () => {
   });
 
   it('should render login form', () => {
-    render(
-      <BrowserRouter>
-        <LoginPage />
-      </BrowserRouter>
-    );
+    renderWithProviders(<LoginPage />);
 
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/пароль/i)).toBeInTheDocument();
@@ -41,26 +58,17 @@ describe('LoginPage', () => {
   });
 
   it('should show error message with empty fields', async () => {
-    render(
-      <BrowserRouter>
-        <LoginPage />
-      </BrowserRouter>
-    );
+    renderWithProviders(<LoginPage />);
 
     const submitButton = screen.getByRole('button', { name: /войти/i });
     fireEvent.click(submitButton);
 
-    // Форма не должна отправляться при пустых полях, должна показать ошибку
     expect(await screen.findByText('Введите email и пароль')).toBeInTheDocument();
-    expect(vi.mocked(require('../../services/authService').default.login)).not.toHaveBeenCalled();
+    expect(mockedAuthService.login).not.toHaveBeenCalled();
   });
 
   it('should submit form with invalid email format', async () => {
-    render(
-      <BrowserRouter>
-        <LoginPage />
-      </BrowserRouter>
-    );
+    renderWithProviders(<LoginPage />);
 
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/пароль/i);
@@ -70,9 +78,8 @@ describe('LoginPage', () => {
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
     fireEvent.click(submitButton);
 
-    // Компонент не имеет встроенной валидации email, поэтому форма будет отправлена
     await waitFor(() => {
-      expect(vi.mocked(require('../../services/authService').default.login)).toHaveBeenCalledWith({
+      expect(mockedAuthService.login).toHaveBeenCalledWith({
         email: 'invalid-email',
         password: 'password123',
       });
@@ -80,16 +87,12 @@ describe('LoginPage', () => {
   });
 
   it('should submit form with valid credentials', async () => {
-    vi.mocked(require('../../services/authService').default.login).mockResolvedValue({
+    mockedAuthService.login.mockResolvedValue({
       user: { id: 1, email: 'test@example.com' },
       token: 'test-token',
     });
 
-    render(
-      <BrowserRouter>
-        <LoginPage />
-      </BrowserRouter>
-    );
+    renderWithProviders(<LoginPage />);
 
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/пароль/i);
@@ -100,7 +103,7 @@ describe('LoginPage', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(vi.mocked(require('../../services/authService').default.login)).toHaveBeenCalledWith({
+      expect(mockedAuthService.login).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'password123',
       });
@@ -108,13 +111,9 @@ describe('LoginPage', () => {
   });
 
   it('should show loading state during form submission', async () => {
-    vi.mocked(require('../../services/authService').default.login).mockImplementation(() => new Promise(() => {})); // Never resolves
+    mockedAuthService.login.mockImplementation(() => new Promise(() => {})); // Never resolves
 
-    render(
-      <BrowserRouter>
-        <LoginPage />
-      </BrowserRouter>
-    );
+    renderWithProviders(<LoginPage />);
 
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/пароль/i);
@@ -130,13 +129,9 @@ describe('LoginPage', () => {
 
   it('should show error message on login failure', async () => {
     const errorMessage = 'Неверные учетные данные';
-    vi.mocked(require('../../services/authService').default.login).mockRejectedValue(new Error(errorMessage));
+    mockedAuthService.login.mockRejectedValue(new Error(errorMessage));
 
-    render(
-      <BrowserRouter>
-        <LoginPage />
-      </BrowserRouter>
-    );
+    renderWithProviders(<LoginPage />);
 
     const emailInput = screen.getByLabelText(/email/i);
     const passwordInput = screen.getByLabelText(/пароль/i);
@@ -147,5 +142,11 @@ describe('LoginPage', () => {
     fireEvent.click(submitButton);
 
     expect(await screen.findByText(errorMessage)).toBeInTheDocument();
+  });
+
+  it('should not call login when form is invalid', () => {
+    renderWithProviders(<LoginPage />);
+    fireEvent.click(screen.getByRole('button', { name: /войти/i }));
+    expect(mockedAuthService.login).not.toHaveBeenCalled();
   });
 });

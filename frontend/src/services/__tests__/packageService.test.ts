@@ -1,6 +1,18 @@
 import { vi } from 'vitest';
+import type { AxiosResponse } from 'axios';
+
+vi.mock('../httpClient', () => ({
+  default: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+  }
+}));
+
+const mockedHttpClient = vi.mocked(httpClient);
+
 import packageService from '../packageService';
-import httpClient from '../httpClient';
 import {
   PackageType,
   PackageStatus,
@@ -40,13 +52,20 @@ describe('PackageService', () => {
     }
   };
 
+  const mockResponse: AxiosResponse = {
+    data: [mockPackage],
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {},
+  };
+
   // Package templates management - REMOVED (not implemented in backend)
 
   // Student packages management
   describe('Student packages management', () => {
     it('should get student packages', async () => {
-      const mockResponse = { data: [mockPackage] };
-      (httpClient.get as jest.Mock).mockResolvedValue(mockResponse);
+      mockedHttpClient.get.mockResolvedValue(mockResponse);
 
       const result = await packageService.getStudentPackages(123);
 
@@ -55,8 +74,14 @@ describe('PackageService', () => {
     });
 
     it('should get package by id', async () => {
-      const mockResponse = { data: mockPackage };
-      (httpClient.get as jest.Mock).mockResolvedValue(mockResponse);
+      const singleResponse: AxiosResponse = {
+        data: mockPackage,
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {},
+      };
+      mockedHttpClient.get.mockResolvedValue(singleResponse);
 
       const result = await packageService.getPackageById(1);
 
@@ -73,7 +98,7 @@ describe('PackageService', () => {
         autoRenew: false
       };
       const mockResponse = { data: mockPackage };
-      (httpClient.post as jest.Mock).mockResolvedValue(mockResponse);
+      mockedHttpClient.post.mockResolvedValue(mockResponse);
 
       const result = await packageService.createPackage(packageData);
 
@@ -84,7 +109,7 @@ describe('PackageService', () => {
     it('should update package', async () => {
       const packageData = { autoRenew: true };
       const mockResponse = { data: mockPackage };
-      (httpClient.put as jest.Mock).mockResolvedValue(mockResponse);
+      mockedHttpClient.put.mockResolvedValue(mockResponse);
 
       const result = await packageService.updatePackage(1, packageData);
 
@@ -93,7 +118,7 @@ describe('PackageService', () => {
     });
 
     it('should delete package', async () => {
-      (httpClient.delete as jest.Mock).mockResolvedValue({});
+      mockedHttpClient.delete.mockResolvedValue({ data: {}, status: 200, statusText: 'OK', headers: {}, config: {} });
 
       await packageService.deletePackage(1);
 
@@ -113,8 +138,7 @@ describe('PackageService', () => {
   // Notifications
   describe('Notifications', () => {
     it('should get expiring packages', async () => {
-      const mockResponse = { data: [mockPackage] };
-      (httpClient.get as jest.Mock).mockResolvedValue(mockResponse);
+      mockedHttpClient.get.mockResolvedValue(mockResponse);
 
       const result = await packageService.getExpiringPackages(7);
 
@@ -125,8 +149,7 @@ describe('PackageService', () => {
     });
 
     it('should get low balance packages', async () => {
-      const mockResponse = { data: [mockPackage] };
-      (httpClient.get as jest.Mock).mockResolvedValue(mockResponse);
+      mockedHttpClient.get.mockResolvedValue(mockResponse);
 
       const result = await packageService.getLowBalancePackages(3);
 
@@ -140,8 +163,7 @@ describe('PackageService', () => {
   // Integration with lessons
   describe('Integration with lessons', () => {
     it('should get packages for lesson deduction', async () => {
-      const mockResponse = { data: [mockPackage] };
-      (httpClient.get as jest.Mock).mockResolvedValue(mockResponse);
+      mockedHttpClient.get.mockResolvedValue(mockResponse);
 
       const result = await packageService.getPackagesForLessonDeduction(123);
 
@@ -151,7 +173,7 @@ describe('PackageService', () => {
 
     it('should auto deduct lesson', async () => {
       const mockResponse = { data: mockPackage };
-      (httpClient.post as jest.Mock).mockResolvedValue(mockResponse);
+      mockedHttpClient.post.mockResolvedValue(mockResponse);
 
       const result = await packageService.autoDeductLesson(1, 456);
 
@@ -164,14 +186,14 @@ describe('PackageService', () => {
   describe('Error handling', () => {
     it('should handle errors in getStudentPackages', async () => {
       const error = new Error('Network error');
-      (httpClient.get as jest.Mock).mockRejectedValue(error);
+      mockedHttpClient.get.mockRejectedValue(error);
 
       await expect(packageService.getStudentPackages(123)).rejects.toThrow('Network error');
     });
 
     it('should handle errors in createPackage', async () => {
       const error = new Error('Validation error');
-      (httpClient.post as jest.Mock).mockRejectedValue(error);
+      mockedHttpClient.post.mockRejectedValue(error);
       const packageData: PackageCreateRequest = {
         studentId: 123,
         packageTemplateId: 1,

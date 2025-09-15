@@ -7,13 +7,17 @@ import authReducer from '../store/authSlice';
 import { vi } from 'vitest';
 
 // Mock для react-router-dom
-vi.mock('react-router-dom', () => ({
-  BrowserRouter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Routes: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Route: ({ element }: { element: React.ReactNode }) => <div>{element}</div>,
-  Navigate: () => <div>Navigate</div>,
-  useNavigate: () => jest.fn(),
-}));
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: vi.fn(),
+    Routes: actual.Routes,
+    Route: actual.Route,
+    Navigate: actual.Navigate,
+    BrowserRouter: actual.BrowserRouter,
+  };
+});
 
 vi.mock('../components/Navbar', () => ({
   default: () => <div>Navbar</div>
@@ -21,10 +25,18 @@ vi.mock('../components/Navbar', () => ({
 vi.mock('../components/Sidebar', () => ({
   default: () => <div>Sidebar</div>
 }));
-vi.mock('../pages/LoginPage', () => () => <div>LoginPage</div>);
-vi.mock('../components/AuthErrorHandler', () => () => <div>AuthErrorHandler</div>);
-vi.mock('../components/LessonStatus/LessonStatusAutomation', () => () => <div>LessonStatusAutomation</div>);
-vi.mock('../components/NotificationPanel', () => () => <div>NotificationPanel</div>);
+vi.mock('../pages/LoginPage', () => ({
+  default: () => <div>LoginPage</div>
+}));
+vi.mock('../components/AuthErrorHandler', () => ({
+  default: () => <div>AuthErrorHandler</div>
+}));
+vi.mock('../components/LessonStatus/LessonStatusAutomation', () => ({
+  default: () => <div>LessonStatusAutomation</div>
+}));
+vi.mock('../components/NotificationPanel', () => ({
+  default: () => <div>NotificationPanel</div>
+}));
 
 // Mock для сервисов
 vi.mock('../services/authService', () => ({
