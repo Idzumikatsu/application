@@ -236,20 +236,20 @@ jobs:
 
     - name: Deploy with Docker Compose
       run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "
-          cd /opt/application
-          git pull origin master
-          docker compose --env-file .env.production pull
-          docker compose up -d --remove-orphans --force-recreate
-          sleep 120
-          docker compose ps
-          docker compose logs --tail=20
-          # Basic health check
-          if docker compose exec backend curl -f http://localhost:8080/actuator/health >/dev/null 2>&1; then
-            echo '✅ Backend healthy'
-          else
-            echo '❌ Backend health check failed'
-            docker compose logs backend
-            exit 1
-          fi
-        "
+        ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
+        cd /opt/application
+        git pull origin master
+        docker compose --env-file .env.production pull
+        docker compose up -d --remove-orphans --force-recreate
+        sleep 120
+        docker compose ps
+        docker compose logs --tail=20
+        # Basic health check
+        if docker compose exec backend curl -f http://localhost:8080/actuator/health >/dev/null 2>&1; then
+          echo '✅ Backend healthy'
+        else
+          echo '❌ Backend health check failed'
+          docker compose logs backend
+          exit 1
+        fi
+        EOF
