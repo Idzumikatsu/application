@@ -12,6 +12,7 @@ export default defineConfig({
     exclude: ['node_modules', 'dist', '**/*.config.{ts,js}', 'e2e/**'], // Exclude e2e from unit tests
     css: true,
     coverage: {
+      enabled: true,
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       exclude: ['node_modules/', 'src/**/*.d.ts', 'src/main.tsx'],
