@@ -1,4 +1,4 @@
-package com.crm.telegramservice;
+package com.crm.telegram;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
