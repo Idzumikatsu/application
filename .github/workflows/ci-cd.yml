@@ -45,7 +45,7 @@ jobs:
     - name: Run unit tests
       run: |
         cd frontend
-        npm run test:coverage -- --coverage.reporter=text --coverage.reporter=lcov --coverage.reporter=html
+        npm run test:coverage
 
     - name: Install Playwright browsers
       run: |
