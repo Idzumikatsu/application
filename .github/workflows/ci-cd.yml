@@ -73,7 +73,7 @@ jobs:
         DATABASE_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
       run: |
         cd crm-system
-        mvn clean test -Dspring.profiles.active=test
+        mvn clean test -Dspring.profiles.active=test -Djacoco.skip=false
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
