@@ -29,11 +29,11 @@
     "types": [
       "vite/client",
       "node"
-    ]
+    ],
+    "composite": false
   },
   "include": [
-    "src",
-    "vite.config.ts"
+    "src"
   ],
   "references": [
     {
@@ -42,6 +42,7 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "vite.config.ts"
   ]
 }
