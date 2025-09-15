@@ -25,18 +25,29 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Get npm cache directory
+      id: npm-cache-dir
+      shell: bash
+      run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
+
+    - name: Setup npm cache
+      uses: actions/cache@v4
+      id: npm-cache
+      with:
+        path: ${{ steps.npm-cache-dir.outputs.dir }}
+        key: ${{ runner.os }}-node-${{ hashFiles('**/frontend/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
     - name: Set up Node.js ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        cache-dependency-path: frontend/package-lock.json
 
-    - name: Install dependencies
+    - name: Install frontend dependencies
       run: |
         cd frontend
-        npm install
-        npm install --save-dev @rollup/rollup-linux-x64-gnu
+        npm ci
 
     - name: TypeScript check
       run: |
@@ -60,7 +71,7 @@ jobs:
       if: always()
       with:
         name: frontend-test-results
-        path: coverage
+        path: frontend/coverage
 
     - name: Verify frontend build exists
       run: |
@@ -96,6 +107,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Cache Maven packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/crm-system/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
     - name: Install PostgreSQL client
       run: |
         sudo apt-get update
@@ -120,7 +138,6 @@ jobs:
       with:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'temurin'
-        cache: 'maven'
 
     - name: Build and test backend
       env:
@@ -158,6 +175,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
@@ -168,15 +188,28 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Extract metadata for backend image
+      id: meta-backend
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend
+
     - name: Build and push backend image
       uses: docker/build-push-action@v5
       with:
         context: ./crm-system
         file: ./crm-system/Dockerfile
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:latest
+        tags: ${{ steps.meta-backend.outputs.tags }}
+        labels: ${{ steps.meta-backend.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+    - name: Extract metadata for frontend image
+      id: meta-frontend
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend
 
     - name: Build and push frontend image
       uses: docker/build-push-action@v5
@@ -184,9 +217,16 @@ jobs:
         context: ./frontend
         file: ./frontend/Dockerfile
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest
+        tags: ${{ steps.meta-frontend.outputs.tags }}
+        labels: ${{ steps.meta-frontend.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+    - name: Extract metadata for email-service image
+      id: meta-email
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/email-service
 
     - name: Build and push email-service image
       uses: docker/build-push-action@v5
@@ -194,7 +234,8 @@ jobs:
         context: ./email-service
         file: ./email-service/Dockerfile
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/email-service:latest
+        tags: ${{ steps.meta-email.outputs.tags }}
+        labels: ${{ steps.meta-email.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
@@ -209,13 +250,20 @@ jobs:
           exit 1
         fi
 
+    - name: Extract metadata for telegram-service image
+      id: meta-telegram
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/telegram-service
+
     - name: Build and push telegram-service image
       uses: docker/build-push-action@v5
       with:
         context: ./telegram-service
         file: ./telegram-service/Dockerfile
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/telegram-service:latest
+        tags: ${{ steps.meta-telegram.outputs.tags }}
+        labels: ${{ steps.meta-telegram.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
