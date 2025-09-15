@@ -1,5 +1,7 @@
 name: CRM System CI/CD
 
+# CI trigger fix - remove this after successful run
+
 on:
   push:
     branches: [ master ]
