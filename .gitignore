@@ -162,8 +162,8 @@ test-results/
 crm-system/flyway.conf
 
 # Package files
-package-lock.json
-package.json
+# package-lock.json  # Allowed for CI
+# package.json  # Allowed for CI
 
 # Temporary directories
 tmp/
