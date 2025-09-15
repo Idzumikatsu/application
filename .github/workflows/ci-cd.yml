@@ -9,7 +9,7 @@ on:
 
 env:
   JAVA_VERSION: '17'
-  NODE_VERSION: '18'
+  NODE_VERSION: '20'
   POSTGRES_DB: testdb
   POSTGRES_USER: test
   POSTGRES_PASSWORD: test
@@ -60,7 +60,6 @@ jobs:
       with:
         name: frontend-test-results
         path: coverage
-      working-directory: frontend
 
     - name: Verify frontend build exists
       run: |
