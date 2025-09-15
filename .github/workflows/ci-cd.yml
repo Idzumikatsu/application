@@ -108,16 +108,20 @@ jobs:
     - name: Install dependencies
       run: |
         cd frontend
-        npm ci
+        if [ ! -f package-lock.json ]; then
+          npm install
+        else
+          npm ci
+        fi
 
     - name: Run unit tests
       run: |
         cd frontend
-        npm test -- --coverage --watchAll=false
+        npm run test:coverage
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
-      if: always()
+      if: success()
       with:
         name: frontend-test-results
         path: frontend/coverage/
