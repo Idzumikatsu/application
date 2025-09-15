@@ -68,10 +68,19 @@ const LoginPage: React.FC = () => {
 
       let errorMessage = 'Ошибка входа в систему';
 
+      // Добавляем больше информации об ошибке для диагностики
       if (err.response?.status === 401) {
         errorMessage = 'Неверный email или пароль';
+        console.log('🔍 401 Unauthorized - проверьте правильность учетных данных');
       } else if (err.response?.status === 400) {
         errorMessage = 'Некорректные данные для входа';
+        console.log('🔍 400 Bad Request - проверьте формат данных');
+      } else if (err.response?.status === 404) {
+        errorMessage = 'Сервис аутентификации недоступен';
+        console.log('🔍 404 Not Found - проверьте URL API endpoint');
+      } else if (err.response?.status === 500) {
+        errorMessage = 'Ошибка сервера';
+        console.log('🔍 500 Internal Server Error - проблема на стороне сервера');
       } else if (err.response?.data?.message) {
         errorMessage = err.response.data.message;
       } else if (err.message) {
@@ -80,6 +89,7 @@ const LoginPage: React.FC = () => {
         errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
       }
 
+      console.log('🔍 Финальное сообщение об ошибке:', errorMessage);
       dispatch(loginFailure(errorMessage));
       setError(errorMessage);
     } finally {

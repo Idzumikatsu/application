@@ -8,7 +8,23 @@ class AuthService {
       const response = await httpClient.post('/api/auth/signin', credentials);
       console.log('✅ Ответ API:', response.data);
 
+      // Проверяем структуру ответа от сервера
       const data = response.data as any;
+      console.log('🔍 Структура ответа сервера:', Object.keys(data));
+
+      // Проверяем наличие токена
+      if (!data.token) {
+        console.error('❌ Токен отсутствует в ответе сервера');
+        throw new Error('Некорректный ответ от сервера: отсутствует токен');
+      }
+
+      // Проверяем наличие данных пользователя
+      if (!data.id || !data.email || !data.role) {
+        console.error('❌ Данные пользователя отсутствуют в ответе сервера');
+        console.error('🔍 Фактическая структура данных:', data);
+        throw new Error('Некорректный ответ от сервера: отсутствуют данные пользователя');
+      }
+
       return {
         token: data.token,
         user: {
@@ -22,6 +38,14 @@ class AuthService {
       };
     } catch (error: any) {
       console.error('❌ Ошибка авторизации:', error.response?.data || error.message || error);
+      
+      // Добавляем больше информации об ошибке
+      if (error.response) {
+        console.error('🔍 Статус ошибки:', error.response.status);
+        console.error('🔍 Заголовки ошибки:', error.response.headers);
+        console.error('🔍 Данные ошибки:', error.response.data);
+      }
+      
       throw error;
     }
   }
