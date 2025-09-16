@@ -69,9 +69,6 @@ services:
        start_period: 60s
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`api.crm-synergy.ru`)"
-      - "traefik.http.routers.backend.entrypoints=websecure"
-      - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
       - "traefik.http.services.backend.loadbalancer.server.port=8084"
     # Add restart policy to ensure containers restart if they fail
     restart: unless-stopped
@@ -91,9 +88,6 @@ services:
       retries: 3
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`app.crm-synergy.ru`)"
-      - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
     # Add restart policy to ensure containers restart if they fail
     restart: unless-stopped
@@ -150,3 +144,4 @@ networks:
 
 volumes:
   postgres_data:
+# End of file
