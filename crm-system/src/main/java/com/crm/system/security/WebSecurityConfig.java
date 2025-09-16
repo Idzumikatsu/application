@@ -55,7 +55,7 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**", "/api/auth/login").permitAll()
                 .requestMatchers("/actuator/health", "/error").permitAll()
-                .anyRequest().permitAll()
+                .anyRequest().authenticated()
             );
 
         // JWT фильтр теперь включен
