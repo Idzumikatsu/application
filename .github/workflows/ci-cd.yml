@@ -285,19 +285,19 @@ jobs:
     - name: Check if SSH secrets are available
       run: |
         echo "Checking if SSH secrets are configured..."
-        if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+        if [ -z "${{ secrets.DEPLOY_SSH_KEY }}" ]; then
           echo "SSH_PRIVATE_KEY is not set"
         else
-          echo "SSH_PRIVATE_KEY is configured (length: ${#SSH_PRIVATE_KEY})"
+          echo "SSH_PRIVATE_KEY is configured (length: ${#DEPLOY_SSH_KEY})"
         fi
         
-        if [ -z "${{ secrets.PRODUCTION_USER }}" ]; then
+        if [ -z "${{ secrets.DEPLOY_USER }}" ]; then
           echo "PRODUCTION_USER is not set"
         else
           echo "PRODUCTION_USER is configured"
         fi
         
-        if [ -z "${{ secrets.PRODUCTION_HOST }}" ]; then
+        if [ -z "${{ secrets.DEPLOY_HOST }}" ]; then
           echo "PRODUCTION_HOST is not set"
         else
           echo "PRODUCTION_HOST is configured"
@@ -306,13 +306,13 @@ jobs:
     - name: Setup SSH
       uses: webfactory/ssh-agent@v0.9.0
       with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
 
     - name: Test SSH Connection
       run: |
         echo "Testing SSH connection to production server..."
-        if [ -n "${{ secrets.PRODUCTION_HOST }}" ] && [ -n "${{ secrets.PRODUCTION_USER }}" ]; then
-          ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} "echo 'SSH connection successful'" || echo "SSH connection failed"
+        if [ -n "${{ secrets.DEPLOY_HOST }}" ] && [ -n "${{ secrets.DEPLOY_USER }}" ]; then
+          ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} "echo 'SSH connection successful'" || echo "SSH connection failed"
         else
           echo "Skipping SSH test - missing host or user configuration"
         fi
@@ -320,13 +320,13 @@ jobs:
     - name: Deploy with Docker Compose
       run: |
         echo "Starting deployment process..."
-        if [ -z "${{ secrets.PRODUCTION_HOST }}" ] || [ -z "${{ secrets.PRODUCTION_USER }}" ] || [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+        if [ -z "${{ secrets.DEPLOY_HOST }}" ] || [ -z "${{ secrets.DEPLOY_USER }}" ] || [ -z "${{ secrets.DEPLOY_SSH_KEY }}" ]; then
           echo "❌ Deployment failed: Missing required secrets"
-          echo "Please configure SSH_PRIVATE_KEY, PRODUCTION_USER, and PRODUCTION_HOST in GitHub Actions secrets"
+          echo "Please configure DEPLOY_SSH_KEY, DEPLOY_USER, and DEPLOY_HOST in GitHub Actions secrets"
           exit 1
         fi
         
-        ssh -o StrictHostKeyChecking=no ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} << 'EOF'
+        ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} << 'EOF'
         echo "✅ Connected to production server"
         cd /opt/application || (echo "❌ Failed to change directory" && exit 1)
         echo "🔍 Pulling latest code from repository"
