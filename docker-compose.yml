@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   traefik:
     image: traefik:v3.0
@@ -105,7 +107,7 @@ services:
     networks:
       - crm-network
     healthcheck:
-      test: ["CMD-SHELL", "netstat -tuln | grep :8081"]
+      test: ["CMD-SHELL", "curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8081/ | grep -q \"404\\|200\" || exit 1"]
       interval: ${SPRING_BOOT_HEALTHCHECK_INTERVAL:-30s}
       timeout: ${SPRING_BOOT_HEALTHCHECK_TIMEOUT:-10s}
       retries: 3
@@ -128,7 +130,7 @@ services:
     networks:
       - crm-network
     healthcheck:
-      test: ["CMD-SHELL", "netstat -tuln | grep :8082"]
+      test: ["CMD-SHELL", "curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8082/ | grep -q \"404\\|200\" || exit 1"]
       interval: ${SPRING_BOOT_HEALTHCHECK_INTERVAL:-30s}
       timeout: ${SPRING_BOOT_HEALTHCHECK_TIMEOUT:-10s}
       retries: 3
