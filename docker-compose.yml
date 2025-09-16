@@ -53,6 +53,7 @@ services:
       - .env
     environment:
       - MANAGEMENT_HEALTH_MAIL_ENABLED=false
+      - SERVER_PORT=8084
     depends_on:
       postgres:
         condition: service_healthy
