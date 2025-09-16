@@ -105,7 +105,7 @@ services:
     networks:
       - crm-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8081/"]
       interval: ${SPRING_BOOT_HEALTHCHECK_INTERVAL:-30s}
       timeout: ${SPRING_BOOT_HEALTHCHECK_TIMEOUT:-10s}
       retries: 3
@@ -128,7 +128,7 @@ services:
     networks:
       - crm-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8082/"]
       interval: ${SPRING_BOOT_HEALTHCHECK_INTERVAL:-30s}
       timeout: ${SPRING_BOOT_HEALTHCHECK_TIMEOUT:-10s}
       retries: 3
