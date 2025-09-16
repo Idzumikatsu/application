@@ -51,6 +51,8 @@ services:
     image: ${REGISTRY}/${IMAGE_NAME}/backend:latest
     env_file:
       - .env
+    environment:
+      - MANAGEMENT_HEALTH_MAIL_ENABLED=false
     depends_on:
       postgres:
         condition: service_healthy
@@ -67,7 +69,7 @@ services:
       - "traefik.http.routers.backend.rule=Host(`api.crm-synergy.ru`)"
       - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
-      - "traefik.http.services.backend.loadbalancer.server.port=8080"
+      - "traefik.http.services.backend.loadbalancer.server.port=8084"
     # Add restart policy to ensure containers restart if they fail
     restart: unless-stopped
 
