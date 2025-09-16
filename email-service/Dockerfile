@@ -3,6 +3,8 @@ RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
+# Copy the application.properties file to ensure it's included in the build
+COPY src/main/resources/application.properties src/main/resources/application.properties
 RUN mvn clean package -DskipTests
 
 FROM eclipse-temurin:17-jre

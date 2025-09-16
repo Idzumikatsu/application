@@ -97,6 +97,8 @@ services:
     image: ${REGISTRY}/${IMAGE_NAME}/email-service:latest
     env_file:
       - .env
+    environment:
+      - SERVER_PORT=8081
     networks:
       - crm-network
     healthcheck:
@@ -118,6 +120,8 @@ services:
     image: ${REGISTRY}/${IMAGE_NAME}/telegram-service:latest
     env_file:
       - .env
+    environment:
+      - SERVER_PORT=8082
     networks:
       - crm-network
     healthcheck:
