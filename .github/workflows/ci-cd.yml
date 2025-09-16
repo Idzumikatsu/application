@@ -356,8 +356,6 @@ jobs:
           docker compose logs backend --tail=30
         fi
         EOF
-        cd /opt/application
-        git pull origin master
         docker compose pull
         docker compose up -d --remove-orphans --force-recreate
         sleep 120
