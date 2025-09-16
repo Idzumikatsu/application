@@ -356,17 +356,3 @@ jobs:
           docker compose logs backend --tail=30
         fi
         EOF
-        docker compose pull
-        docker compose up -d --remove-orphans --force-recreate
-        sleep 120
-        docker compose ps
-        docker compose logs --tail=20
-        # Basic health check
-        if docker compose exec backend curl -f http://localhost:8080/actuator/health >/dev/null 2>&1; then
-          echo '✅ Backend healthy'
-        else
-          echo '❌ Backend health check failed'
-          docker compose logs backend
-          exit 1
-        fi
-        EOF
