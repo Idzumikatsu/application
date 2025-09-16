@@ -28,12 +28,13 @@ http:
         certResolver: letsencrypt
 
     frontend:
-      rule: "Host(`app.crm-synergy.ru`)"
+      rule: "Host(`app.crm-synergy.ru`) && !PathPrefix(`/api`)"
       entryPoints:
         - websecure
       service: frontend
       tls:
         certResolver: letsencrypt
+      priority: 5
 
     email-service:
       rule: "Host(`email.crm-synergy.ru`)"
@@ -82,3 +83,4 @@ http:
       stripPrefix:
         prefixes:
           - "/api"
+# End of file

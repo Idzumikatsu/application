@@ -7,7 +7,7 @@ VALUES (
     'Admin',
     'User',
     'admin@englishschool.com',
-    '$2a$10$hBEi0y7OcyfYGmf5Ladn6exoNi7ILjFztxMv0175aB4W3i1OWSLOW',
+    '$2b$10$ew4OlrgjbXRkKpRyw05K8.3MITbr2YkDKMHY35nSXEoiAKfB3kwLO',
     'ADMIN',
     TRUE,
     CURRENT_TIMESTAMP,
