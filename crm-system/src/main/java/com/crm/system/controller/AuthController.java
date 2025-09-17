@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api")
 public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
@@ -41,7 +41,7 @@ public class AuthController {
         this.jwtTokenUtil = jwtTokenUtil;
     }
 
-    @PostMapping({"/signin", "/login"})
+    @PostMapping({"/auth/signin", "/auth/login", "/login"})
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginDto loginDto) {
         logger.info("Authentication attempt for email: {}", loginDto.getEmail());
 
@@ -72,13 +72,13 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/logout")
+    @PostMapping("/auth/logout")
     public ResponseEntity<MessageDto> logout() {
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok(new MessageDto("Logout successful"));
     }
 
-    @PostMapping("/refresh")
+    @PostMapping("/auth/refresh")
     public ResponseEntity<?> refreshToken(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(new MessageDto("Error: Unauthorized"));
@@ -90,13 +90,13 @@ public class AuthController {
                 "expiresIn", jwtTokenUtil.getExpirationSeconds()));
     }
 
-    @GetMapping("/validate")
+    @GetMapping("/auth/validate")
     public ResponseEntity<?> validateToken(Authentication authentication) {
         boolean valid = authentication != null && authentication.isAuthenticated();
         return ResponseEntity.ok(Map.of("valid", valid));
     }
 
-    @PostMapping("/signup")
+    @PostMapping("/auth/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupDto signUpDto) {
         logger.info("Signup attempt for email: {}", signUpDto.getEmail());
 
@@ -123,13 +123,13 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/test")
+    @GetMapping("/auth/test")
     public ResponseEntity<?> testEndpoint() {
         logger.info("Test endpoint called");
         return ResponseEntity.ok("Test endpoint works!");
     }
 
-    @GetMapping("/public")
+    @GetMapping("/auth/public")
     public ResponseEntity<String> publicEndpoint() {
         logger.info("Public endpoint called");
         return ResponseEntity.ok("Public endpoint works!");
