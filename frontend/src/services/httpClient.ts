@@ -47,7 +47,8 @@ class HttpClient {
     if (url.startsWith('http://') || url.startsWith('https://')) {
       return url;
     }
-    return url.startsWith('/') ? url.substring(1) : url;
+    // Не удаляем ведущий слэш, чтобы сохранить абсолютный путь
+    return url;
   }
 
   public get<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
