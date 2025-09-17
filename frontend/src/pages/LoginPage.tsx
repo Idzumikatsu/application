@@ -93,68 +93,70 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <h1 className="login-title">Вход в CRM Synergy</h1>
-        <p className="login-subtitle">Онлайн школа английского языка</p>
+    <Container component="main" maxWidth="xs" className="login-container">
+      <Box
+        sx={{
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <Paper elevation={3} sx={{ p: 4, width: '100%' }} className="login-card">
+          <Typography component="h1" variant="h5" align="center" gutterBottom className="login-title">
+            Вход в CRM Synergy
+          </Typography>
+          <Typography variant="h6" align="center" color="textSecondary" gutterBottom className="login-subtitle">
+            Онлайн школа английского языка
+          </Typography>
 
-        {error && (
-          <Alert severity="error" className="crm-alert crm-alert-error">
-            {error}
-          </Alert>
-        )}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }} className="crm-alert crm-alert-error">
+              {error}
+            </Alert>
+          )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="login-form-group">
-            <label htmlFor="email" className="login-form-label">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+            <TextField
+              margin="normal"
               required
+              fullWidth
+              id="email"
+              label="Email"
+              name="email"
+              autoComplete="email"
               autoFocus
-              placeholder="Введите ваш email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="login-form-input"
-              autoComplete="email"
             />
-          </div>
-          
-          <div className="login-form-group">
-            <label htmlFor="password" className="login-form-label">
-              Пароль
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
+            <TextField
+              margin="normal"
               required
-              placeholder="Введите ваш пароль"
+              fullWidth
+              name="password"
+              label="Пароль"
+              type="password"
+              id="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="login-form-input"
-              autoComplete="current-password"
             />
-          </div>
-          
-          <Button
-            type="submit"
-            className="login-button"
-            disabled={loading}
-          >
-            <span className={`login-button-text ${loading ? 'loading' : ''}`}>
-              {loading ? 'Вход...' : 'Войти'}
-            </span>
-            {loading && (
-              <CircularProgress size={24} className="login-button-loading" />
-            )}
-          </Button>
-        </form>
-      </div>
-    </div>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              className="login-button"
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={24} className="login-button-loading" /> : 'Войти'}
+            </Button>
+          </Box>
+        </Paper>
+      </Box>
+    </Container>
   );
 };
 

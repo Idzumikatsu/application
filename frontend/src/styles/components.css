@@ -270,6 +270,7 @@
   align-items: center;
   justify-content: center;
   background-color: #f5f5f5;
+  background-image: radial-gradient(circle at 10% 20%, rgba(25, 118, 210, 0.05) 0%, rgba(25, 118, 210, 0.02) 100%);
   padding: 16px;
 }
 
@@ -278,13 +279,15 @@
   max-width: 400px;
   padding: 32px;
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
   transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .login-card:hover {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
 }
 
 .login-title {
@@ -292,90 +295,118 @@
   margin-bottom: 8px;
   font-weight: 600;
   color: #1976d2;
+  font-size: 1.5rem;
 }
 
 .login-subtitle {
   text-align: center;
   margin-bottom: 24px;
   color: #666666;
+  font-size: 1rem;
 }
 
-.login-form-group {
-  margin-bottom: 20px;
+/* Стили для Material UI TextField */
+.login-form-input {
+  margin-top: 16px !important;
+  margin-bottom: 16px !important;
 }
 
-.login-form-label {
-  display: block;
-  margin-bottom: 6px;
+.login-form-input .MuiOutlinedInput-root {
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.login-form-input .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #1976d2;
+}
+
+.login-form-input .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #1976d2;
+  border-width: 2px;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+.login-form-input .MuiInputLabel-root {
   font-weight: 500;
   color: #333333;
 }
 
-.login-form-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+.login-form-input .MuiInputLabel-root.Mui-focused {
+  color: #1976d2;
+}
+
+.login-form-input .MuiInputBase-input {
+  padding: 12px 14px;
   font-size: 16px;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
 }
 
-.login-form-input:focus {
-  outline: none;
-  border-color: #1976d2;
-  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
-}
-
-.login-form-input::placeholder {
-  color: #999999;
-}
-
+/* Стили для Material UI Button */
 .login-button {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #1976d2, #2196f3);
-  color: white;
+  background: linear-gradient(135deg, #1976d2, #2196f3) !important;
+  color: white !important;
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 500;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3) !important;
+  margin-top: 16px !important;
+  margin-bottom: 16px !important;
 }
 
 .login-button:hover {
-  background: linear-gradient(135deg, #1565c0, #1e88e5);
+  background: linear-gradient(135deg, #1565c0, #1e88e5) !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4) !important;
 }
 
 .login-button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
+  box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3) !important;
 }
 
 .login-button:disabled {
-  background: #cccccc;
+  background: #cccccc !important;
   cursor: not-allowed;
   transform: none;
-  box-shadow: none;
+  box-shadow: none !important;
 }
 
-.login-button-loading {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+.login-button .login-button-loading {
+  color: white !important;
 }
 
-.login-button-text {
-  opacity: 1;
-  transition: opacity 0.2s ease;
+/* Alert styles */
+.crm-alert {
+  border-radius: 8px;
+  margin-bottom: 16px;
 }
 
-.login-button-text.loading {
-  opacity: 0;
+.crm-alert-error {
+  background-color: #ffebee;
+  color: #d32f2f;
+  border-left: 4px solid #d32f2f;
+}
+
+.crm-alert-success {
+  background-color: #e8f5e9;
+  color: #388e3c;
+  border-left: 4px solid #388e3c;
+}
+
+.crm-alert-warning {
+  background-color: #fff3e0;
+  color: #f57c00;
+  border-left: 4px solid #f57c00;
+}
+
+.crm-alert-info {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border-left: 4px solid #1976d2;
 }
