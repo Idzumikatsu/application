@@ -74,7 +74,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-idzumikatsu}/application/frontend:latest
+    image: ${REGISTRY}/${IMAGE_NAME}/frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
