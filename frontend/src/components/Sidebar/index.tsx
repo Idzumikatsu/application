@@ -8,6 +8,8 @@ import {
   Divider,
   Typography,
   Box,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -33,6 +35,8 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onNotificationClick }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useSelector((state: RootState) => state.auth);
 
   const getMenuItems = () => {
@@ -80,67 +84,165 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onNotificationClick })
 
   const handleNavigation = (path: string) => {
     navigate(path);
-    onClose();
+    if (isMobile) {
+      onClose();
+    }
   };
 
   const isActive = (path: string) => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
+  // Icons mapping for active state
+  const getActiveIcon = (icon: React.ReactNode, active: boolean) => {
+    if (!active) return icon;
+    
+    // Clone the icon with active color
+    return React.cloneElement(icon as React.ReactElement, {
+      sx: { color: 'primary.main' }
+    });
+  };
+
   return (
-    <Drawer anchor="left" open={open} onClose={onClose}>
+    <Drawer 
+      anchor="left" 
+      open={open} 
+      onClose={onClose}
+      variant={isMobile ? 'temporary' : 'persistent'}
+      ModalProps={{
+        keepMounted: true, // Better open performance on mobile
+      }}
+      sx={{
+        width: 280,
+        flexShrink: 0,
+        '& .MuiDrawer-paper': {
+          width: 280,
+          boxSizing: 'border-box',
+          borderRight: '1px solid',
+          borderColor: 'divider',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+        },
+      }}
+    >
       <Box
         sx={{
           width: 280,
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
+          backgroundColor: 'background.paper',
         }}
         role="presentation"
       >
-        <Box sx={{ p: 2, bgcolor: 'primary.main', color: 'white' }}>
-          <Typography variant="h6" component="div">
+        <Box 
+          sx={{ 
+            p: 3, 
+            backgroundColor: 'primary.main', 
+            color: 'primary.contrastText',
+            textAlign: 'center',
+          }}
+        >
+          <Typography variant="h6" component="div" sx={{ fontWeight: 600, mb: 0.5 }}>
             CRM Система
           </Typography>
-          <Typography variant="body2" component="div">
+          <Typography variant="body2" component="div" sx={{ opacity: 0.9 }}>
             Онлайн школа английского
           </Typography>
         </Box>
         
         <Divider />
         
-        <List sx={{ flex: 1 }}>
-          {menuItems.map((item) => (
-            <ListItem
-              button
-              key={item.text}
-              onClick={() => handleNavigation(item.path)}
-              selected={isActive(item.path)}
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItem>
-          ))}
+        <List sx={{ flex: 1, pt: 1 }}>
+          {menuItems.map((item) => {
+            const active = isActive(item.path);
+            return (
+              <ListItem
+                button
+                key={item.text}
+                onClick={() => handleNavigation(item.path)}
+                selected={active}
+                sx={{
+                  margin: '4px 8px',
+                  borderRadius: 2,
+                  '&.Mui-selected': {
+                    backgroundColor: 'primary.light',
+                    color: 'primary.main',
+                    '&:hover': {
+                      backgroundColor: 'primary.light',
+                    },
+                  },
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
+                  },
+                }}
+              >
+                <ListItemIcon 
+                  sx={{ 
+                    color: active ? 'primary.main' : 'inherit',
+                    minWidth: 40,
+                  }}
+                >
+                  {getActiveIcon(item.icon, active)}
+                </ListItemIcon>
+                <ListItemText 
+                  primary={item.text} 
+                  sx={{ 
+                    '& .MuiListItemText-primary': {
+                      fontWeight: active ? 600 : 400,
+                    }
+                  }} 
+                />
+              </ListItem>
+            );
+          })}
         </List>
         
         <Divider />
         
-        <List>
-          <ListItem button onClick={onNotificationClick}>
+        <List sx={{ pb: 2 }}>
+          <ListItem 
+            button 
+            onClick={onNotificationClick}
+            sx={{
+              margin: '4px 8px',
+              borderRadius: 2,
+              '&:hover': {
+                backgroundColor: 'action.hover',
+              },
+            }}
+          >
             <ListItemIcon>
               <NotificationsIcon />
             </ListItemIcon>
             <ListItemText primary="Уведомления" />
           </ListItem>
           
-          <ListItem button>
+          <ListItem 
+            button
+            sx={{
+              margin: '4px 8px',
+              borderRadius: 2,
+              '&:hover': {
+                backgroundColor: 'action.hover',
+              },
+            }}
+          >
             <ListItemIcon>
               <ReportsIcon />
             </ListItemIcon>
             <ListItemText primary="Отчеты" />
           </ListItem>
           
-          <ListItem button>
+          <ListItem 
+            button
+            sx={{
+              margin: '4px 8px',
+              borderRadius: 2,
+              '&:hover': {
+                backgroundColor: 'action.hover',
+              },
+            }}
+          >
             <ListItemIcon>
               <SettingsIcon />
             </ListItemIcon>

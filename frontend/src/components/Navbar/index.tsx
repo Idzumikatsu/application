@@ -10,11 +10,13 @@ import {
   MenuItem,
   Divider,
   Avatar,
+  Box,
 } from '@mui/material';
 import {
   Notifications as NotificationsIcon,
   AccountCircle as AccountCircleIcon,
   Logout as LogoutIcon,
+  Home as HomeIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -70,12 +72,24 @@ const Navbar: React.FC<NavbarProps> = ({ onNotificationClick, notificationCount 
   };
 
   return (
-    <AppBar position="static">
-      <Toolbar>
+    <AppBar 
+      position="static" 
+      sx={{ 
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+        backgroundColor: 'background.paper',
+        color: 'text.primary',
+      }}
+    >
+      <Toolbar sx={{ minHeight: 64 }}>
         <Typography 
           variant="h6" 
           component="div" 
-          sx={{ flexGrow: 1, cursor: 'pointer' }}
+          sx={{ 
+            flexGrow: 1, 
+            cursor: 'pointer',
+            fontWeight: 600,
+            color: 'primary.main',
+          }}
           onClick={handleDashboardClick}
         >
           CRM Система
@@ -83,24 +97,55 @@ const Navbar: React.FC<NavbarProps> = ({ onNotificationClick, notificationCount 
         
         {onNotificationClick && (
           <IconButton 
-            color="inherit" 
+            color="primary" 
             onClick={onNotificationClick}
-            sx={{ mr: 2 }}
+            sx={{ 
+              mr: 2,
+              backgroundColor: 'rgba(25, 118, 210, 0.08)',
+              '&:hover': {
+                backgroundColor: 'rgba(25, 118, 210, 0.12)',
+              },
+            }}
           >
-            <Badge badgeContent={notificationCount} color="error">
+            <Badge 
+              badgeContent={notificationCount} 
+              color="error"
+              sx={{
+                '& .MuiBadge-badge': {
+                  minWidth: 16,
+                  height: 16,
+                  fontSize: '0.625rem',
+                }
+              }}
+            >
               <NotificationsIcon />
             </Badge>
           </IconButton>
         )}
         
         <IconButton
-          color="inherit"
+          color="primary"
           onClick={handleMenuOpen}
           aria-controls={menuOpen ? 'account-menu' : undefined}
           aria-haspopup="true"
           aria-expanded={menuOpen ? 'true' : undefined}
+          sx={{
+            backgroundColor: 'rgba(25, 118, 210, 0.08)',
+            '&:hover': {
+              backgroundColor: 'rgba(25, 118, 210, 0.12)',
+            },
+          }}
         >
-          <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}>
+          <Avatar 
+            sx={{ 
+              width: 36, 
+              height: 36, 
+              bgcolor: 'primary.main',
+              color: 'primary.contrastText',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+            }}
+          >
             {user?.firstName?.charAt(0)}
             {user?.lastName?.charAt(0)}
           </Avatar>
@@ -116,8 +161,10 @@ const Navbar: React.FC<NavbarProps> = ({ onNotificationClick, notificationCount 
             elevation: 0,
             sx: {
               overflow: 'visible',
-              filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+              filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.15))',
               mt: 1.5,
+              borderRadius: 2,
+              minWidth: 280,
               '& .MuiAvatar-root': {
                 width: 32,
                 height: 32,
@@ -141,29 +188,50 @@ const Navbar: React.FC<NavbarProps> = ({ onNotificationClick, notificationCount 
           transformOrigin={{ horizontal: 'right', vertical: 'top' }}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
-          <MenuItem onClick={handleProfileClick}>
-            <AccountCircleIcon sx={{ mr: 1 }} />
-            <div>
-              <Typography variant="subtitle2">
-                {user?.firstName} {user?.lastName}
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                {getRoleDisplayName(user?.role || '')}
-              </Typography>
-            </div>
-          </MenuItem>
+          <Box sx={{ p: 2, pb: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Avatar 
+                sx={{ 
+                  width: 40, 
+                  height: 40, 
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
+                  fontSize: '1rem',
+                  fontWeight: 500,
+                  mr: 1.5,
+                }}
+              >
+                {user?.firstName?.charAt(0)}
+                {user?.lastName?.charAt(0)}
+              </Avatar>
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  {user?.firstName} {user?.lastName}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  {getRoleDisplayName(user?.role || '')}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
           
           <Divider />
           
-          <MenuItem onClick={handleDashboardClick}>
+          <MenuItem onClick={handleDashboardClick} sx={{ py: 1.2 }}>
+            <HomeIcon sx={{ mr: 1.5, color: 'primary.main' }} />
             <Typography variant="body2">Главная</Typography>
           </MenuItem>
           
+          <MenuItem onClick={handleProfileClick} sx={{ py: 1.2 }}>
+            <AccountCircleIcon sx={{ mr: 1.5, color: 'primary.main' }} />
+            <Typography variant="body2">Профиль</Typography>
+          </MenuItem>
+          
           <Divider />
           
-          <MenuItem onClick={handleLogout}>
-            <LogoutIcon sx={{ mr: 1 }} />
-            <Typography variant="body2">Выйти</Typography>
+          <MenuItem onClick={handleLogout} sx={{ py: 1.2 }}>
+            <LogoutIcon sx={{ mr: 1.5, color: 'error.main' }} />
+            <Typography variant="body2" color="error.main">Выйти</Typography>
           </MenuItem>
         </Menu>
       </Toolbar>

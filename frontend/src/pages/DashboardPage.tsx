@@ -11,6 +11,8 @@ import {
   CardActions,
   Button,
   Avatar,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import { RootState } from '../store';
 import { UserRole } from '../types';
@@ -18,6 +20,8 @@ import { UserRole } from '../types';
 const DashboardPage: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const getRoleDisplayName = (role: UserRole): string => {
     switch (role) {
@@ -65,38 +69,114 @@ const DashboardPage: React.FC = () => {
   const actions = getDashboardActions();
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 4, mb: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-          <Avatar sx={{ width: 56, height: 56, mr: 2 }}>
+    <Container maxWidth="lg" sx={{ py: isMobile ? 2 : 4 }}>
+      <Box sx={{ mb: 4 }}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            mb: 4,
+            flexDirection: isMobile ? 'column' : 'row',
+            textAlign: isMobile ? 'center' : 'left',
+          }}
+        >
+          <Avatar 
+            sx={{ 
+              width: isMobile ? 64 : 72, 
+              height: isMobile ? 64 : 72, 
+              mr: isMobile ? 0 : 3,
+              mb: isMobile ? 2 : 0,
+              fontSize: isMobile ? '1.5rem' : '1.75rem',
+              fontWeight: 500,
+              bgcolor: 'primary.main',
+              color: 'primary.contrastText',
+            }}
+          >
             {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
           </Avatar>
           <Box>
-            <Typography variant="h4">
-              Добро пожаловать, {user?.firstName} {user?.lastName}!
+            <Typography 
+              variant={isMobile ? "h5" : "h4"} 
+              sx={{ 
+                fontWeight: 600,
+                mb: 0.5,
+              }}
+            >
+              Добро пожаловать, {user?.firstName}!
             </Typography>
-            <Typography variant="subtitle1" color="textSecondary">
-              Роль: {getRoleDisplayName(user?.role || UserRole.STUDENT)}
+            <Typography 
+              variant="subtitle1" 
+              color="textSecondary"
+              sx={{
+                mb: 1,
+              }}
+            >
+              {user?.firstName} {user?.lastName}
+            </Typography>
+            <Typography 
+              variant="body1" 
+              sx={{
+                display: 'inline-block',
+                px: 1.5,
+                py: 0.5,
+                borderRadius: 2,
+                backgroundColor: 'primary.light',
+                color: 'primary.main',
+                fontWeight: 500,
+              }}
+            >
+              {getRoleDisplayName(user?.role || UserRole.STUDENT)}
             </Typography>
           </Box>
         </Box>
 
-        <Grid container spacing={3}>
+        <Grid container spacing={isMobile ? 2 : 3}>
           {actions.map((action, index) => (
             <Grid item xs={12} sm={6} md={4} key={index}>
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography gutterBottom variant="h6" component="h2">
+              <Card 
+                sx={{ 
+                  height: '100%', 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: '0 6px 16px rgba(0,0,0,0.12)',
+                  },
+                }}
+              >
+                <CardContent sx={{ flexGrow: 1, pb: 2 }}>
+                  <Typography 
+                    gutterBottom 
+                    variant="h6" 
+                    component="h2"
+                    sx={{
+                      fontWeight: 600,
+                      mb: 1,
+                    }}
+                  >
                     {action.title}
                   </Typography>
-                  <Typography>
+                  <Typography 
+                    variant="body2" 
+                    color="textSecondary"
+                    sx={{
+                      lineHeight: 1.6,
+                    }}
+                  >
                     {action.description}
                   </Typography>
                 </CardContent>
-                <CardActions>
+                <CardActions sx={{ pt: 0, px: 2, pb: 2 }}>
                   <Button 
                     size="small" 
                     onClick={() => navigate(action.path)}
+                    variant="contained"
+                    sx={{
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      fontWeight: 500,
+                    }}
                   >
                     Перейти
                   </Button>

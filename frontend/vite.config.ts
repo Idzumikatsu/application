@@ -27,13 +27,6 @@ export default defineConfig({
   optimizeDeps: {
     include: ['@emotion/react', '@emotion/styled'],
   },
-  css: {
-    preprocessorOptions: {
-      scss: {
-        additionalData: `@import "@/styles/global.scss";`,
-      },
-    },
-  },
   build: {
     outDir: 'dist',
     sourcemap: true,

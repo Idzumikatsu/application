@@ -1,3 +1,5 @@
+@import './components.css';
+
 /* Global styles for the CRM application */
 
 /* Reset default styles */
@@ -12,6 +14,8 @@ body {
   background-color: #f5f5f5;
   color: #333;
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* App container */
@@ -26,6 +30,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  background-color: #f5f5f5;
 }
 
 /* Dashboard cards */
@@ -33,6 +38,13 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
 }
 
 .dashboard-card-content {
@@ -43,11 +55,14 @@ body {
 .form-container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
 .form-field {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 /* Tables */
@@ -61,10 +76,12 @@ body {
 
 /* Status badges */
 .status-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .status-scheduled {
@@ -106,6 +123,9 @@ body {
 .action-button {
   margin-right: 8px;
   margin-bottom: 8px;
+  border-radius: 8px;
+  text-transform: none;
+  font-weight: 500;
 }
 
 /* Loading spinner */
@@ -120,27 +140,30 @@ body {
 .error-message {
   color: #d32f2f;
   background-color: #ffebee;
-  padding: 12px;
-  border-radius: 4px;
+  padding: 16px;
+  border-radius: 8px;
   margin-bottom: 16px;
+  border-left: 4px solid #d32f2f;
 }
 
 /* Success messages */
 .success-message {
   color: #388e3c;
   background-color: #e8f5e9;
-  padding: 12px;
-  border-radius: 4px;
+  padding: 16px;
+  border-radius: 8px;
   margin-bottom: 16px;
+  border-left: 4px solid #388e3c;
 }
 
 /* Warning messages */
 .warning-message {
   color: #f57c00;
   background-color: #fff3e0;
-  padding: 12px;
-  border-radius: 4px;
+  padding: 16px;
+  border-radius: 8px;
   margin-bottom: 16px;
+  border-left: 4px solid #f57c00;
 }
 
 /* Notification badge */
@@ -162,7 +185,8 @@ body {
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .form-container {
-    padding: 10px;
+    padding: 16px;
+    margin: 16px;
   }
   
   .dashboard-card {
@@ -170,10 +194,14 @@ body {
   }
   
   .action-button {
-    margin-right: 4px;
-    margin-bottom: 4px;
-    padding: 6px 12px;
+    margin-right: 6px;
+    margin-bottom: 6px;
+    padding: 8px 14px;
     font-size: 0.875rem;
+  }
+  
+  body {
+    font-size: 15px;
   }
 }
 
@@ -185,6 +213,7 @@ body {
   
   body {
     background-color: white;
+    font-size: 12pt;
   }
   
   .print-friendly {
@@ -197,7 +226,7 @@ body {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -206,10 +235,40 @@ body {
 }
 
 .fade-in {
-  animation: fadeIn 0.3s ease-in-out;
+  animation: fadeIn 0.3s ease-out;
 }
 
 /* Smooth transitions */
 .transition-all {
-  transition: all 0.3s ease-in-out;
+  transition: all 0.3s ease;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Focus styles */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
 }

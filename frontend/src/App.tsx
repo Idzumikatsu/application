@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { CssBaseline, Box } from '@mui/material';
+import { CssBaseline, Box, useMediaQuery, ThemeProvider as MuiThemeProvider } from '@mui/material';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { ToastContainer } from 'react-toastify';
 import { useSelector, useDispatch } from 'react-redux';
+import { useTheme } from '@mui/material/styles';
 
 import { Navbar, Sidebar } from '@/components';
 import ProtectedRoute from '@/routes/ProtectedRoute';
@@ -15,65 +15,16 @@ import { RootState, AppDispatch } from './store';
 import { loginSuccess, logout } from './store/authSlice';
 import AuthService from './services/authService';
 import DashboardPage from './pages/DashboardPage';
+import theme from './theme';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-    background: {
-      default: '#f5f5f5',
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h4: {
-      fontWeight: 600,
-    },
-    h5: {
-      fontWeight: 600,
-    },
-    h6: {
-      fontWeight: 600,
-    },
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none',
-          borderRadius: 8,
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-        },
-      },
-    },
-  },
-});
-
 function App() {
+  const muiTheme = useTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
   const dispatch: AppDispatch = useDispatch();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(!isMobile);
 
   useEffect(() => {
     const token = AuthService.getToken();
@@ -112,6 +63,10 @@ function App() {
     }
   }, [dispatch]);
 
+  useEffect(() => {
+    setOpen(!isMobile);
+  }, [isMobile]);
+
   const renderProtectedRoute = (element: React.ReactElement) => {
     return isAuthenticated ? element : <Navigate to="/login" replace />;
   };
@@ -129,18 +84,45 @@ function App() {
     return <Navigate to="/dashboard" replace />;
   };
 
+  const handleDrawerToggle = () => {
+    setOpen(!open);
+  };
+
   const handleDrawerClose = () => {
-    setOpen(false);
+    if (isMobile) {
+      setOpen(false);
+    }
   };
 
   return (
-    <ThemeProvider theme={theme}>
+    <MuiThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-        {user && <Sidebar open={open} onClose={handleDrawerClose} />}
-        <Box component="main" sx={{ flexGrow: 1 }}>
-          {user && <Navbar />}
-          <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: 'background.default' }}>
+        {user && (
+          <Sidebar 
+            open={open} 
+            onClose={handleDrawerClose} 
+            onNotificationClick={handleDrawerToggle}
+          />
+        )}
+        <Box 
+          component="main" 
+          sx={{ 
+            flexGrow: 1,
+            width: user ? { xs: '100%', md: `calc(100% - ${open ? 280 : 0}px)` } : '100%',
+            ml: user ? { xs: 0, md: open ? '280px' : 0 } : 0,
+            transition: 'margin 225ms cubic-bezier(0, 0, 0.2, 1) 0ms',
+          }}
+        >
+          {user && <Navbar onNotificationClick={handleDrawerToggle} />}
+          <Box 
+            sx={{ 
+              p: { xs: 1, sm: 2, md: 3 },
+              pt: { xs: 2, sm: 3, md: 3 },
+              minHeight: 'calc(100vh - 64px)',
+            }}
+            className="main-content"
+          >
             <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
@@ -180,10 +162,21 @@ function App() {
               />
             </Routes>
           </Box>
-          <ToastContainer />
+          <ToastContainer 
+            position="bottom-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+          />
         </Box>
       </Box>
-    </ThemeProvider>
+    </MuiThemeProvider>
   );
 }
 

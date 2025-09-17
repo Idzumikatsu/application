@@ -1,0 +1,173 @@
+/* Responsive design improvements for the CRM application */
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+  .container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-container {
+    padding: 16px;
+    margin: 12px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+  }
+  
+  .action-buttons {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  
+  .action-button {
+    flex: 1 1 auto;
+    min-width: 120px;
+    margin-bottom: 8px;
+  }
+  
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .hidden-xs {
+    display: none !important;
+  }
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .hidden-sm {
+    display: none !important;
+  }
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+  .container {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .page-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .sidebar {
+    display: block !important;
+  }
+  
+  .hidden-md {
+    display: none !important;
+  }
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (min-width: 992px) {
+  .container {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+  
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .hidden-lg {
+    display: none !important;
+  }
+}
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media only screen and (min-width: 1200px) {
+  .container {
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .card-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .hidden-xl {
+    display: none !important;
+  }
+}
+
+/* High resolution displays */
+@media only screen and (min-width: 1600px) {
+  .container {
+    max-width: 1600px;
+  }
+  
+  .card-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  body {
+    background-color: white;
+    font-size: 12pt;
+  }
+  
+  .page-break {
+    page-break-before: always;
+  }
+  
+  .avoid-page-break {
+    page-break-inside: avoid;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-default: #121212;
+    --background-paper: #1e1e1e;
+    --text-primary: rgba(255, 255, 255, 0.87);
+    --text-secondary: rgba(255, 255, 255, 0.6);
+  }
+  
+  body {
+    background-color: var(--background-default);
+    color: var(--text-primary);
+  }
+  
+  .form-container {
+    background-color: var(--background-paper);
+  }
+}
