@@ -13,7 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = AuthController.class)
+@WebMvcTest(controllers = AuthController.class, properties = "server.forward-headers-strategy=framework")
 @Import({WebSecurityConfig.class, JwtAuthEntryPoint.class})
 class WebSecurityConfigTest {
 
