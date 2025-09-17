@@ -364,64 +364,63 @@ jobs:
         export REGISTRY='${{ env.REGISTRY }}'
         export IMAGE_NAME='${{ secrets.IMAGE_NAME }}'
         python3 <<'PY'
-import os
-from collections import OrderedDict
+        import os
+        from collections import OrderedDict
 
-config = OrderedDict([
-    ("POSTGRES_DB", os.environ["POSTGRES_DB"]),
-    ("POSTGRES_USER", os.environ["POSTGRES_USER"]),
-    ("POSTGRES_PASSWORD", os.environ["POSTGRES_PASSWORD"]),
-    ("DATABASE_URL", os.environ["DATABASE_URL"]),
-    ("DATABASE_USERNAME", os.environ["DATABASE_USERNAME"]),
-    ("DATABASE_PASSWORD", os.environ["DATABASE_PASSWORD"]),
-    ("JWT_SECRET", os.environ["JWT_SECRET"]),
-    ("JWT_EXPIRATION", "86400"),
-    ("PORT", "8080"),
-    ("MAIL_HOST", os.environ["MAIL_HOST"]),
-    ("MAIL_PORT", os.environ["MAIL_PORT"]),
-    ("EMAIL_USERNAME", os.environ["MAIL_USERNAME"]),
-    ("MAIL_PASSWORD", os.environ["MAIL_PASSWORD"]),
-    ("MAIL_PROTOCOL", "smtps"),
-    ("MAIL_SMTP_AUTH", "true"),
-    ("MAIL_SMTP_STARTTLS_ENABLE", "false"),
-    ("MAIL_SMTP_SSL_ENABLE", "true"),
-    ("MAIL_SMTP_CONNECTIONTIMEOUT", "5000"),
-    ("MAIL_SMTP_TIMEOUT", "5000"),
-    ("MAIL_SMTP_WRITETIMEOUT", "5000"),
-    ("EMAIL_GATEWAY_BASE_URL", os.environ["EMAIL_GATEWAY_BASE_URL"]),
-    ("APP_FRONTEND_URL", os.environ["APP_FRONTEND_URL"]),
-    ("SUPPORT_EMAIL", os.environ["SUPPORT_EMAIL"]),
-    ("TELEGRAM_BOT_URL", os.environ["TELEGRAM_BOT_URL"]),
-    ("TELEGRAM_BOT_TOKEN", os.environ["TELEGRAM_BOT_TOKEN"]),
-    ("TELEGRAM_BOT_USERNAME", os.environ["TELEGRAM_BOT_USERNAME"]),
-    ("POSTGRES_HEALTHCHECK_USER", os.environ["POSTGRES_USER"]),
-    ("POSTGRES_HEALTHCHECK_PASSWORD", os.environ["POSTGRES_PASSWORD"]),
-    ("POSTGRES_HEALTHCHECK_DB", os.environ["POSTGRES_DB"]),
-    ("REGISTRY", os.environ["REGISTRY"]),
-    ("IMAGE_NAME", os.environ["IMAGE_NAME"]),
-    ("DEPLOY_PATH", "/opt/application"),
-    ("SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE", "10MB"),
-    ("SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE", "10MB"),
-    ("SERVER_SERVLET_SESSION_TIMEOUT", "30m"),
-    ("SPRING_SESSION_STORE_TYPE", "jdbc"),
-    ("SPRING_SESSION_JDBC_INITIALIZE_SCHEMA", "always"),
-    ("SPRING_MAIN_LAZY_INITIALIZATION", "true"),
-    ("LOGGING_LEVEL_COM_CRM_SYSTEM", "INFO"),
-    ("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY", "INFO"),
-    ("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB", "INFO"),
-    ("HEALTH_CHECK_TIMEOUT", "30"),
-    ("HEALTH_CHECK_INTERVAL", "10"),
-    ("SPRING_BOOT_HEALTHCHECK_ENABLED", "true"),
-    ("SPRING_BOOT_HEALTHCHECK_PATH", "/actuator/health"),
-    ("SPRING_BOOT_HEALTHCHECK_TIMEOUT", "30s"),
-    ("SPRING_BOOT_HEALTHCHECK_INTERVAL", "10s"),
-    ("BACKUP_RETENTION_DAYS", "7"),
-])
+        config = OrderedDict([
+            ("POSTGRES_DB", os.environ["POSTGRES_DB"]),
+            ("POSTGRES_USER", os.environ["POSTGRES_USER"]),
+            ("POSTGRES_PASSWORD", os.environ["POSTGRES_PASSWORD"]),
+            ("DATABASE_URL", os.environ["DATABASE_URL"]),
+            ("DATABASE_USERNAME", os.environ["DATABASE_USERNAME"]),
+            ("DATABASE_PASSWORD", os.environ["DATABASE_PASSWORD"]),
+            ("JWT_SECRET", os.environ["JWT_SECRET"]),
+            ("JWT_EXPIRATION", "86400"),
+            ("PORT", "8080"),
+            ("MAIL_HOST", os.environ["MAIL_HOST"]),
+            ("MAIL_PORT", os.environ["MAIL_PORT"]),
+            ("EMAIL_USERNAME", os.environ["MAIL_USERNAME"]),
+            ("MAIL_PASSWORD", os.environ["MAIL_PASSWORD"]),
+            ("MAIL_PROTOCOL", "smtps"),
+            ("MAIL_SMTP_AUTH", "true"),
+            ("MAIL_SMTP_STARTTLS_ENABLE", "false"),
+            ("MAIL_SMTP_SSL_ENABLE", "true"),
+            ("MAIL_SMTP_CONNECTIONTIMEOUT", "5000"),
+            ("MAIL_SMTP_TIMEOUT", "5000"),
+            ("EMAIL_GATEWAY_BASE_URL", os.environ["EMAIL_GATEWAY_BASE_URL"]),
+            ("APP_FRONTEND_URL", os.environ["APP_FRONTEND_URL"]),
+            ("SUPPORT_EMAIL", os.environ["SUPPORT_EMAIL"]),
+            ("TELEGRAM_BOT_URL", os.environ["TELEGRAM_BOT_URL"]),
+            ("TELEGRAM_BOT_TOKEN", os.environ["TELEGRAM_BOT_TOKEN"]),
+            ("TELEGRAM_BOT_USERNAME", os.environ["TELEGRAM_BOT_USERNAME"]),
+            ("POSTGRES_HEALTHCHECK_USER", os.environ["POSTGRES_USER"]),
+            ("POSTGRES_HEALTHCHECK_PASSWORD", os.environ["POSTGRES_PASSWORD"]),
+            ("POSTGRES_HEALTHCHECK_DB", os.environ["POSTGRES_DB"]),
+            ("REGISTRY", os.environ["REGISTRY"]),
+            ("IMAGE_NAME", os.environ["IMAGE_NAME"]),
+            ("DEPLOY_PATH", "/opt/application"),
+            ("SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE", "10MB"),
+            ("SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE", "10MB"),
+            ("SERVER_SERVLET_SESSION_TIMEOUT", "30m"),
+            ("SPRING_SESSION_STORE_TYPE", "jdbc"),
+            ("SPRING_SESSION_JDBC_INITIALIZE_SCHEMA", "always"),
+            ("SPRING_MAIN_LAZY_INITIALIZATION", "true"),
+            ("LOGGING_LEVEL_COM_CRM_SYSTEM", "INFO"),
+            ("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY", "INFO"),
+            ("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB", "INFO"),
+            ("HEALTH_CHECK_TIMEOUT", "30"),
+            ("HEALTH_CHECK_INTERVAL", "10"),
+            ("SPRING_BOOT_HEALTHCHECK_ENABLED", "true"),
+            ("SPRING_BOOT_HEALTHCHECK_PATH", "/actuator/health"),
+            ("SPRING_BOOT_HEALTHCHECK_TIMEOUT", "30s"),
+            ("SPRING_BOOT_HEALTHCHECK_INTERVAL", "10s"),
+            ("BACKUP_RETENTION_DAYS", "7"),
+        ])
 
-with open(".env", "w", encoding="utf-8") as f:
-    for key, value in config.items():
-        f.write(f"{key}={value}\n")
-PY
+        with open(".env", "w", encoding="utf-8") as f:
+            for key, value in config.items():
+                f.write(f"{key}={value}\n")
+        PY
         chmod 600 .env
         echo "🔍 Pulling latest code from repository"
         git pull origin master || (echo "❌ Failed to pull latest code" && exit 1)
