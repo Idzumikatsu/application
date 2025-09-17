@@ -49,7 +49,7 @@ describe('App Component', () => {
     renderWithProviders(<App />);
 
     // Проверяем, что отображается компонент логина
-    expect(screen.getByText('Вход в CRM Synergy')).toBeTruthy();
+    expect(screen.getByText('CRM Система')).toBeTruthy();
     expect(screen.getByText('Онлайн школа английского языка')).toBeTruthy();
   });
 
@@ -57,6 +57,6 @@ describe('App Component', () => {
     renderWithProviders(<App />);
 
     // Базовый тест на отсутствие ошибок рендеринга
-    expect(screen.getByText('Вход в CRM Synergy')).toBeTruthy();
+    expect(screen.getByText('CRM Система')).toBeTruthy();
   });
 });
