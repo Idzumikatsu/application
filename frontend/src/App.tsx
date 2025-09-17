@@ -17,6 +17,7 @@ import AuthService from './services/authService';
 import DashboardPage from './pages/DashboardPage';
 import theme from './theme';
 import 'react-toastify/dist/ReactToastify.css';
+import './styles/global.css';
 import './App.css';
 
 function App() {
