@@ -32,7 +32,7 @@ http:
       service: frontend
       tls:
         certResolver: letsencrypt
-      priority: 5
+      priority: 15
 
     email-service:
       rule: "Host(`email.crm-synergy.ru`)"
