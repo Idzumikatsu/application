@@ -19,6 +19,9 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private EmailGatewayService emailGatewayService;
+
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
@@ -37,7 +40,13 @@ public class UserService {
 
     public User createUser(String firstName, String lastName, String email, String password, UserRole role) {
         User user = new User(firstName, lastName, email, passwordEncoder.encode(password), role);
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        try {
+            emailGatewayService.sendWelcomeEmail(savedUser, password);
+        } catch (Exception ex) {
+            // Ошибка отправки письма не должна блокировать создание пользователя
+        }
+        return savedUser;
     }
 
     public List<User> findByRole(UserRole role) {

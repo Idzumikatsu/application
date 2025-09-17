@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>Техническое обслуживание CRM Synergy</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333;">
+<h2>Здравствуйте, <span th:text="${name}"></span>!</h2>
+<p>Сообщаем о плановом техническом обслуживании CRM Synergy.</p>
+<ul>
+    <li>Начало: <strong th:text="${windowStart}"></strong></li>
+    <li>Окончание: <strong th:text="${windowEnd}"></strong></li>
+</ul>
+<p th:text="${details}"></p>
+<p th:if="${supportEmail}">Если у вас есть вопросы, пожалуйста, свяжитесь с нами: <a th:href="${'mailto:' + supportEmail}" th:text="${supportEmail}"></a>.</p>
+<p>Благодарим за понимание!<br/>Команда CRM Synergy</p>
+</body>
+</html>

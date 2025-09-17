@@ -38,33 +38,14 @@ const DashboardFeedbackWidget: React.FC = () => {
       
       dispatch(setLoading(true));
       try {
-        // Load feedback request notifications
-        let data: Notification[] = [];
-        
-        if (user.role === 'TEACHER') {
-          // Load feedback requests for teachers
-          data = await NotificationService.getNotificationsByType(
-            user.id,
-            user.role,
-            NotificationType.FEEDBACK_REQUEST
-          );
-        } else if (user.role === 'STUDENT') {
-          // Load feedback requests for students
-          data = await NotificationService.getNotificationsByType(
-            user.id,
-            user.role,
-            NotificationType.FEEDBACK_REQUEST
-          );
-        } else {
-          // For managers and admins, load all feedback requests
-          data = await NotificationService.getNotificationsByType(
-            user.id,
-            user.role,
-            NotificationType.FEEDBACK_REQUEST
-          );
-        }
-        
-        // Filter only pending feedback requests and sort by date
+        const response = await NotificationService.getNotifications(user.id, user.role, {
+          types: [NotificationType.FEEDBACK_REQUEST],
+          statuses: [NotificationStatus.PENDING],
+          size: 5,
+          page: 0,
+        });
+        const data = response.content ?? [];
+
         const feedbackRequests = data
           .filter(notification => notification.status === NotificationStatus.PENDING)
           .sort((a, b) =>

@@ -40,45 +40,14 @@ const DashboardRemindersWidget: React.FC = () => {
     
     dispatch(setLoading(true));
     try {
-      // Load reminder notifications
-      let data: Notification[] = [];
-      
-      if (user.role === 'TEACHER') {
-        // Load lesson and group lesson reminders for teachers
-        const lessonReminders = await NotificationService.getNotificationsByType(
-          user.id, 
-          user.role, 
-          NotificationType.LESSON_REMINDER
-        );
-        
-        const groupLessonReminders = await NotificationService.getNotificationsByType(
-          user.id, 
-          user.role, 
-          NotificationType.GROUP_LESSON_REMINDER
-        );
-        
-        data = [...lessonReminders, ...groupLessonReminders];
-      } else if (user.role === 'STUDENT') {
-        // Load lesson and group lesson reminders for students
-        const lessonReminders = await NotificationService.getNotificationsByType(
-          user.id, 
-          user.role, 
-          NotificationType.LESSON_REMINDER
-        );
-        
-        const groupLessonReminders = await NotificationService.getNotificationsByType(
-          user.id, 
-          user.role, 
-          NotificationType.GROUP_LESSON_REMINDER
-        );
-        
-        data = [...lessonReminders, ...groupLessonReminders];
-      } else {
-        // For managers and admins, load all pending reminders
-        data = await NotificationService.getPendingNotifications(user.id, user.role);
-      }
-      
-      // Filter only reminder notifications and sort by date
+      const response = await NotificationService.getNotifications(user.id, user.role, {
+        types: [NotificationType.LESSON_REMINDER, NotificationType.GROUP_LESSON_REMINDER],
+        statuses: [NotificationStatus.PENDING],
+        size: 20,
+        page: 0,
+      });
+      const data = response.content ?? [];
+
       const reminderNotifications = data
         .filter(notification => 
           notification.notificationType === NotificationType.LESSON_REMINDER ||

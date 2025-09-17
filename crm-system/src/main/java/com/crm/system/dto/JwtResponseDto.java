@@ -8,17 +8,22 @@ public class JwtResponseDto {
     private String lastName;
     private String email;
     private String role;
+    private Long expiresIn;
 
     public JwtResponseDto(String token, Long id, String firstName, String lastName, String email, String role) {
+        this(token, id, firstName, lastName, email, role, null);
+    }
+
+    public JwtResponseDto(String token, Long id, String firstName, String lastName, String email, String role, Long expiresIn) {
         this.token = token;
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.role = role;
+        this.expiresIn = expiresIn;
     }
 
-    // Getters and Setters
     public String getToken() {
         return token;
     }
@@ -73,5 +78,13 @@ public class JwtResponseDto {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public Long getExpiresIn() {
+        return expiresIn;
+    }
+
+    public void setExpiresIn(Long expiresIn) {
+        this.expiresIn = expiresIn;
     }
 }

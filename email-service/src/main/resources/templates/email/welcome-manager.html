@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>Добро пожаловать в CRM Synergy</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333;">
+<h2>Здравствуйте, <span th:text="${name}"></span>!</h2>
+<p>Рады приветствовать вас в CRM Synergy для онлайн школы английского языка.</p>
+<p>Ваша роль: <strong th:text="${role}"></strong></p>
+<p>Для входа используйте следующие данные:</p>
+<ul>
+    <li>Адрес входа: <a th:href="${loginUrl}" th:text="${loginUrl}"></a></li>
+    <li>Временный пароль: <code th:text="${temporaryPassword}"></code></li>
+</ul>
+<p>Рекомендуем сменить пароль после первого входа.</p>
+<p th:if="${telegramBotUrl}">
+    Для подключения Telegram-бота перейдите по ссылке:
+    <a th:href="${telegramBotUrl}" th:text="${telegramBotUrl}"></a>
+</p>
+<p th:if="${supportEmail}">
+    По вопросам обращайтесь в службу поддержки: <a th:href="${'mailto:' + supportEmail}" th:text="${supportEmail}"></a>
+</p>
+<p>С уважением,<br/>Команда CRM Synergy</p>
+</body>
+</html>

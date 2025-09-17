@@ -156,7 +156,7 @@ public class NotificationController {
         return ResponseEntity.ok(notificationDtos);
     }
 
-    @PostMapping("/{id}/mark-all-as-read")
+    @PostMapping("/recipients/{recipientId}/{recipientType}/mark-all-as-read")
     @PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER') or hasRole('MANAGER') or hasRole('ADMIN')")
     public ResponseEntity<Void> markAllNotificationsAsRead(
             @PathVariable Long recipientId,

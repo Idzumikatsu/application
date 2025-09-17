@@ -54,21 +54,20 @@ const DashboardSystemNotificationsWidget: React.FC = () => {
     
     dispatch(setLoading(true));
     try {
-      // Load system notifications
-      const data = await NotificationService.getNotificationsByType(
-        user.id, 
-        user.role, 
-        NotificationType.SYSTEM_MESSAGE
-      );
-      
-      // Filter only system notifications and sort by date
+      const response = await NotificationService.getNotifications(user.id, user.role, {
+        types: [NotificationType.SYSTEM_MESSAGE],
+        size: 5,
+        page: 0,
+      });
+      const data = response.content ?? [];
+
       const sysNotifications = data
         .filter(notification => notification.notificationType === NotificationType.SYSTEM_MESSAGE)
-        .sort((a, b) => 
+        .sort((a, b) =>
           new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
         )
         .slice(0, 5);
-      
+
       dispatch(setNotifications(sysNotifications));
       setSystemNotifications(sysNotifications);
       

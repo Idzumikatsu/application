@@ -25,24 +25,30 @@ import {
 } from '@mui/icons-material';
 import { RootState, AppDispatch } from '../store';
 import { Notification, NotificationStatus, NotificationType } from '../types';
-import { markAsRead, markAllAsRead, setLoading, setError } from '../store/notificationSlice';
+import { markAsRead, markAllAsRead, setLoading, setError, setNotifications } from '../store/notificationSlice';
 import NotificationService from '../services/notificationService';
 
 const ManagerNotificationsPage: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
+  const { user } = useSelector((state: RootState) => state.auth);
   const { notifications, loading, error } = useSelector((state: RootState) => state.notifications);
   const [managerNotifications, setManagerNotifications] = useState<Notification[]>([]);
 
   const loadNotifications = useCallback(async () => {
+    if (!user) {
+      return;
+    }
+
     try {
       dispatch(setLoading(true));
-      await NotificationService.getAllNotifications();
+      const response = await NotificationService.getNotifications(user.id, user.role, { size: 50, page: 0 });
+      dispatch(setNotifications(response.content ?? []));
     } catch (err) {
       dispatch(setError('Не удалось загрузить уведомления'));
     } finally {
       dispatch(setLoading(false));
     }
-  }, [dispatch]);
+  }, [dispatch, user]);
 
   useEffect(() => {
     loadNotifications();
@@ -62,7 +68,7 @@ const ManagerNotificationsPage: React.FC = () => {
 
   const handleMarkAsRead = async (notificationId: number) => {
     try {
-      await NotificationService.markAsRead(notificationId);
+      await NotificationService.markNotificationAsRead(notificationId);
       dispatch(markAsRead(notificationId));
     } catch (err) {
       dispatch(setError('Не удалось отметить уведомление как прочитанное'));
@@ -70,8 +76,12 @@ const ManagerNotificationsPage: React.FC = () => {
   };
 
   const handleMarkAllAsRead = async () => {
+    if (!user) {
+      dispatch(setError('Пользователь не авторизован'));
+      return;
+    }
     try {
-      await NotificationService.markAllNotificationsAsRead();
+      await NotificationService.markAllAsRead(user.id, user.role);
       dispatch(markAllAsRead());
     } catch (err) {
       dispatch(setError('Не удалось отметить все уведомления как прочитанные'));

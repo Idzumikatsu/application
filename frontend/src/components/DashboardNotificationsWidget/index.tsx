@@ -56,9 +56,9 @@ const DashboardNotificationsWidget: React.FC = () => {
     
     dispatch(setLoading(true));
     try {
-      const data = await NotificationService.getNotifications(user.id, user.role);
-      // Sort by date and take only 5 most recent
-      const sortedData = data
+      const response = await NotificationService.getNotifications(user.id, user.role, { size: 5, page: 0 });
+      const content = response.content ?? [];
+      const sortedData = content
         .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
         .slice(0, 5);
       dispatch(setNotifications(sortedData));
@@ -71,7 +71,7 @@ const DashboardNotificationsWidget: React.FC = () => {
 
   const handleMarkAsRead = async (id: number) => {
     try {
-      const updatedNotification = await NotificationService.markAsRead(id);
+      await NotificationService.markNotificationAsRead(id);
       dispatch(markAsRead(id));
     } catch (err: any) {
       dispatch(setError(err.message || 'Ошибка при отметке уведомления'));

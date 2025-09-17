@@ -312,8 +312,8 @@ export interface ApiResponse<T> {
 
 export interface AuthResponse {
   token: string;
-  refreshToken: string;
   user: User;
+  expiresIn?: number;
 }
 
 // File upload interfaces

@@ -8,109 +8,112 @@ import com.crm.system.model.User;
 import com.crm.system.model.UserRole;
 import com.crm.system.security.JwtTokenUtil;
 import com.crm.system.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
-
-import jakarta.validation.Valid;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
-    
-    @Autowired
-    AuthenticationManager authenticationManager;
 
-    @Autowired
-    UserService userService;
+    private final AuthenticationManager authenticationManager;
+    private final UserService userService;
+    private final JwtTokenUtil jwtTokenUtil;
 
-    @Autowired
-    PasswordEncoder encoder;
+    public AuthController(AuthenticationManager authenticationManager,
+                          UserService userService,
+                          JwtTokenUtil jwtTokenUtil) {
+        this.authenticationManager = authenticationManager;
+        this.userService = userService;
+        this.jwtTokenUtil = jwtTokenUtil;
+    }
 
-    @Autowired
-    JwtTokenUtil jwtTokenUtil;
-
-    @PostMapping("/signin")
+    @PostMapping({"/signin", "/login"})
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginDto loginDto) {
         logger.info("Authentication attempt for email: {}", loginDto.getEmail());
-        
+
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            String jwt = jwtTokenUtil.generateToken((org.springframework.security.core.userdetails.User) authentication.getPrincipal());
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String jwt = jwtTokenUtil.generateToken(userDetails);
 
-            org.springframework.security.core.userdetails.User userDetails = 
-                (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
-            
-            User user = userService.findByEmail(userDetails.getUsername()).orElseThrow(() -> 
-                new RuntimeException("User not found"));
+            User user = userService.findByEmail(userDetails.getUsername()).orElseThrow(() ->
+                    new RuntimeException("User not found"));
 
             logger.info("Authentication successful for user: {}", user.getEmail());
-            
+
             return ResponseEntity.ok(new JwtResponseDto(
-                jwt,
-                user.getId(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getEmail(),
-                user.getRole().name()));
+                    jwt,
+                    user.getId(),
+                    user.getFirstName(),
+                    user.getLastName(),
+                    user.getEmail(),
+                    user.getRole().name(),
+                    jwtTokenUtil.getExpirationSeconds()));
         } catch (Exception e) {
             logger.error("Authentication failed for email: {}", loginDto.getEmail(), e);
             return ResponseEntity.badRequest().body(new MessageDto("Error: Authentication failed"));
         }
     }
 
-    @GetMapping("/test")
-    public ResponseEntity<?> testEndpoint() {
-        logger.info("Test endpoint called");
-        System.out.println("=== TEST ENDPOINT: Called successfully ===");
-        System.err.println("=== ERROR LOG: AuthController.test worked ===");
-        return ResponseEntity.ok("Test endpoint works!");
+    @PostMapping("/logout")
+    public ResponseEntity<MessageDto> logout() {
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok(new MessageDto("Logout successful"));
     }
 
-    @GetMapping("/test2")
-    public ResponseEntity<String> testEndpoint2() {
-        logger.info("Test2 endpoint called");
-        return ResponseEntity.ok("Test2 endpoint works!");
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(new MessageDto("Error: Unauthorized"));
+        }
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String jwt = jwtTokenUtil.generateToken(userDetails);
+        return ResponseEntity.ok(Map.of(
+                "token", jwt,
+                "expiresIn", jwtTokenUtil.getExpirationSeconds()));
     }
 
-    @GetMapping("/public")
-    public ResponseEntity<String> publicEndpoint() {
-        logger.info("Public endpoint called");
-        return ResponseEntity.ok("Public endpoint works!");
+    @GetMapping("/validate")
+    public ResponseEntity<?> validateToken(Authentication authentication) {
+        boolean valid = authentication != null && authentication.isAuthenticated();
+        return ResponseEntity.ok(Map.of("valid", valid));
     }
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupDto signUpDto) {
         logger.info("Signup attempt for email: {}", signUpDto.getEmail());
-        
+
         try {
             if (userService.existsByEmail(signUpDto.getEmail())) {
                 logger.warn("Email is already taken: {}", signUpDto.getEmail());
                 return ResponseEntity.badRequest().body(new MessageDto("Error: Email is already taken!"));
             }
 
-            // Create new user's account
             User user = userService.createUser(
-                signUpDto.getFirstName(),
-                signUpDto.getLastName(),
-                signUpDto.getEmail(),
-                signUpDto.getPassword(),
-                UserRole.valueOf(signUpDto.getRole().toUpperCase())
+                    signUpDto.getFirstName(),
+                    signUpDto.getLastName(),
+                    signUpDto.getEmail(),
+                    signUpDto.getPassword(),
+                    UserRole.valueOf(signUpDto.getRole().toUpperCase())
             );
-            
+
             logger.info("User registered successfully: {}", user.getEmail());
 
             return ResponseEntity.ok(new MessageDto("User registered successfully!"));
@@ -118,5 +121,17 @@ public class AuthController {
             logger.error("Error during signup for email: {}", signUpDto.getEmail(), e);
             return ResponseEntity.badRequest().body(new MessageDto("Error: Registration failed"));
         }
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<?> testEndpoint() {
+        logger.info("Test endpoint called");
+        return ResponseEntity.ok("Test endpoint works!");
+    }
+
+    @GetMapping("/public")
+    public ResponseEntity<String> publicEndpoint() {
+        logger.info("Public endpoint called");
+        return ResponseEntity.ok("Public endpoint works!");
     }
 }

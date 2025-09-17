@@ -51,11 +51,6 @@ const LoginPage: React.FC = () => {
 
       AuthService.setToken(response.token);
 
-      // Сохраняем refresh token если он есть в ответе
-      if ((response as any).refreshToken) {
-        AuthService.setRefreshToken((response as any).refreshToken);
-      }
-
       console.log('🏠 Navigation to dashboard...');
       navigate('/dashboard');
     } catch (err: any) {

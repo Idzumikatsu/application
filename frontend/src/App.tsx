@@ -112,28 +112,6 @@ function App() {
     }
   }, [dispatch]);
 
-  // Автоматическое обновление токена
-  useEffect(() => {
-    const checkTokenRefresh = async () => {
-      if (isAuthenticated && AuthService.shouldRefreshToken()) {
-        try {
-          const newToken = await AuthService.refreshToken();
-          AuthService.setToken(newToken);
-          dispatch(loginSuccess({ user: user!, token: newToken }));
-        } catch (error) {
-          console.warn('Не удалось обновить токен:', error);
-          // При ошибке обновления токена выходим из системы
-          dispatch(logout());
-          AuthService.logout();
-        }
-      }
-    };
-
-    // Проверяем каждые 30 секунд
-    const interval = setInterval(checkTokenRefresh, 30000);
-    return () => clearInterval(interval);
-  }, [isAuthenticated, user, dispatch]);
-
   const renderProtectedRoute = (element: React.ReactElement) => {
     return isAuthenticated ? element : <Navigate to="/login" replace />;
   };
@@ -150,9 +128,6 @@ function App() {
     // Если роль пользователя не соответствует разрешенным, перенаправляем на dashboard
     return <Navigate to="/dashboard" replace />;
   };
-
-  const allowedRoles = ['ADMIN', 'STUDENT', 'TEACHER'] as const;
-  const userRole = user?.role as typeof allowedRoles[number] | undefined;
 
   const handleDrawerClose = () => {
     setOpen(false);

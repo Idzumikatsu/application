@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>Добро пожаловать в CRM Synergy</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333;">
+<h2>Здравствуйте, <span th:text="${name}"></span>!</h2>
+<p>Ваша учетная запись в CRM Synergy создана.</p>
+<p>Для входа используйте следующий адрес: <a th:href="${loginUrl}" th:text="${loginUrl}"></a></p>
+<p>Временный пароль: <code th:text="${temporaryPassword}"></code></p>
+<p>Мы рекомендуем сменить пароль после первого входа.</p>
+<p th:if="${supportEmail}">Если возникнут вопросы, напишите на <a th:href="${'mailto:' + supportEmail}" th:text="${supportEmail}"></a>.</p>
+<p>С уважением,<br/>Команда CRM Synergy</p>
+</body>
+</html>

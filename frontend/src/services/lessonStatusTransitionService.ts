@@ -1,6 +1,5 @@
 import { Lesson, LessonStatus, LessonStatusChangeRequest } from '../types';
 import lessonService from './lessonService';
-import notificationService from './notificationService';
 
 export interface TransitionRule {
   from: LessonStatus;
@@ -84,49 +83,11 @@ export class LessonStatusTransitionService {
         statusChangeRequest
       );
 
-      // Создаем уведомление о смене статуса
-      await this.createStatusChangeNotification(lesson, applicableRule.to, applicableRule.description);
-
       return updatedLesson;
     } catch (error) {
       console.error('Ошибка при автоматическом переходе статуса:', error);
       return null;
     }
-  }
-
-  /**
-   * Создает уведомление о смене статуса урока
-   */
-  private static async createStatusChangeNotification(
-    lesson: Lesson, 
-    newStatus: LessonStatus,
-    reason: string
-  ): Promise<void> {
-    try {
-      await notificationService.createLessonStatusNotification(
-        lesson.studentId,
-        lesson.id,
-        lesson.status,
-        newStatus,
-        reason
-      );
-    } catch (error) {
-      console.error('Ошибка при создании уведомления:', error);
-    }
-  }
-
-  /**
-   * Получает текстовое описание статуса
-   */
-  private static getStatusText(status: LessonStatus): string {
-    const statusMap: Record<LessonStatus, string> = {
-      [LessonStatus.SCHEDULED]: 'Запланирован',
-      [LessonStatus.CONDUCTED]: 'Проведен',
-      [LessonStatus.COMPLETED]: 'Завершен',
-      [LessonStatus.CANCELLED]: 'Отменен',
-      [LessonStatus.MISSED]: 'Пропущен'
-    };
-    return statusMap[status];
   }
 
   /**

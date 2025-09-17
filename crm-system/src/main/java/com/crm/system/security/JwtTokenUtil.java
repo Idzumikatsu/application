@@ -1,20 +1,29 @@
 package com.crm.system.security;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.util.Date;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-
 @Component
 public class JwtTokenUtil {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private final Long expiration;
+    private final Key signingKey;
 
-    @Value("${jwt.expiration}")
-    private Long expiration;
+    public JwtTokenUtil(@Value("${jwt.secret}") String secret,
+                        @Value("${jwt.expiration}") Long expiration) {
+        this.expiration = expiration;
+        this.signingKey = buildKey(secret);
+    }
 
     public String generateToken(UserDetails userDetails) {
         Date now = new Date();
@@ -24,35 +33,46 @@ public class JwtTokenUtil {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS512, secret)
+                .signWith(signingKey, SignatureAlgorithm.HS512)
                 .compact();
     }
 
     public String getEmailFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(secret)
-                .parseClaimsJws(token)
-                .getBody();
-
-        return claims.getSubject();
+        return parseClaims(token).getBody().getSubject();
     }
 
     public Date getExpirationDateFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(secret)
-                .parseClaimsJws(token)
-                .getBody();
-
-        return claims.getExpiration();
+        return parseClaims(token).getBody().getExpiration();
     }
 
-    public Boolean validateToken(String token, UserDetails userDetails) {
+    public boolean validateToken(String token, UserDetails userDetails) {
         final String email = getEmailFromToken(token);
-        return (email.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        return email.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
-    private Boolean isTokenExpired(String token) {
-        final Date expiration = getExpirationDateFromToken(token);
-        return expiration.before(new Date());
+    public long getExpirationSeconds() {
+        return expiration;
+    }
+
+    private boolean isTokenExpired(String token) {
+        final Date expirationDate = getExpirationDateFromToken(token);
+        return expirationDate.before(new Date());
+    }
+
+    private Jws<Claims> parseClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(signingKey)
+                .build()
+                .parseClaimsJws(token);
+    }
+
+    private Key buildKey(String secret) {
+        byte[] keyBytes;
+        try {
+            keyBytes = Decoders.BASE64.decode(secret);
+        } catch (IllegalArgumentException ex) {
+            keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        }
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 }

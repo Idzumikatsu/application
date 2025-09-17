@@ -46,10 +46,10 @@ const StudentNotificationsPage: React.FC = () => {
     
     dispatch(setLoading(true));
     try {
-      const data = await NotificationService.getNotifications(user.id, 'STUDENT');
+      const response = await NotificationService.getNotifications(user.id, user.role, { size: 50, page: 0 });
+      const data = response.content ?? [];
       dispatch(setNotifications(data));
-      
-      // Подсчитываем непрочитанные уведомления
+
       const unread = data.filter(n => n.status === NotificationStatus.PENDING).length;
       setUnreadCount(unread);
     } catch (err: any) {
@@ -57,7 +57,7 @@ const StudentNotificationsPage: React.FC = () => {
     } finally {
       dispatch(setLoading(false));
     }
-  }, [user?.id, dispatch]);
+  }, [user?.id, user?.role, dispatch]);
 
   useEffect(() => {
     if (user?.id) {
@@ -68,7 +68,7 @@ const StudentNotificationsPage: React.FC = () => {
 
   const handleMarkAsRead = async (id: number) => {
     try {
-      await NotificationService.markAsRead(id);
+      await NotificationService.markNotificationAsRead(id);
       dispatch(markAsRead(id));
       setUnreadCount(prev => prev > 0 ? prev - 1 : 0);
     } catch (err: any) {
@@ -77,8 +77,12 @@ const StudentNotificationsPage: React.FC = () => {
   };
 
   const handleMarkAllAsRead = async () => {
+    if (!user) {
+      dispatch(setError('Пользователь не авторизован'));
+      return;
+    }
     try {
-      // В реальной реализации здесь будет массовая отметка всех уведомлений
+      await NotificationService.markAllAsRead(user.id, user.role);
       dispatch(markAllAsRead());
       setUnreadCount(0);
     } catch (err: any) {
