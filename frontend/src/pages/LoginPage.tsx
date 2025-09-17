@@ -93,67 +93,68 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Paper elevation={3} sx={{ p: 4, width: '100%' }}>
-          <Typography component="h1" variant="h5" align="center" gutterBottom>
-            CRM Система
-          </Typography>
-          <Typography variant="h6" align="center" color="textSecondary" gutterBottom>
-            Онлайн школа английского языка
-          </Typography>
+    <div className="login-container">
+      <div className="login-card">
+        <h1 className="login-title">Вход в CRM Synergy</h1>
+        <p className="login-subtitle">Онлайн школа английского языка</p>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+        {error && (
+          <Alert severity="error" className="crm-alert crm-alert-error">
+            {error}
+          </Alert>
+        )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
+        <form onSubmit={handleSubmit}>
+          <div className="login-form-group">
+            <label htmlFor="email" className="login-form-label">
+              Email
+            </label>
+            <input
               id="email"
-              label="Email"
               name="email"
-              autoComplete="email"
+              type="email"
+              required
               autoFocus
+              placeholder="Введите ваш email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="login-form-input"
+              autoComplete="email"
             />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Пароль"
-              type="password"
+          </div>
+          
+          <div className="login-form-group">
+            <label htmlFor="password" className="login-form-label">
+              Пароль
+            </label>
+            <input
               id="password"
-              autoComplete="current-password"
+              name="password"
+              type="password"
+              required
+              placeholder="Введите ваш пароль"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              className="login-form-input"
+              autoComplete="current-password"
             />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} /> : 'Войти'}
-            </Button>
-          </Box>
-        </Paper>
-      </Box>
-    </Container>
+          </div>
+          
+          <Button
+            type="submit"
+            className="login-button"
+            disabled={loading}
+          >
+            <span className={`login-button-text ${loading ? 'loading' : ''}`}>
+              {loading ? 'Вход...' : 'Войти'}
+            </span>
+            {loading && (
+              <CircularProgress size={24} className="login-button-loading" />
+            )}
+          </Button>
+        </form>
+      </div>
+    </div>
   );
 };
 

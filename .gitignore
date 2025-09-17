@@ -173,6 +173,7 @@ temp/
 .kilocode/
 .qwen/
 .roo/
+.playwright-mcp/
 bin/
 
 # SSL certificates
@@ -189,6 +190,9 @@ frontend/build/
 # Playwright reports
 **/playwright-report/
 frontend/e2e/playwright-report/
+
+# Playwright blob reports
+**/blob-report/
 
 # Frontend-specific
 frontend/node_modules/
