@@ -104,7 +104,7 @@ const LoginPage: React.FC = () => {
       >
         <Paper elevation={3} sx={{ p: 4, width: '100%' }} className="login-card">
           <Typography component="h1" variant="h5" align="center" gutterBottom className="login-title">
-            Вход в CRM Synergy
+            CRM Система
           </Typography>
           <Typography variant="h6" align="center" color="textSecondary" gutterBottom className="login-subtitle">
             Онлайн школа английского языка
