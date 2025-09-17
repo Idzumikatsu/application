@@ -15,8 +15,6 @@ http:
       service: backend
       tls:
         certResolver: letsencrypt
-      middlewares:
-        - api-stripprefix
       priority: 10
 
     backend:
@@ -78,9 +76,5 @@ http:
         servers:
           - url: "http://telegram-service:8082"
 
-  middlewares:
-    api-stripprefix:
-      stripPrefix:
-        prefixes:
-          - "/api"
+# Removed strip prefix middleware to keep `/api` segment for backend routes
 # End of file
