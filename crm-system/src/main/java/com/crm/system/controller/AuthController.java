@@ -87,10 +87,24 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(new MessageDto("Error: Account is inactive"));
             }
 
+            // Log raw password info (masked for security)
+            String maskedPassword = loginDto.getPassword().replaceAll(".", "*");
+            logger.info("Raw password length: {}, masked: {}", loginDto.getPassword().length(), maskedPassword.substring(0, Math.min(3, maskedPassword.length())) + "...");
+
             logger.info("Attempting Spring Security authentication for user: {}", loginDto.getEmail());
             System.out.println("=== Before authentication manager call ===");
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword()));
+            Authentication authentication;
+            try {
+                authentication = authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword()));
+                logger.info("Password match successful for user: {}", loginDto.getEmail());
+                System.out.println("=== Password match successful ===");
+            } catch (org.springframework.security.authentication.BadCredentialsException e) {
+                logger.error("Password mismatch for user: {}. Raw password length: {}, Encoded hash length: {}",
+                             loginDto.getEmail(), loginDto.getPassword().length(), user.getPasswordHash().length());
+                System.out.println("=== Password mismatch for email: " + loginDto.getEmail() + " ===");
+                return ResponseEntity.badRequest().body(new MessageDto("Error: Invalid password"));
+            }
             System.out.println("=== After authentication manager call - success ===");
 
             System.out.println("=== Authentication successful for email: " + loginDto.getEmail() + " ===");
@@ -113,6 +127,10 @@ public class AuthController {
                     user.getEmail(),
                     user.getRole().name(),
                     jwtTokenUtil.getExpirationSeconds()));
+        } catch (org.springframework.security.authentication.BadCredentialsException e) {
+            System.out.println("=== BadCredentialsException for email: " + loginDto.getEmail() + ", error: " + e.getMessage() + " ===");
+            logger.error("Bad credentials for email: {} - {}", loginDto.getEmail(), e.getMessage());
+            return ResponseEntity.badRequest().body(new MessageDto("Error: Invalid credentials"));
         } catch (Exception e) {
             System.out.println("=== Authentication failed for email: " + loginDto.getEmail() + ", error: " + e.getMessage() + " ===");
             logger.error("Authentication failed for email: {} - Exception type: {}, Message: {}",
