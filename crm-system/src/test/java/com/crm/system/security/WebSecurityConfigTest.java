@@ -13,6 +13,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 @WebMvcTest(controllers = AuthController.class, properties = "server.forward-headers-strategy=framework")
 @Import({WebSecurityConfig.class, JwtAuthEntryPoint.class})
 class WebSecurityConfigTest {
@@ -30,8 +33,17 @@ class WebSecurityConfigTest {
     private JwtTokenUtil jwtTokenUtil;
 
     @MockBean
+    private UserDetailsService userDetailsService;
+    
+    @MockBean
+    private JwtAuthEntryPoint jwtAuthEntryPoint;
+    
+    @MockBean
+    private PasswordEncoder passwordEncoder;
+    
+    @MockBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
-
+    
     @Test
     void permitsAuthEndpointsWithApiPrefix() throws Exception {
         mockMvc.perform(get("/api/auth/public"))
