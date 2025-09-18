@@ -33,7 +33,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         log.debug("Processing request: {}", request.getRequestURI());
-        System.out.println("JwtAuthenticationFilter: Processing request: " + request.getRequestURI());
+        System.out.println("=== JwtAuthenticationFilter: Processing request ===");
+        System.out.println("JwtAuthenticationFilter: Request URI: " + request.getRequestURI());
+        System.out.println("JwtAuthenticationFilter: Servlet Path: " + request.getServletPath());
+        System.out.println("JwtAuthenticationFilter: Method: " + request.getMethod());
+        System.out.println("JwtAuthenticationFilter: Authorization header: " + request.getHeader("Authorization"));
 
         try {
             String jwt = getJwtFromRequest(request);

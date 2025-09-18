@@ -51,7 +51,6 @@ public class WebSecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers(authEntryPoints()).permitAll()
                     .requestMatchers("/api/auth/**", "/auth/**", "/api/login", "/login", "/actuator/**", "/error", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .anyRequest().authenticated()
@@ -73,22 +72,4 @@ public class WebSecurityConfig {
         return source;
     }
 
-    private RequestMatcher authEntryPoints() {
-        return request -> {
-            String requestUri = request.getRequestURI();
-            String servletPath = request.getServletPath();
-            return matchesAuthPath(requestUri) || matchesAuthPath(servletPath);
-        };
-    }
-
-    private boolean matchesAuthPath(String path) {
-        if (path == null) {
-            return false;
-        }
-        boolean result = path.startsWith("/api/auth/") || path.startsWith("/auth/")
-                || "/api/login".equals(path) || "/login".equals(path)
-                || "/api/auth".equals(path) || "/auth".equals(path);
-        System.out.println("matchesAuthPath: " + path + " -> " + result);
-        return result;
-    }
 }

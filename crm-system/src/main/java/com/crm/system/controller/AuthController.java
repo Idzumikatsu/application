@@ -10,6 +10,7 @@ import com.crm.system.security.JwtTokenUtil;
 import com.crm.system.service.UserService;
 import jakarta.validation.Valid;
 import java.util.Map;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -43,16 +44,19 @@ public class AuthController {
 
     @PostMapping("/auth/signin")
     public ResponseEntity<?> authenticateUserSignin(@Valid @RequestBody LoginDto loginDto) {
+        System.out.println("=== AuthController: /auth/signin endpoint called ===");
         return authenticateUser(loginDto);
     }
 
     @PostMapping("/auth/login")
     public ResponseEntity<?> authenticateUserLogin(@Valid @RequestBody LoginDto loginDto) {
+        System.out.println("=== AuthController: /auth/login endpoint called ===");
         return authenticateUser(loginDto);
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUserRootLogin(@Valid @RequestBody LoginDto loginDto) {
+        System.out.println("=== AuthController: /login endpoint called ===");
         return authenticateUser(loginDto);
     }
 
@@ -62,15 +66,38 @@ public class AuthController {
 
         try {
             System.out.println("=== Attempting authentication for email: " + loginDto.getEmail() + " ===");
+            // Check if user exists in database
+            Optional<User> userOptional = userService.findByEmail(loginDto.getEmail());
+            if (userOptional.isEmpty()) {
+                logger.warn("User not found in database: {}", loginDto.getEmail());
+                System.out.println("=== User not found in database: " + loginDto.getEmail() + " ===");
+                return ResponseEntity.badRequest().body(new MessageDto("Error: User not found"));
+            }
+
+            User user = userOptional.get();
+            logger.info("User found in database: {} (ID: {}, Active: {}, Role: {})",
+                       user.getEmail(), user.getId(), user.getIsActive(), user.getRole());
+
+            if (user.getIsActive() == null || !user.getIsActive()) {
+                logger.warn("User account is inactive: {}", loginDto.getEmail());
+                System.out.println("=== User account is inactive: " + loginDto.getEmail() + " ===");
+                return ResponseEntity.badRequest().body(new MessageDto("Error: Account is inactive"));
+            }
+
+            logger.info("Attempting Spring Security authentication for user: {}", loginDto.getEmail());
+            System.out.println("=== Before authentication manager call ===");
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword()));
+            System.out.println("=== After authentication manager call - success ===");
 
             System.out.println("=== Authentication successful for email: " + loginDto.getEmail() + " ===");
             SecurityContextHolder.getContext().setAuthentication(authentication);
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            System.out.println("=== JWT token generation started ===");
             String jwt = jwtTokenUtil.generateToken(userDetails);
+            System.out.println("=== JWT token generated successfully for user: " + user.getEmail() + " ===");
 
-            User user = userService.findByEmail(userDetails.getUsername()).orElseThrow(() ->
+            User authenticatedUser = userService.findByEmail(userDetails.getUsername()).orElseThrow(() ->
                     new RuntimeException("User not found"));
 
             logger.info("Authentication successful for user: {}", user.getEmail());
@@ -85,7 +112,8 @@ public class AuthController {
                     jwtTokenUtil.getExpirationSeconds()));
         } catch (Exception e) {
             System.out.println("=== Authentication failed for email: " + loginDto.getEmail() + ", error: " + e.getMessage() + " ===");
-            logger.error("Authentication failed for email: {}", loginDto.getEmail(), e);
+            logger.error("Authentication failed for email: {} - Exception type: {}, Message: {}",
+                        loginDto.getEmail(), e.getClass().getSimpleName(), e.getMessage(), e);
             return ResponseEntity.badRequest().body(new MessageDto("Error: Authentication failed"));
         }
     }
