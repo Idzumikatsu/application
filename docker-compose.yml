@@ -50,7 +50,9 @@ services:
     restart: unless-stopped
 
   backend:
-    image: ${REGISTRY}/${IMAGE_NAME}/backend:latest
+    build:
+      context: ./crm-system
+      dockerfile: Dockerfile
     env_file:
       - .env
     environment:

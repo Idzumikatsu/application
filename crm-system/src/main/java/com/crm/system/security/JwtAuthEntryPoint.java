@@ -33,10 +33,31 @@ public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
         System.out.println("JwtAuthEntryPoint: Context Path: " + request.getContextPath());
         System.out.println("JwtAuthEntryPoint: Request URI starts with /api/auth/: " + request.getRequestURI().startsWith("/api/auth/"));
         System.out.println("JwtAuthEntryPoint: Request URI matches /api/auth/**: " + request.getRequestURI().matches("/api/auth/.*"));
-        logger.error("Unauthorized error: {}", authException.getMessage());
-        logger.error("Request URI: {}", request.getRequestURI());
-        logger.error("Request Method: {}", request.getMethod());
-        logger.error("Authorization header: {}", request.getHeader("Authorization"));
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error: Unauthorized");
+        
+        // Check if this is a login endpoint that should be permitted
+        String requestURI = request.getRequestURI();
+        boolean isLoginEndpoint = requestURI.endsWith("/api/auth/login") || 
+                                 requestURI.endsWith("/api/auth/signin") ||
+                                 requestURI.endsWith("/api/login") || 
+                                 requestURI.equals("/login") ||
+                                 requestURI.equals("/api/auth/test-direct-auth") ||
+                                 requestURI.equals("/api/auth/test-auth") ||
+                                 requestURI.equals("/api/auth/test-unsecured") ||
+                                 requestURI.equals("/api/auth/public");
+        
+        System.out.println("JwtAuthEntryPoint: isLoginEndpoint = " + isLoginEndpoint);
+        
+        // Only send 401 for protected endpoints
+        if (!isLoginEndpoint) {
+            logger.error("Unauthorized error: {}", authException.getMessage());
+            logger.error("Request URI: {}", request.getRequestURI());
+            logger.error("Request Method: {}", request.getMethod());
+            logger.error("Authorization header: {}", request.getHeader("Authorization"));
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error: Unauthorized");
+        } else {
+            // For permitted endpoints, let the request continue
+            System.out.println("JwtAuthEntryPoint: Allowing request to continue for permitted endpoint");
+            response.setStatus(HttpServletResponse.SC_OK);
+        }
     }
 }

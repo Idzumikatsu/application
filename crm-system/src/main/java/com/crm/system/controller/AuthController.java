@@ -95,15 +95,26 @@ public class AuthController {
             System.out.println("=== Before authentication manager call ===");
             Authentication authentication;
             try {
-                authentication = authenticationManager.authenticate(
-                        new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword()));
+                System.out.println("=== Creating UsernamePasswordAuthenticationToken ===");
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword());
+                System.out.println("=== Calling authenticationManager.authenticate ===");
+                authentication = authenticationManager.authenticate(authToken);
                 logger.info("Password match successful for user: {}", loginDto.getEmail());
                 System.out.println("=== Password match successful ===");
             } catch (org.springframework.security.authentication.BadCredentialsException e) {
                 logger.error("Password mismatch for user: {}. Raw password length: {}, Encoded hash length: {}",
                              loginDto.getEmail(), loginDto.getPassword().length(), user.getPasswordHash().length());
                 System.out.println("=== Password mismatch for email: " + loginDto.getEmail() + " ===");
+                System.out.println("=== BadCredentialsException message: " + e.getMessage() + " ===");
+                e.printStackTrace();
                 return ResponseEntity.badRequest().body(new MessageDto("Error: Invalid password"));
+            } catch (Exception e) {
+                System.out.println("=== General exception during authentication for email: " + loginDto.getEmail() + " ===");
+                System.out.println("=== Exception type: " + e.getClass().getSimpleName() + " ===");
+                System.out.println("=== Exception message: " + e.getMessage() + " ===");
+                e.printStackTrace();
+                logger.error("General exception during authentication for user: {}", loginDto.getEmail(), e);
+                return ResponseEntity.badRequest().body(new MessageDto("Error: Authentication failed - " + e.getMessage()));
             }
             System.out.println("=== After authentication manager call - success ===");
 
@@ -190,15 +201,32 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/auth/test")
-    public ResponseEntity<?> testEndpoint() {
-        logger.info("Test endpoint called");
-        return ResponseEntity.ok("Test endpoint works!");
+    @GetMapping("/auth/test-direct-auth")
+    public ResponseEntity<?> testDirectAuth() {
+        System.out.println("=== Test direct auth endpoint called ===");
+        try {
+            System.out.println("=== Creating authentication token ===");
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken("admin@englishschool.com", "admin123");
+            
+            System.out.println("=== Calling authentication manager ===");
+            Authentication authentication = authenticationManager.authenticate(authToken);
+            
+            System.out.println("=== Authentication successful ===");
+            System.out.println("=== Principal: " + authentication.getPrincipal() + " ===");
+            System.out.println("=== Authenticated: " + authentication.isAuthenticated() + " ===");
+            
+            return ResponseEntity.ok("Authentication successful: " + authentication.isAuthenticated());
+        } catch (Exception e) {
+            System.out.println("=== Authentication failed ===");
+            System.out.println("=== Exception: " + e.getClass().getSimpleName() + " - " + e.getMessage() + " ===");
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Authentication failed: " + e.getMessage());
+        }
     }
 
-    @GetMapping("/auth/public")
-    public ResponseEntity<String> publicEndpoint() {
-        logger.info("Public endpoint called");
-        return ResponseEntity.ok("Public endpoint works!");
+    @GetMapping("/auth/test-unsecured")
+    public ResponseEntity<String> testUnsecured() {
+        System.out.println("=== Test unsecured endpoint called ===");
+        return ResponseEntity.ok("Unsecured endpoint works!");
     }
 }

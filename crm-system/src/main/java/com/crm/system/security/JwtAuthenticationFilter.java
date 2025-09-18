@@ -45,8 +45,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         // Skip authentication for public login endpoints
         String requestURI = request.getRequestURI();
+        System.out.println("=== JwtAuthenticationFilter: Checking if requestURI '" + requestURI + "' is a login endpoint ===");
         boolean isLoginEndpoint = requestURI.endsWith("/api/auth/login") || requestURI.endsWith("/api/auth/signin") ||
-            requestURI.endsWith("/api/login") || requestURI.equals("/login");
+            requestURI.endsWith("/api/login") || requestURI.equals("/login") || 
+            requestURI.equals("/api/auth/login") || requestURI.equals("/api/auth/signin");
+        System.out.println("=== JwtAuthenticationFilter: isLoginEndpoint = " + isLoginEndpoint + " ===");
         if (isLoginEndpoint) {
             System.out.println("=== JwtAuthenticationFilter: Skipping authentication for public login endpoint: " + requestURI + " ===");
             log.info("Skipping JWT filter for login endpoint: {}", requestURI);
