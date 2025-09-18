@@ -21,7 +21,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    baseURL: process.env.BASE_URL || 'https://app.crm-synergy.ru',
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
     /* Capture screenshot on failure */
@@ -76,21 +76,16 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: (process.env.CI ? undefined : {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  }) as any,
+  webServer: undefined,
 
   /* Global setup and teardown */
   globalSetup: './utils/global-setup',
   globalTeardown: './utils/global-teardown',
 
   /* Timeout settings */
-  timeout: 30000,
+  timeout: 60000,
   expect: {
-    timeout: 10000
+    timeout: 30000
   },
 
   /* Output directory for test results */

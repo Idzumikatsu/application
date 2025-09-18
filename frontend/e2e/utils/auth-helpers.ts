@@ -28,22 +28,57 @@ export class AuthHelpers {
   static async login(
     page: Page,
     credentials: LoginCredentials,
-    expectSuccess = true
+    options: { expectSuccess?: boolean; debug?: boolean } = { expectSuccess: true, debug: false }
   ): Promise<void> {
+    const { expectSuccess = true, debug = false } = options;
+    
     // Navigate to login page
     await page.goto('/login');
+    
+    if (debug) {
+      console.log(`\n=== DEBUG: Navigating to login page ===`);
+      console.log(`Current URL: ${page.url()}`);
+    }
     
     // Fill login form
     await page.getByLabel(/email/i).fill(credentials.email);
     await page.getByLabel(/password/i).fill(credentials.password);
     
+    if (debug) {
+      console.log(`\n=== DEBUG: Form filled ===`);
+      console.log(`Email: ${credentials.email}`);
+      console.log(`Password: ${credentials.password.replace(/./g, '*')}`);
+    }
+    
     // Submit form
     await page.getByRole('button', { name: /sign in/i }).click();
     
-    if (expectSuccess) {
-      // Wait for successful login redirect
-      await page.waitForURL(/dashboard/);
-      await expect(page).toHaveURL(/dashboard/);
+    if (debug) {
+      await this.logNetworkActivity(page);
+      await this.logConsoleErrors(page);
+    }
+    
+    // Wait and check result
+    try {
+      if (expectSuccess) {
+        // Wait for successful login redirect
+        await page.waitForURL(/dashboard/, { timeout: 10000 });
+        await expect(page).toHaveURL(/dashboard/);
+        console.log(`\n=== SUCCESS: Redirected to dashboard ===`);
+        console.log(`Final URL: ${page.url()}`);
+      } else {
+        // Wait for potential error or stay on login
+        await page.waitForTimeout(5000);
+        console.log(`\n=== DEBUG: Login attempt completed (expecting failure) ===`);
+        console.log(`Final URL: ${page.url()}`);
+        await this.logDebugInfo(page);
+      }
+    } catch (error) {
+      console.log(`\n=== ERROR: ${error.message} ===`);
+      if (debug) {
+        await this.logDebugInfo(page);
+      }
+      throw error;
     }
   }
 
@@ -176,8 +211,74 @@ export class AuthHelpers {
     await this.clearAuthState(page);
     
     if (credentials) {
-      await this.login(page, credentials);
+      await this.login(page, credentials, { debug: true });
     }
+  }
+
+  /**
+   * Log network activity (requests and responses)
+   */
+  static async logNetworkActivity(page: Page): Promise<void> {
+    console.log(`\n=== NETWORK ACTIVITY ===`);
+    
+    // Log all requests
+    page.on('request', request => {
+      console.log(`REQUEST: ${request.method()} ${request.url()}`);
+    });
+    
+    // Log all responses
+    page.on('response', response => {
+      console.log(`RESPONSE: ${response.status()} ${response.url()}`);
+      if (response.status() >= 400) {
+        console.log(`ERROR RESPONSE: ${response.status()} ${response.url()}`);
+      }
+    });
+  }
+
+  /**
+   * Log console errors
+   */
+  static async logConsoleErrors(page: Page): Promise<void> {
+    console.log(`\n=== CONSOLE ERRORS ===`);
+    
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        console.log(`CONSOLE ERROR: ${msg.text()}`);
+      }
+    });
+  }
+
+  /**
+   * Log debug information: cookies, localStorage, current URL
+   */
+  static async logDebugInfo(page: Page): Promise<void> {
+    console.log(`\n=== DEBUG INFO ===`);
+    console.log(`Current URL: ${page.url()}`);
+    
+    // Cookies
+    const cookies = await page.context().cookies();
+    console.log(`Cookies (${cookies.length}):`);
+    cookies.forEach(cookie => {
+      console.log(`  - ${cookie.name}: ${cookie.value}`);
+    });
+    
+    // LocalStorage
+    const localStorage = await page.evaluate(() => {
+      return Object.entries(localStorage).map(([key, value]) => ({ key, value: JSON.stringify(value) }));
+    });
+    console.log(`LocalStorage (${localStorage.length} items):`);
+    localStorage.forEach(item => {
+      console.log(`  - ${item.key}: ${item.value}`);
+    });
+    
+    // SessionStorage
+    const sessionStorage = await page.evaluate(() => {
+      return Object.entries(sessionStorage).map(([key, value]) => ({ key, value: JSON.stringify(value) }));
+    });
+    console.log(`SessionStorage (${sessionStorage.length} items):`);
+    sessionStorage.forEach(item => {
+      console.log(`  - ${item.key}: ${item.value}`);
+    });
   }
 }
 

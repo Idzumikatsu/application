@@ -29,6 +29,10 @@ public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
         System.out.println("JwtAuthEntryPoint: Servlet Path: " + request.getServletPath());
         System.out.println("JwtAuthEntryPoint: Path Info: " + request.getPathInfo());
         System.out.println("JwtAuthEntryPoint: Query String: " + request.getQueryString());
+        System.out.println("JwtAuthEntryPoint: Request URL Path: " + request.getRequestURL().toString());
+        System.out.println("JwtAuthEntryPoint: Context Path: " + request.getContextPath());
+        System.out.println("JwtAuthEntryPoint: Request URI starts with /api/auth/: " + request.getRequestURI().startsWith("/api/auth/"));
+        System.out.println("JwtAuthEntryPoint: Request URI matches /api/auth/**: " + request.getRequestURI().matches("/api/auth/.*"));
         logger.error("Unauthorized error: {}", authException.getMessage());
         logger.error("Request URI: {}", request.getRequestURI());
         logger.error("Request Method: {}", request.getMethod());

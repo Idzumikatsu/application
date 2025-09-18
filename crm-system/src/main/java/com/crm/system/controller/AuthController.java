@@ -45,18 +45,21 @@ public class AuthController {
     @PostMapping("/auth/signin")
     public ResponseEntity<?> authenticateUserSignin(@Valid @RequestBody LoginDto loginDto) {
         System.out.println("=== AuthController: /auth/signin endpoint called ===");
+        System.out.println("=== AuthController: /auth/signin payload - email: " + loginDto.getEmail() + ", password: " + loginDto.getPassword() + " ===");
         return authenticateUser(loginDto);
     }
 
     @PostMapping("/auth/login")
     public ResponseEntity<?> authenticateUserLogin(@Valid @RequestBody LoginDto loginDto) {
         System.out.println("=== AuthController: /auth/login endpoint called ===");
+        System.out.println("=== AuthController: /auth/login payload - email: " + loginDto.getEmail() + ", password: " + loginDto.getPassword() + " ===");
         return authenticateUser(loginDto);
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUserRootLogin(@Valid @RequestBody LoginDto loginDto) {
         System.out.println("=== AuthController: /login endpoint called ===");
+        System.out.println("=== AuthController: /login payload - email: " + loginDto.getEmail() + ", password: " + loginDto.getPassword() + " ===");
         return authenticateUser(loginDto);
     }
 

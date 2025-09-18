@@ -38,6 +38,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         System.out.println("JwtAuthenticationFilter: Servlet Path: " + request.getServletPath());
         System.out.println("JwtAuthenticationFilter: Method: " + request.getMethod());
         System.out.println("JwtAuthenticationFilter: Authorization header: " + request.getHeader("Authorization"));
+        System.out.println("JwtAuthenticationFilter: Request URL: " + request.getRequestURL());
+        System.out.println("JwtAuthenticationFilter: Context Path: " + request.getContextPath());
+        System.out.println("JwtAuthenticationFilter: Path Info: " + request.getPathInfo());
+        System.out.println("JwtAuthenticationFilter: Query String: " + request.getQueryString());
+        
+        // Skip authentication for public login endpoints
+        String requestURI = request.getRequestURI();
+        if (requestURI.endsWith("/api/auth/login") || requestURI.endsWith("/api/auth/signin") ||
+            requestURI.endsWith("/api/login") || requestURI.equals("/login")) {
+            System.out.println("=== JwtAuthenticationFilter: Skipping authentication for public login endpoint ===");
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         try {
             String jwt = getJwtFromRequest(request);
