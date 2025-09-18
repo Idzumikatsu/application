@@ -41,14 +41,31 @@ public class AuthController {
         this.jwtTokenUtil = jwtTokenUtil;
     }
 
-    @PostMapping({"/auth/signin", "/auth/login", "/login"})
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginDto loginDto) {
+    @PostMapping("/auth/signin")
+    public ResponseEntity<?> authenticateUserSignin(@Valid @RequestBody LoginDto loginDto) {
+        return authenticateUser(loginDto);
+    }
+
+    @PostMapping("/auth/login")
+    public ResponseEntity<?> authenticateUserLogin(@Valid @RequestBody LoginDto loginDto) {
+        return authenticateUser(loginDto);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> authenticateUserRootLogin(@Valid @RequestBody LoginDto loginDto) {
+        return authenticateUser(loginDto);
+    }
+
+    private ResponseEntity<?> authenticateUser(LoginDto loginDto) {
+        System.out.println("=== authenticateUser called with email: " + loginDto.getEmail() + " ===");
         logger.info("Authentication attempt for email: {}", loginDto.getEmail());
 
         try {
+            System.out.println("=== Attempting authentication for email: " + loginDto.getEmail() + " ===");
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword()));
 
+            System.out.println("=== Authentication successful for email: " + loginDto.getEmail() + " ===");
             SecurityContextHolder.getContext().setAuthentication(authentication);
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String jwt = jwtTokenUtil.generateToken(userDetails);
@@ -67,6 +84,7 @@ public class AuthController {
                     user.getRole().name(),
                     jwtTokenUtil.getExpirationSeconds()));
         } catch (Exception e) {
+            System.out.println("=== Authentication failed for email: " + loginDto.getEmail() + ", error: " + e.getMessage() + " ===");
             logger.error("Authentication failed for email: {}", loginDto.getEmail(), e);
             return ResponseEntity.badRequest().body(new MessageDto("Error: Authentication failed"));
         }

@@ -20,6 +20,10 @@ public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {
+        System.out.println("JwtAuthEntryPoint: Unauthorized error: " + authException.getMessage());
+        System.out.println("JwtAuthEntryPoint: Request URI: " + request.getRequestURI());
+        System.out.println("JwtAuthEntryPoint: Request Method: " + request.getMethod());
+        System.out.println("JwtAuthEntryPoint: Authorization header: " + request.getHeader("Authorization"));
         logger.error("Unauthorized error: {}", authException.getMessage());
         logger.error("Request URI: {}", request.getRequestURI());
         logger.error("Request Method: {}", request.getMethod());

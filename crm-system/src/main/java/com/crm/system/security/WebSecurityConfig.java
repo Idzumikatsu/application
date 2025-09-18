@@ -85,8 +85,10 @@ public class WebSecurityConfig {
         if (path == null) {
             return false;
         }
-        return path.startsWith("/api/auth/") || path.startsWith("/auth/")
+        boolean result = path.startsWith("/api/auth/") || path.startsWith("/auth/")
                 || "/api/login".equals(path) || "/login".equals(path)
                 || "/api/auth".equals(path) || "/auth".equals(path);
+        System.out.println("matchesAuthPath: " + path + " -> " + result);
+        return result;
     }
 }
