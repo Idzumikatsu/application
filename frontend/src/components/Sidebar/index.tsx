@@ -21,6 +21,7 @@ import {
   Notifications as NotificationsIcon,
   Assessment as ReportsIcon,
   Settings as SettingsIcon,
+  Person as PersonIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -47,29 +48,35 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onNotificationClick })
       roles: string[];
     }> = [];
 
-    if (user?.role === 'ADMIN' || user?.role === 'MANAGER') {
+    if (user?.role === 'ADMIN') {
       items.push(
-        { text: 'Главная', icon: <DashboardIcon />, path: '/dashboard', roles: ['ADMIN', 'MANAGER'] },
-        { text: 'Преподаватели', icon: <PeopleIcon />, path: '/manager/teachers', roles: ['ADMIN', 'MANAGER'] },
-        { text: 'Студенты', icon: <SchoolIcon />, path: '/manager/students', roles: ['ADMIN', 'MANAGER'] },
-        { text: 'Планирование', icon: <CalendarIcon />, path: '/manager/scheduling', roles: ['ADMIN', 'MANAGER'] },
-        { text: 'Пакеты', icon: <AssignmentIcon />, path: '/manager/packages', roles: ['ADMIN', 'MANAGER'] },
+        { text: 'Главная', icon: <DashboardIcon />, path: '/admin/dashboard', roles: ['ADMIN'] },
+        { text: 'Пользователи', icon: <PersonIcon />, path: '/admin/users', roles: ['ADMIN'] },
+        { text: 'Менеджеры', icon: <PeopleIcon />, path: '/admin/managers', roles: ['ADMIN'] },
+        { text: 'Преподаватели', icon: <SchoolIcon />, path: '/admin/teachers', roles: ['ADMIN'] },
+        { text: 'Студенты', icon: <GroupIcon />, path: '/admin/students', roles: ['ADMIN'] },
+        { text: 'Отчеты', icon: <ReportsIcon />, path: '/admin/reports', roles: ['ADMIN'] },
+        { text: 'Настройки', icon: <SettingsIcon />, path: '/admin/settings', roles: ['ADMIN'] },
       );
-    }
-
-    if (user?.role === 'TEACHER') {
+    } else if (user?.role === 'MANAGER') {
       items.push(
-        { text: 'Главная', icon: <DashboardIcon />, path: '/dashboard', roles: ['TEACHER'] },
+        { text: 'Главная', icon: <DashboardIcon />, path: '/manager/dashboard', roles: ['MANAGER'] },
+        { text: 'Преподаватели', icon: <PeopleIcon />, path: '/manager/teachers', roles: ['MANAGER'] },
+        { text: 'Студенты', icon: <SchoolIcon />, path: '/manager/students', roles: ['MANAGER'] },
+        { text: 'Планирование', icon: <CalendarIcon />, path: '/manager/scheduling', roles: ['MANAGER'] },
+        { text: 'Пакеты', icon: <AssignmentIcon />, path: '/manager/packages', roles: ['MANAGER'] },
+      );
+    } else if (user?.role === 'TEACHER') {
+      items.push(
+        { text: 'Главная', icon: <DashboardIcon />, path: '/teacher/dashboard', roles: ['TEACHER'] },
         { text: 'Расписание', icon: <CalendarIcon />, path: '/teacher/schedule', roles: ['TEACHER'] },
         { text: 'Уроки', icon: <AssignmentIcon />, path: '/teacher/lessons', roles: ['TEACHER'] },
         { text: 'Групповые уроки', icon: <GroupIcon />, path: '/teacher/group-lessons', roles: ['TEACHER'] },
         { text: 'Студенты', icon: <SchoolIcon />, path: '/teacher/students', roles: ['TEACHER'] },
       );
-    }
-
-    if (user?.role === 'STUDENT') {
+    } else if (user?.role === 'STUDENT') {
       items.push(
-        { text: 'Главная', icon: <DashboardIcon />, path: '/dashboard', roles: ['STUDENT'] },
+        { text: 'Главная', icon: <DashboardIcon />, path: '/student/dashboard', roles: ['STUDENT'] },
         { text: 'Расписание', icon: <CalendarIcon />, path: '/student/schedule', roles: ['STUDENT'] },
         { text: 'Групповые уроки', icon: <GroupIcon />, path: '/student/group-lessons', roles: ['STUDENT'] },
         { text: 'Пакеты', icon: <AssignmentIcon />, path: '/student/packages', roles: ['STUDENT'] },
@@ -215,38 +222,6 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onNotificationClick })
               <NotificationsIcon />
             </ListItemIcon>
             <ListItemText primary="Уведомления" />
-          </ListItem>
-          
-          <ListItem 
-            button
-            sx={{
-              margin: '4px 8px',
-              borderRadius: 2,
-              '&:hover': {
-                backgroundColor: 'action.hover',
-              },
-            }}
-          >
-            <ListItemIcon>
-              <ReportsIcon />
-            </ListItemIcon>
-            <ListItemText primary="Отчеты" />
-          </ListItem>
-          
-          <ListItem 
-            button
-            sx={{
-              margin: '4px 8px',
-              borderRadius: 2,
-              '&:hover': {
-                backgroundColor: 'action.hover',
-              },
-            }}
-          >
-            <ListItemIcon>
-              <SettingsIcon />
-            </ListItemIcon>
-            <ListItemText primary="Настройки" />
           </ListItem>
         </List>
       </Box>

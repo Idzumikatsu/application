@@ -57,9 +57,8 @@ const AdminStudentsPage: React.FC = () => {
   const loadStudents = async () => {
     try {
       setLoading(true);
-      // For now, we'll use the manager endpoint since it has the student management
-      //const response = await http.get<Student[]>('/managers/students');
-      setStudents([]);
+      const response = await adminService.getAllStudents();
+      setStudents(response as unknown as Student[]);
     } catch (err: any) {
       setError(err.message || 'Ошибка загрузки студентов');
     } finally {
@@ -69,7 +68,7 @@ const AdminStudentsPage: React.FC = () => {
 
   const handleCreateStudent = async () => {
     try {
-      //await http.post('/managers/students', formData);
+      await adminService.createStudent(formData);
       handleCloseDialog();
       loadStudents();
     } catch (err: any) {
@@ -81,7 +80,7 @@ const AdminStudentsPage: React.FC = () => {
     if (!editingStudent) return;
     
     try {
-      //await http.put(`/students/${editingStudent.id}`, formData);
+      await adminService.updateStudent(editingStudent.id, formData);
       handleCloseDialog();
       loadStudents();
     } catch (err: any) {
@@ -92,7 +91,7 @@ const AdminStudentsPage: React.FC = () => {
   const handleDeleteStudent = async (id: number) => {
     if (window.confirm('Вы уверены, что хотите удалить этого студента?')) {
       try {
-        //await http.delete(`/students/${id}`);
+        await adminService.deleteStudent(id);
         loadStudents();
       } catch (err: any) {
         setError(err.message || 'Ошибка удаления студента');

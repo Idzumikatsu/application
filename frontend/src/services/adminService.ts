@@ -64,6 +64,32 @@ class AdminService {
     return response.data;
   }
 
+  // Student management
+  public async getAllStudents() {
+    const response = await httpClient.get('/admin/students');
+    return response.data;
+  }
+
+  public async createStudent(studentData: any) {
+    const response = await httpClient.post('/admin/students', studentData);
+    return response.data;
+  }
+
+  public async updateStudent(id: number, studentData: any) {
+    const response = await httpClient.put(`/admin/students/${id}`, studentData);
+    return response.data;
+  }
+
+  public async deleteStudent(id: number) {
+    const response = await httpClient.delete(`/admin/students/${id}`);
+    return response.data;
+  }
+
+  public async resetStudentPassword(id: number) {
+    const response = await httpClient.post(`/admin/students/${id}/reset-password`);
+    return response.data;
+  }
+
   // Reports
   public async generateStudentsReport(startDate?: string, endDate?: string) {
     const params = new URLSearchParams();
