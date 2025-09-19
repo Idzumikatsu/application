@@ -27,8 +27,11 @@ public interface LessonPackageRepository extends JpaRepository<LessonPackage, Lo
     @Query("SELECT lp FROM LessonPackage lp WHERE lp.remainingLessons = 0")
     List<LessonPackage> findByRemainingLessons();
 
-    @Query("SELECT lp FROM LessonPackage lp WHERE lp.remainingLessons > 0")
+    @Query("SELECT lp FROM LessonPackage lp WHERE lp.remainingLessons > :remainingLessons")
     List<LessonPackage> findByRemainingLessonsGreaterThan(@Param("remainingLessons") int remainingLessons);
+
+    @Query("SELECT COUNT(lp) FROM LessonPackage lp WHERE lp.remainingLessons > :remainingLessons")
+    Long countByRemainingLessonsGreaterThan(@Param("remainingLessons") int remainingLessons);
 
     @Query("SELECT lp FROM LessonPackage lp WHERE lp.remainingLessons <= :threshold AND lp.remainingLessons > 0")
     List<LessonPackage> findPackagesWithLowRemainingLessons(@Param("threshold") int threshold);

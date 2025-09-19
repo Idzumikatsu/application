@@ -125,6 +125,15 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Query("SELECT COUNT(n) FROM Notification n WHERE n.status = 'FAILED'")
     Long countFailedNotifications();
 
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.status = :status")
+    Long countByStatus(@Param("status") NotificationStatus status);
+
+    @Query("SELECT n FROM Notification n WHERE n.notificationType = :notificationType AND n.status = :status")
+    List<Notification> findByNotificationTypeAndStatus(@Param("notificationType") NotificationType notificationType, @Param("status") NotificationStatus status);
+
+    @Query("SELECT n FROM Notification n WHERE n.status = :status")
+    List<Notification> findByStatus(@Param("status") NotificationStatus status);
+
     @Query("SELECT COUNT(n) FROM Notification n WHERE n.recipientId = :recipientId " +
            "AND n.recipientType = :recipientType " +
            "AND n.status IN :statuses")

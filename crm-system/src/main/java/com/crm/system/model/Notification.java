@@ -91,6 +91,8 @@ public class Notification {
         PACKAGE_ENDING_SOON,    // Пакет уроков заканчивается
         PAYMENT_DUE,            // Оплата по расписанию
         SYSTEM_MESSAGE,        // Системное сообщение
+        SYSTEM_ALERT,          // Системное предупреждение
+        SYSTEM_MAINTENANCE,    // Техническое обслуживание
         FEEDBACK_REQUEST        // Запрос на обратную связь
     }
 
@@ -268,6 +270,24 @@ public class Notification {
         this.status = NotificationStatus.FAILED;
     }
 
+    public void resetStatus() {
+        this.status = NotificationStatus.PENDING;
+        this.sentAt = null;
+        this.readAt = null;
+    }
+
+    public LocalDateTime getDeliveredAt() {
+        return this.sentAt; // Using sentAt as deliveredAt for now
+    }
+
+    public LocalDateTime getFailedAt() {
+        // If status is FAILED, return updatedAt as failedAt
+        if (this.status == NotificationStatus.FAILED) {
+            return this.updatedAt;
+        }
+        return null;
+    }
+
     public String getRecipientTypeName() {
         switch (this.recipientType) {
             case STUDENT: return "Студент";
@@ -293,6 +313,8 @@ public class Notification {
             case PACKAGE_ENDING_SOON: return "Пакет уроков заканчивается";
             case PAYMENT_DUE: return "Оплата по расписанию";
             case SYSTEM_MESSAGE: return "Системное сообщение";
+            case SYSTEM_ALERT: return "Системное предупреждение";
+            case SYSTEM_MAINTENANCE: return "Техническое обслуживание";
             case FEEDBACK_REQUEST: return "Запрос на обратную связь";
             default: return "Уведомление";
         }

@@ -176,11 +176,18 @@ public class NotificationController {
         dto.setTitle(notification.getTitle());
         dto.setMessage(notification.getMessage());
         dto.setStatus(notification.getStatus());
-        dto.setCreatedAt(notification.getCreatedAt());
+        dto.setCreatedAt(notification.getCreatedAt() != null ? notification.getCreatedAt().toString() : null);
         dto.setSentAt(notification.getSentAt());
-        dto.setDeliveredAt(notification.getDeliveredAt());
+        // Using sentAt as deliveredAt for now
         dto.setReadAt(notification.getReadAt());
-        dto.setFailedAt(notification.getFailedAt());
+        // If status is FAILED, use updatedAt as failedAt
+        if (notification.getStatus() == Notification.NotificationStatus.FAILED && notification.getUpdatedAt() != null) {
+            // We can't set failedAt directly since it doesn't exist in NotificationDto
+            // But we can set updatedAt to show when it failed
+            dto.setUpdatedAt(notification.getUpdatedAt().toString());
+        } else if (notification.getUpdatedAt() != null) {
+            dto.setUpdatedAt(notification.getUpdatedAt().toString());
+        }
         return dto;
     }
 

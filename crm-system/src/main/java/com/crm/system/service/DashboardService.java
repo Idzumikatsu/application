@@ -310,20 +310,6 @@ public class DashboardService {
         return result;
     }
 
-    public List<Map<String, Object>> getMostActiveTeachers(int limit) {
-        // Placeholder implementation
-        List<Map<String, Object>> result = new java.util.ArrayList<>();
-        // In a real implementation, this would query the database for most active teachers
-        return result;
-    }
-
-    public List<Map<String, Object>> getMostActiveStudents(int limit) {
-        // Placeholder implementation
-        List<Map<String, Object>> result = new java.util.ArrayList<>();
-        // In a real implementation, this would query the database for most active students
-        return result;
-    }
-
     public List<Map<String, Object>> getTopRatedTeachers(int limit) {
         // Placeholder implementation
         List<Map<String, Object>> result = new java.util.ArrayList<>();

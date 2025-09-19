@@ -158,6 +158,9 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
         @Param("currentTime") java.time.LocalDateTime currentTime
     );
     
+    @Query("SELECT COUNT(l) FROM Lesson l WHERE l.status = :status")
+    Long countByStatus(@Param("status") Lesson.LessonStatus status);
+    
     // Added for dashboard statistics
     long countByScheduledDate(LocalDate date);
     

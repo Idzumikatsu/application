@@ -208,6 +208,8 @@ public class NotificationDto {
             case PACKAGE_ENDING_SOON: return "Пакет уроков заканчивается";
             case PAYMENT_DUE: return "Оплата по расписанию";
             case SYSTEM_MESSAGE: return "Системное сообщение";
+            case SYSTEM_ALERT: return "Системное предупреждение";
+            case SYSTEM_MAINTENANCE: return "Техническое обслуживание";
             case FEEDBACK_REQUEST: return "Запрос на обратную связь";
             default: return "Уведомление";
         }
