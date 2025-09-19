@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { CssBaseline, Box, useMediaQuery, ThemeProvider as MuiThemeProvider } from '@mui/material';
+import { CssBaseline, Box, useMediaQuery, ThemeProvider as MuiThemeProvider, CircularProgress, Typography } from '@mui/material';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { useSelector, useDispatch } from 'react-redux';
@@ -23,9 +23,19 @@ import './App.css';
 function App() {
   const muiTheme = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
-  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+  const authState = useSelector((state: RootState) => {
+    console.log('🔄 useSelector - raw state:', state);
+    const auth = state.auth;
+    console.log('🔄 useSelector - auth state:', auth);
+    return auth;
+  });
+  const { isAuthenticated, user, loading } = authState;
+  console.log('🔄 useSelector - isAuthenticated:', isAuthenticated, 'user:', user, 'loading:', loading);
   const dispatch: AppDispatch = useDispatch();
   const [open, setOpen] = useState(!isMobile);
+  const [initializing, setInitializing] = useState(true);
+
+  console.log('🔄 App render - isAuthenticated:', isAuthenticated, 'user:', user, 'loading:', loading, 'initializing:', initializing);
 
   useEffect(() => {
     const token = AuthService.getToken();
@@ -40,27 +50,46 @@ function App() {
           AuthService.getCurrentUser()
             .then((userData) => {
               console.log('✅ Session restored successfully:', userData);
-              dispatch(loginSuccess({ user: userData, token }));
+              console.log('🔄 Dispatching loginSuccess action...');
+              const action = loginSuccess({ user: userData, token });
+              console.log('🔄 Action to dispatch:', action);
+              const result = dispatch(action);
+              console.log('✅ loginSuccess action dispatched, result:', result);
+              console.log('🔄 Setting initializing to false...');
+              setInitializing(false);
+              console.log('✅ Initializing set to false');
             })
             .catch((error) => {
               console.error('❌ Session restoration failed:', error);
               // Очищаем недействительный токен
               AuthService.logout();
               dispatch(logout());
+              console.log('🔄 Setting initializing to false due to error...');
+              setInitializing(false);
+              console.log('✅ Initializing set to false due to error');
             });
         } catch (error) {
           console.error('❌ Unexpected error during session restoration:', error);
           AuthService.logout();
           dispatch(logout());
+          console.log('🔄 Setting initializing to false due to exception...');
+          setInitializing(false);
+          console.log('✅ Initializing set to false due to exception');
         }
       } else {
         console.log('ℹ️ Token is expired or invalid, clearing session');
         // Токен недействителен, очищаем сессию
         AuthService.logout();
         dispatch(logout());
+        console.log('🔄 Setting initializing to false due to invalid token...');
+        setInitializing(false);
+        console.log('✅ Initializing set to false due to invalid token');
       }
     } else {
       console.log('ℹ️ No token found, user not authenticated');
+      console.log('🔄 Setting initializing to false due to no token...');
+      setInitializing(false);
+      console.log('✅ Initializing set to false due to no token');
     }
   }, [dispatch]);
 
@@ -69,19 +98,44 @@ function App() {
   }, [isMobile]);
 
   const renderProtectedRoute = (element: React.ReactElement) => {
+    // If still initializing, show loading indicator
+    if (initializing) {
+      return (
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+          <CircularProgress />
+          <Typography variant="body1" sx={{ ml: 2 }}>Загрузка...</Typography>
+        </Box>
+      );
+    }
+    
     return isAuthenticated ? element : <Navigate to="/login" replace />;
   };
 
   const renderRoleBasedRoute = (allowedRoles: string[], element: React.ReactElement) => {
+    console.log('🔄 renderRoleBasedRoute - isAuthenticated:', isAuthenticated, 'user:', user, 'allowedRoles:', allowedRoles, 'initializing:', initializing);
+    
+    // If still initializing, show loading indicator
+    if (initializing) {
+      return (
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+          <CircularProgress />
+          <Typography variant="body1" sx={{ ml: 2 }}>Загрузка...</Typography>
+        </Box>
+      );
+    }
+    
     if (!isAuthenticated) {
+      console.log('❌ User not authenticated, redirecting to login');
       return <Navigate to="/login" replace />;
     }
     
     if (user && allowedRoles.includes(user.role)) {
+      console.log('✅ User authenticated and has correct role, rendering element');
       return element;
     }
     
     // Если роль пользователя не соответствует разрешенным, перенаправляем на dashboard
+    console.log('❌ User does not have correct role, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   };
 

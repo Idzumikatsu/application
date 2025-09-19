@@ -28,8 +28,11 @@ public class TeacherController {
     @GetMapping("/teachers")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<List<UserDto>> getAllTeachers() {
+        System.out.println("=== TeacherController: getAllTeachers called ===");
         List<User> teachers = userService.findByRole(UserRole.TEACHER);
+        System.out.println("=== TeacherController: Found " + teachers.size() + " teachers ===");
         List<UserDto> teacherDtos = teachers.stream().map(this::convertToDto).collect(Collectors.toList());
+        System.out.println("=== TeacherController: Converted to " + teacherDtos.size() + " DTOs ===");
         return ResponseEntity.ok(teacherDtos);
     }
 

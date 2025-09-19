@@ -8,11 +8,11 @@ import StudentNotificationsPage from '../pages/StudentNotificationsPage';
 const StudentRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path="/schedule" element={<StudentSchedulePage />} />
-      <Route path="/group-lessons" element={<StudentGroupLessonsPage />} />
-      <Route path="/packages" element={<StudentPackagesPage />} />
-      <Route path="/notifications" element={<StudentNotificationsPage />} />
-      <Route path="/" element={<StudentSchedulePage />} />
+      <Route path="" element={<StudentSchedulePage />} />
+      <Route path="schedule" element={<StudentSchedulePage />} />
+      <Route path="group-lessons" element={<StudentGroupLessonsPage />} />
+      <Route path="packages" element={<StudentPackagesPage />} />
+      <Route path="notifications" element={<StudentNotificationsPage />} />
     </Routes>
   );
 };

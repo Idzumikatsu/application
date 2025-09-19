@@ -12,17 +12,15 @@ import TeacherSchedulePage from '../pages/TeacherSchedulePage';
 const TeacherRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path="/dashboard" element={<TeacherDashboardPage />} />
-      <Route path="/statistics" element={<TeacherStatisticsPage />} />
-      <Route path="/availability" element={<TeacherAvailabilityPage />} />
-      <Route path="/notifications" element={<TeacherNotificationsPage />} />
-      <Route path="/lessons" element={<TeacherLessonsPage />} />
-      <Route path="/group-lessons" element={<TeacherGroupLessonsPage />} />
-      <Route path="/students" element={<TeacherStudentsPage />} />
-      <Route path="/schedule" element={<TeacherSchedulePage />} />
-      
-      {/* Перенаправление на dashboard по умолчанию */}
-      <Route path="/" element={<TeacherDashboardPage />} />
+      <Route path="" element={<TeacherDashboardPage />} />
+      <Route path="dashboard" element={<TeacherDashboardPage />} />
+      <Route path="statistics" element={<TeacherStatisticsPage />} />
+      <Route path="availability" element={<TeacherAvailabilityPage />} />
+      <Route path="notifications" element={<TeacherNotificationsPage />} />
+      <Route path="lessons" element={<TeacherLessonsPage />} />
+      <Route path="group-lessons" element={<TeacherGroupLessonsPage />} />
+      <Route path="students" element={<TeacherStudentsPage />} />
+      <Route path="schedule" element={<TeacherSchedulePage />} />
     </Routes>
   );
 };
