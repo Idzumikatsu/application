@@ -8,7 +8,7 @@ import { useTheme } from '@mui/material/styles';
 
 import { Navbar, Sidebar } from '@/components';
 import ProtectedRoute from '@/routes/ProtectedRoute';
-import { ManagerRoutes, StudentRoutes, TeacherRoutes } from '@/routes';
+import { ManagerRoutes, StudentRoutes, TeacherRoutes, AdminRoutes } from '@/routes';
 import LoginPage from '@/pages/LoginPage';
 import UnauthorizedPage from '@/pages/UnauthorizedPage';
 import { RootState, AppDispatch } from './store';
@@ -207,7 +207,7 @@ function App() {
               {/* Admin routes */}
               <Route
                 path="/admin/*"
-                element={renderRoleBasedRoute(['ADMIN'], <ManagerRoutes />)}
+                element={renderRoleBasedRoute(['ADMIN'], <AdminRoutes />)}
               />
               
               {/* Default route */}

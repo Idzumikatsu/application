@@ -140,6 +140,7 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
     
     @Query("SELECT l FROM Lesson l WHERE l.slot.id = :slotId")
     List<Lesson> findBySlotId(@Param("slotId") Long slotId);
+    
     @Query("SELECT l FROM Lesson l WHERE l.scheduledDate >= :startDate AND l.scheduledDate <= :endDate " +
            "ORDER BY l.scheduledDate, l.scheduledTime")
     List<Lesson> findByDateRange(
@@ -156,4 +157,9 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
         @Param("date") LocalDate date,
         @Param("currentTime") java.time.LocalDateTime currentTime
     );
+    
+    // Added for dashboard statistics
+    long countByScheduledDate(LocalDate date);
+    
+    long countByScheduledDateBetween(LocalDate startDate, LocalDate endDate);
 }

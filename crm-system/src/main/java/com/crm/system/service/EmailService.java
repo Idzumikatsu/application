@@ -19,9 +19,11 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 public class EmailService {
@@ -90,8 +92,10 @@ public class EmailService {
                 try {
                     boolean success = sendEmail(recipientEmail, subject, templateName, variables);
                     if (success) {
-                        notification.markAsSent();
-                        notificationService.updateNotification(notification);
+                        if (notification != null) {
+                            notification.markAsSent();
+                            notificationService.updateNotification(notification);
+                        }
                         logger.info("Email sent successfully to: " + recipientEmail);
                         return true;
                     }
@@ -111,8 +115,10 @@ public class EmailService {
                 }
             }
 
-            notification.markAsFailed();
-            notificationService.updateNotification(notification);
+            if (notification != null) {
+                notification.markAsFailed();
+                notificationService.updateNotification(notification);
+            }
             logger.severe("Failed to send email after " + maxRetryAttempts + " attempts to: " + recipientEmail);
             return false;
         });
@@ -192,6 +198,8 @@ public class EmailService {
                 return "payment-due";
             case SYSTEM_MESSAGE:
                 return "system-message";
+            case SYSTEM_MAINTENANCE:
+                return "system-maintenance";
             case FEEDBACK_REQUEST:
                 return "feedback-request";
             default:
@@ -225,6 +233,13 @@ public class EmailService {
             case PAYMENT_DUE:
                 variables.put("paymentInfo", notification.getMessage());
                 break;
+            case SYSTEM_MESSAGE:
+            case SYSTEM_MAINTENANCE:
+                variables.put("message", notification.getMessage());
+                break;
+            case FEEDBACK_REQUEST:
+                variables.put("feedbackInfo", notification.getMessage());
+                break;
         }
         
         return variables;
@@ -251,8 +266,95 @@ public class EmailService {
     }
 
     /**
-     * Методы для отправки конкретных типов уведомлений
+     * Массовая отправка email администратором
      */
+    @Async
+    public CompletableFuture<Boolean> sendBulkEmail(List<String> recipientEmails, String subject, String message, 
+                                                   String senderName) {
+        logger.info("Sending bulk email to " + recipientEmails.size() + " recipients");
+        
+        // Создаем переменные для шаблона
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("message", message);
+        variables.put("senderName", senderName);
+        variables.put("currentYear", LocalDateTime.now().getYear());
+        variables.put("schoolName", "CRM English School");
+        
+        boolean allSuccessful = true;
+        
+        // Отправляем каждому получателю
+        for (String email : recipientEmails) {
+            try {
+                boolean success = sendEmail(email, subject, "bulk-email", variables);
+                if (!success) {
+                    allSuccessful = false;
+                    logger.warning("Failed to send bulk email to: " + email);
+                }
+            } catch (Exception e) {
+                allSuccessful = false;
+                logger.severe("Exception while sending bulk email to: " + email + ". Error: " + e.getMessage());
+            }
+        }
+        
+        return CompletableFuture.completedFuture(allSuccessful);
+    }
+
+    /**
+     * Массовая отправка email администратором с фильтрацией по типу получателя
+     */
+    @Async
+    public CompletableFuture<Boolean> sendBulkEmailByRecipientType(RecipientType recipientType, 
+                                                                   String subject, String message, 
+                                                                   String senderName) {
+        List<String> recipientEmails = getRecipientEmailsByType(recipientType);
+        return sendBulkEmail(recipientEmails, subject, message, senderName);
+    }
+
+    /**
+     * Получает список email адресов по типу получателя
+     */
+    private List<String> getRecipientEmailsByType(RecipientType recipientType) {
+        switch (recipientType) {
+            case STUDENT:
+                return studentService.findAll().stream()
+                    .map(Student::getEmail)
+                    .filter(email -> email != null && !email.isEmpty())
+                    .collect(Collectors.toList());
+            case TEACHER:
+                return userService.findByRole(com.crm.system.model.UserRole.TEACHER).stream()
+                    .map(User::getEmail)
+                    .filter(email -> email != null && !email.isEmpty())
+                    .collect(Collectors.toList());
+            case MANAGER:
+                return userService.findByRole(com.crm.system.model.UserRole.MANAGER).stream()
+                    .map(User::getEmail)
+                    .filter(email -> email != null && !email.isEmpty())
+                    .collect(Collectors.toList());
+            case ADMIN:
+                return userService.findByRole(com.crm.system.model.UserRole.ADMIN).stream()
+                    .map(User::getEmail)
+                    .filter(email -> email != null && !email.isEmpty())
+                    .collect(Collectors.toList());
+            default:
+                return List.of();
+        }
+    }
+
+    /**
+     * Массовая отправка email администратором с фильтрацией по критериям
+     */
+    @Async
+    public CompletableFuture<Boolean> sendFilteredBulkEmail(List<Long> recipientIds, RecipientType recipientType,
+                                                          String subject, String message, String senderName) {
+        List<String> recipientEmails = recipientIds.stream()
+            .map(id -> getRecipientEmail(id, recipientType))
+            .filter(email -> email != null && !email.isEmpty())
+            .collect(Collectors.toList());
+        
+        return sendBulkEmail(recipientEmails, subject, message, senderName);
+    }
+
+    // Методы для отправки конкретных типов уведомлений
     @Async
     public CompletableFuture<Boolean> sendLessonScheduledEmail(Long recipientId, RecipientType recipientType,
                                                               String recipientEmail, String lessonInfo) {
@@ -327,6 +429,32 @@ public class EmailService {
     }
 
     @Async
+    public CompletableFuture<Boolean> sendSystemMaintenanceEmail(String subject, String message) {
+        logger.info("Sending system maintenance email to all users");
+        
+        // Отправляем уведомление всем типам пользователей
+        CompletableFuture<Boolean> teacherResult = sendBulkEmailByRecipientType(
+            RecipientType.TEACHER, subject, message, "System Administrator");
+        
+        CompletableFuture<Boolean> managerResult = sendBulkEmailByRecipientType(
+            RecipientType.MANAGER, subject, message, "System Administrator");
+        
+        CompletableFuture<Boolean> adminResult = sendBulkEmailByRecipientType(
+            RecipientType.ADMIN, subject, message, "System Administrator");
+        
+        // Ждем завершения всех отправок
+        return CompletableFuture.allOf(teacherResult, managerResult, adminResult)
+            .thenApply(v -> {
+                try {
+                    return teacherResult.get() && managerResult.get() && adminResult.get();
+                } catch (Exception e) {
+                    logger.severe("Error getting bulk email results: " + e.getMessage());
+                    return false;
+                }
+            });
+    }
+
+    @Async
     public CompletableFuture<Boolean> sendFeedbackRequestEmail(Long recipientId, RecipientType recipientType,
                                                               String recipientEmail, String feedbackInfo) {
         logger.info("Sending feedback request email to: " + recipientEmail + ", recipient ID: " + recipientId);
@@ -336,5 +464,193 @@ public class EmailService {
         variables.put("recipientName", getRecipientName(recipientId, recipientType));
         
         return sendEmailWithRetry(recipientEmail, subject, "feedback-request", variables, null);
+    }
+
+    // Расширенные методы для системных уведомлений
+    @Async
+    public CompletableFuture<Boolean> sendSystemAlertEmail(String subject, String message, String alertLevel) {
+        logger.info("Sending system alert email with level: " + alertLevel);
+        
+        // Получаем все email адреса администраторов
+        List<String> adminEmails = userService.findByRole(com.crm.system.model.UserRole.ADMIN).stream()
+            .map(User::getEmail)
+            .filter(email -> email != null && !email.isEmpty())
+            .collect(Collectors.toList());
+        
+        // Создаем переменные для шаблона
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("message", message);
+        variables.put("alertLevel", alertLevel);
+        variables.put("timestamp", LocalDateTime.now().toString());
+        variables.put("currentYear", LocalDateTime.now().getYear());
+        variables.put("schoolName", "CRM English School");
+        
+        boolean allSuccessful = true;
+        
+        // Отправляем каждому администратору
+        for (String email : adminEmails) {
+            try {
+                boolean success = sendEmail(email, subject, "system-alert", variables);
+                if (!success) {
+                    allSuccessful = false;
+                    logger.warning("Failed to send system alert email to: " + email);
+                }
+            } catch (Exception e) {
+                allSuccessful = false;
+                logger.severe("Exception while sending system alert email to: " + email + ". Error: " + e.getMessage());
+            }
+        }
+        
+        return CompletableFuture.completedFuture(allSuccessful);
+    }
+
+    @Async
+    public CompletableFuture<Boolean> sendSystemReportEmail(String subject, String reportContent, 
+                                                           List<String> recipientEmails) {
+        logger.info("Sending system report email to " + recipientEmails.size() + " recipients");
+        
+        // Создаем переменные для шаблона
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("reportContent", reportContent);
+        variables.put("timestamp", LocalDateTime.now().toString());
+        variables.put("currentYear", LocalDateTime.now().getYear());
+        variables.put("schoolName", "CRM English School");
+        
+        boolean allSuccessful = true;
+        
+        // Отправляем каждому получателю
+        for (String email : recipientEmails) {
+            try {
+                boolean success = sendEmail(email, subject, "system-report", variables);
+                if (!success) {
+                    allSuccessful = false;
+                    logger.warning("Failed to send system report email to: " + email);
+                }
+            } catch (Exception e) {
+                allSuccessful = false;
+                logger.severe("Exception while sending system report email to: " + email + ". Error: " + e.getMessage());
+            }
+        }
+        
+        return CompletableFuture.completedFuture(allSuccessful);
+    }
+
+    @Async
+    public CompletableFuture<Boolean> sendSecurityAlertEmail(String subject, String alertMessage, 
+                                                           String ipAddress, String userAgent) {
+        logger.info("Sending security alert email for IP: " + ipAddress);
+        
+        // Получаем все email адреса администраторов
+        List<String> adminEmails = userService.findByRole(com.crm.system.model.UserRole.ADMIN).stream()
+            .map(User::getEmail)
+            .filter(email -> email != null && !email.isEmpty())
+            .collect(Collectors.toList());
+        
+        // Создаем переменные для шаблона
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("alertMessage", alertMessage);
+        variables.put("ipAddress", ipAddress);
+        variables.put("userAgent", userAgent);
+        variables.put("timestamp", LocalDateTime.now().toString());
+        variables.put("currentYear", LocalDateTime.now().getYear());
+        variables.put("schoolName", "CRM English School");
+        
+        boolean allSuccessful = true;
+        
+        // Отправляем каждому администратору
+        for (String email : adminEmails) {
+            try {
+                boolean success = sendEmail(email, subject, "security-alert", variables);
+                if (!success) {
+                    allSuccessful = false;
+                    logger.warning("Failed to send security alert email to: " + email);
+                }
+            } catch (Exception e) {
+                allSuccessful = false;
+                logger.severe("Exception while sending security alert email to: " + email + ". Error: " + e.getMessage());
+            }
+        }
+        
+        return CompletableFuture.completedFuture(allSuccessful);
+    }
+
+    @Async
+    public CompletableFuture<Boolean> sendPerformanceAlertEmail(String subject, String alertMessage, 
+                                                               double cpuUsage, double memoryUsage, 
+                                                               double diskUsage) {
+        logger.info("Sending performance alert email with CPU: " + cpuUsage + "%, Memory: " + memoryUsage + "%, Disk: " + diskUsage + "%");
+        
+        // Получаем все email адреса администраторов
+        List<String> adminEmails = userService.findByRole(com.crm.system.model.UserRole.ADMIN).stream()
+            .map(User::getEmail)
+            .filter(email -> email != null && !email.isEmpty())
+            .collect(Collectors.toList());
+        
+        // Создаем переменные для шаблона
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("alertMessage", alertMessage);
+        variables.put("cpuUsage", cpuUsage);
+        variables.put("memoryUsage", memoryUsage);
+        variables.put("diskUsage", diskUsage);
+        variables.put("timestamp", LocalDateTime.now().toString());
+        variables.put("currentYear", LocalDateTime.now().getYear());
+        variables.put("schoolName", "CRM English School");
+        
+        boolean allSuccessful = true;
+        
+        // Отправляем каждому администратору
+        for (String email : adminEmails) {
+            try {
+                boolean success = sendEmail(email, subject, "performance-alert", variables);
+                if (!success) {
+                    allSuccessful = false;
+                    logger.warning("Failed to send performance alert email to: " + email);
+                }
+            } catch (Exception e) {
+                allSuccessful = false;
+                logger.severe("Exception while sending performance alert email to: " + email + ". Error: " + e.getMessage());
+            }
+        }
+        
+        return CompletableFuture.completedFuture(allSuccessful);
+    }
+
+    @Async
+    public CompletableFuture<Boolean> sendBackupStatusEmail(String subject, String backupStatus, 
+                                                           boolean success, String details) {
+        logger.info("Sending backup status email with status: " + backupStatus);
+        
+        // Получаем все email адреса администраторов
+        List<String> adminEmails = userService.findByRole(com.crm.system.model.UserRole.ADMIN).stream()
+            .map(User::getEmail)
+            .filter(email -> email != null && !email.isEmpty())
+            .collect(Collectors.toList());
+        
+        // Создаем переменные для шаблона
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("backupStatus", backupStatus);
+        variables.put("success", success);
+        variables.put("details", details);
+        variables.put("timestamp", LocalDateTime.now().toString());
+        variables.put("currentYear", LocalDateTime.now().getYear());
+        variables.put("schoolName", "CRM English School");
+        
+        boolean allSuccessful = true;
+        
+        // Отправляем каждому администратору
+        for (String email : adminEmails) {
+            try {
+                boolean successResult = sendEmail(email, subject, "backup-status", variables);
+                if (!successResult) {
+                    allSuccessful = false;
+                    logger.warning("Failed to send backup status email to: " + email);
+                }
+            } catch (Exception e) {
+                allSuccessful = false;
+                logger.severe("Exception while sending backup status email to: " + email + ". Error: " + e.getMessage());
+            }
+        }
+        
+        return CompletableFuture.completedFuture(allSuccessful);
     }
 }

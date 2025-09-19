@@ -31,4 +31,6 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     Student findByTelegramChatId(Long chatId);
     
     Boolean existsByTelegramChatId(Long chatId);
+    
+    long countByAssignedTeacherIsNull();
 }

@@ -1,7 +1,9 @@
 package com.crm.system.controller;
 
+import com.crm.system.dto.MessageDto;
 import com.crm.system.dto.NotificationDto;
 import com.crm.system.model.Notification;
+import com.crm.system.service.NotificationBroadcastService;
 import com.crm.system.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,112 +26,74 @@ public class NotificationController {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private NotificationBroadcastService notificationBroadcastService;
+
+    // User-specific notification endpoints (existing functionality)
     @GetMapping("/recipients/{recipientId}/{recipientType}")
-    @PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER') or hasRole('MANAGER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TEACHER') or hasRole('STUDENT')")
     public ResponseEntity<Page<NotificationDto>> getNotificationsByRecipient(
             @PathVariable Long recipientId,
             @PathVariable Notification.RecipientType recipientType,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) List<Notification.NotificationStatus> statuses,
-            @RequestParam(required = false) List<Notification.NotificationType> types,
-            @RequestParam(required = false) LocalDate startDate,
-            @RequestParam(required = false) LocalDate endDate) {
-
-        Pageable pageable = PageRequest.of(page, size);
+            @RequestParam(required = false) List<Notification.NotificationType> types) {
         
-        // Check if user has permission to access these notifications
-        if (!hasPermissionToAccessNotifications(recipientId, recipientType)) {
-            return ResponseEntity.status(403).build();
-        }
-
+        Pageable pageable = PageRequest.of(page, size);
         Page<Notification> notificationPage;
         
-        LocalDateTime startDateTime = startDate != null ? startDate.atStartOfDay() : null;
-        LocalDateTime endDateTime = endDate != null ? endDate.atTime(23, 59, 59) : null;
-
-        if (statuses != null && types != null) {
+        if (statuses != null && !statuses.isEmpty() && types != null && !types.isEmpty()) {
             notificationPage = notificationService.findByRecipientIdAndRecipientTypeAndNotificationTypesAndStatuses(
                     recipientId, recipientType, types, statuses, pageable);
-        } else if (statuses != null) {
+        } else if (statuses != null && !statuses.isEmpty()) {
             notificationPage = notificationService.findByRecipientIdAndRecipientTypeAndStatuses(
                     recipientId, recipientType, statuses, pageable);
-        } else if (types != null) {
+        } else if (types != null && !types.isEmpty()) {
+            // This would require a new method in NotificationService
             notificationPage = notificationService.findByRecipientIdAndRecipientTypeAndNotificationTypesAndStatuses(
-                    recipientId, recipientType, types, 
-                    List.of(Notification.NotificationStatus.PENDING, 
-                           Notification.NotificationStatus.SENT, 
-                           Notification.NotificationStatus.DELIVERED), pageable);
-        } else if (startDateTime != null && endDateTime != null) {
-            notificationPage = notificationService.findByRecipientIdAndRecipientTypeAndDateRange(
-                    recipientId, recipientType, startDateTime, endDateTime, pageable);
+                    recipientId, recipientType, types, List.of(), pageable);
         } else {
-            notificationPage = notificationService.findByRecipientIdAndRecipientTypeAndStatuses(
-                    recipientId, recipientType, 
-                    List.of(Notification.NotificationStatus.PENDING, 
-                           Notification.NotificationStatus.SENT, 
-                           Notification.NotificationStatus.DELIVERED), pageable);
+            // Get all notifications for recipient
+            notificationPage = notificationService.findByRecipientIdAndRecipientTypeAndDateRange(
+                    recipientId, recipientType, LocalDateTime.now().minusMonths(1), LocalDateTime.now(), pageable);
         }
-
+        
         Page<NotificationDto> notificationDtos = notificationPage.map(this::convertToDto);
         return ResponseEntity.ok(notificationDtos);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER') or hasRole('MANAGER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TEACHER') or hasRole('STUDENT')")
     public ResponseEntity<NotificationDto> getNotificationById(@PathVariable Long id) {
         Notification notification = notificationService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Notification not found with id: " + id));
-                
-        // Check if user has permission to access this notification
-        if (!hasPermissionToAccessNotification(notification)) {
-            return ResponseEntity.status(403).build();
-        }
-
         return ResponseEntity.ok(convertToDto(notification));
     }
 
     @PostMapping("/{id}/mark-as-read")
-    @PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER') or hasRole('MANAGER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TEACHER') or hasRole('STUDENT')")
     public ResponseEntity<NotificationDto> markNotificationAsRead(@PathVariable Long id) {
         Notification notification = notificationService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Notification not found with id: " + id));
-                
-        // Check if user has permission to access this notification
-        if (!hasPermissionToAccessNotification(notification)) {
-            return ResponseEntity.status(403).build();
-        }
-
         notificationService.markAsRead(notification);
         return ResponseEntity.ok(convertToDto(notification));
     }
 
     @GetMapping("/recipients/{recipientId}/{recipientType}/unread-count")
-    @PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER') or hasRole('MANAGER') or hasRole('ADMIN')")
-    public ResponseEntity<Long> getUnreadNotificationCount(
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TEACHER') or hasRole('STUDENT')")
+    public ResponseEntity<Long> getUnreadNotificationsCount(
             @PathVariable Long recipientId,
             @PathVariable Notification.RecipientType recipientType) {
-        
-        // Check if user has permission to access these notifications
-        if (!hasPermissionToAccessNotifications(recipientId, recipientType)) {
-            return ResponseEntity.status(403).build();
-        }
-
         Long count = notificationService.countUnreadNotificationsByRecipient(recipientId, recipientType);
         return ResponseEntity.ok(count);
     }
 
     @GetMapping("/recipients/{recipientId}/{recipientType}/pending")
-    @PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER') or hasRole('MANAGER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TEACHER') or hasRole('STUDENT')")
     public ResponseEntity<List<NotificationDto>> getPendingNotifications(
             @PathVariable Long recipientId,
             @PathVariable Notification.RecipientType recipientType) {
-        
-        // Check if user has permission to access these notifications
-        if (!hasPermissionToAccessNotifications(recipientId, recipientType)) {
-            return ResponseEntity.status(403).build();
-        }
-
         List<Notification> notifications = notificationService.findPendingNotificationsByRecipient(recipientId, recipientType);
         List<NotificationDto> notificationDtos = notifications.stream()
                 .map(this::convertToDto)
@@ -137,38 +101,70 @@ public class NotificationController {
         return ResponseEntity.ok(notificationDtos);
     }
 
-    @GetMapping("/recipients/{recipientId}/{recipientType}/unread")
-    @PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER') or hasRole('MANAGER') or hasRole('ADMIN')")
-    public ResponseEntity<Page<NotificationDto>> getUnreadNotifications(
-            @PathVariable Long recipientId,
-            @PathVariable Notification.RecipientType recipientType,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        
-        // Check if user has permission to access these notifications
-        if (!hasPermissionToAccessNotifications(recipientId, recipientType)) {
-            return ResponseEntity.status(403).build();
-        }
-
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Notification> notifications = notificationService.findUnreadNotificationsByRecipient(recipientId, recipientType, pageable);
-        Page<NotificationDto> notificationDtos = notifications.map(this::convertToDto);
-        return ResponseEntity.ok(notificationDtos);
+    // Extended admin notification management endpoints
+    @PostMapping("/broadcast")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MessageDto> sendBroadcastNotification(@RequestBody BroadcastNotificationRequest request) {
+        notificationBroadcastService.broadcastToRecipientType(
+                request.getRecipientType(),
+                request.getNotificationType(),
+                request.getTitle(),
+                request.getMessage());
+        return ResponseEntity.ok(new MessageDto("Broadcast notification sent successfully!"));
     }
 
-    @PostMapping("/recipients/{recipientId}/{recipientType}/mark-all-as-read")
-    @PreAuthorize("hasRole('STUDENT') or hasRole('TEACHER') or hasRole('MANAGER') or hasRole('ADMIN')")
-    public ResponseEntity<Void> markAllNotificationsAsRead(
-            @PathVariable Long recipientId,
-            @PathVariable Notification.RecipientType recipientType) {
-        
-        // Check if user has permission to access these notifications
-        if (!hasPermissionToAccessNotifications(recipientId, recipientType)) {
-            return ResponseEntity.status(403).build();
-        }
+    @PostMapping("/broadcast/filtered")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MessageDto> sendFilteredBroadcastNotification(@RequestBody FilteredBroadcastNotificationRequest request) {
+        notificationBroadcastService.broadcastToFilteredRecipients(
+                request.getRecipientIds(),
+                request.getRecipientType(),
+                request.getNotificationType(),
+                request.getTitle(),
+                request.getMessage());
+        return ResponseEntity.ok(new MessageDto("Filtered broadcast notification sent successfully!"));
+    }
 
-        notificationService.markAllAsReadByRecipient(recipientId, recipientType);
-        return ResponseEntity.ok().build();
+    @PostMapping("/broadcast/priority")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MessageDto> sendPriorityBroadcastNotification(@RequestBody PriorityBroadcastNotificationRequest request) {
+        notificationBroadcastService.broadcastWithPriority(
+                request.getRecipientType(),
+                request.getNotificationType(),
+                request.getTitle(),
+                request.getMessage(),
+                request.isHighPriority());
+        return ResponseEntity.ok(new MessageDto("Priority broadcast notification sent successfully!"));
+    }
+
+    @GetMapping("/statistics")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<NotificationBroadcastService.BroadcastStatistics> getNotificationStatistics() {
+        NotificationBroadcastService.BroadcastStatistics statistics = notificationBroadcastService.getBroadcastStatistics();
+        return ResponseEntity.ok(statistics);
+    }
+
+    @PostMapping("/resend-failed")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MessageDto> resendFailedNotifications() {
+        Integer resentCount = notificationBroadcastService.resendFailedNotifications().join();
+        return ResponseEntity.ok(new MessageDto("Resent " + resentCount + " failed notifications successfully!"));
+    }
+
+    @DeleteMapping("/cancel-scheduled/{notificationType}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MessageDto> cancelScheduledNotifications(@PathVariable Notification.NotificationType notificationType) {
+        notificationBroadcastService.cancelScheduledBroadcasts(notificationType);
+        return ResponseEntity.ok(new MessageDto("Cancelled scheduled notifications of type: " + notificationType));
+    }
+
+    // System-wide notification monitoring for admin
+    @GetMapping("/system-overview")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MessageDto> getSystemNotificationOverview() {
+        // This endpoint will return system-wide notification statistics
+        // For now, return a placeholder - will be enhanced with actual data
+        return ResponseEntity.ok(new MessageDto("System notification overview - to be implemented with detailed statistics"));
     }
 
     private NotificationDto convertToDto(Notification notification) {
@@ -180,31 +176,80 @@ public class NotificationController {
         dto.setTitle(notification.getTitle());
         dto.setMessage(notification.getMessage());
         dto.setStatus(notification.getStatus());
+        dto.setCreatedAt(notification.getCreatedAt());
         dto.setSentAt(notification.getSentAt());
+        dto.setDeliveredAt(notification.getDeliveredAt());
         dto.setReadAt(notification.getReadAt());
-        dto.setRelatedEntityId(notification.getRelatedEntityId());
-        dto.setRelatedEntityType(notification.getRelatedEntityType());
-        dto.setPriority(notification.getPriority());
-        if (notification.getCreatedAt() != null) {
-            dto.setCreatedAt(notification.getCreatedAt().toString());
-        }
-        if (notification.getUpdatedAt() != null) {
-            dto.setUpdatedAt(notification.getUpdatedAt().toString());
-        }
+        dto.setFailedAt(notification.getFailedAt());
         return dto;
     }
 
-    private boolean hasPermissionToAccessNotifications(Long recipientId, Notification.RecipientType recipientType) {
-        // In a real implementation, this would check the current user's identity
-        // against the recipientId and recipientType
-        // For now, we'll assume the security annotations handle this
-        return true;
+    // DTO classes for request bodies
+    public static class BroadcastNotificationRequest {
+        private Notification.RecipientType recipientType;
+        private Notification.NotificationType notificationType;
+        private String title;
+        private String message;
+
+        // Getters and setters
+        public Notification.RecipientType getRecipientType() { return recipientType; }
+        public void setRecipientType(Notification.RecipientType recipientType) { this.recipientType = recipientType; }
+
+        public Notification.NotificationType getNotificationType() { return notificationType; }
+        public void setNotificationType(Notification.NotificationType notificationType) { this.notificationType = notificationType; }
+
+        public String getTitle() { return title; }
+        public void setTitle(String title) { this.title = title; }
+
+        public String getMessage() { return message; }
+        public void setMessage(String message) { this.message = message; }
     }
 
-    private boolean hasPermissionToAccessNotification(Notification notification) {
-        // In a real implementation, this would check the current user's identity
-        // against the notification's recipientId and recipientType
-        // For now, we'll assume the security annotations handle this
-        return true;
+    public static class FilteredBroadcastNotificationRequest {
+        private List<Long> recipientIds;
+        private Notification.RecipientType recipientType;
+        private Notification.NotificationType notificationType;
+        private String title;
+        private String message;
+
+        // Getters and setters
+        public List<Long> getRecipientIds() { return recipientIds; }
+        public void setRecipientIds(List<Long> recipientIds) { this.recipientIds = recipientIds; }
+
+        public Notification.RecipientType getRecipientType() { return recipientType; }
+        public void setRecipientType(Notification.RecipientType recipientType) { this.recipientType = recipientType; }
+
+        public Notification.NotificationType getNotificationType() { return notificationType; }
+        public void setNotificationType(Notification.NotificationType notificationType) { this.notificationType = notificationType; }
+
+        public String getTitle() { return title; }
+        public void setTitle(String title) { this.title = title; }
+
+        public String getMessage() { return message; }
+        public void setMessage(String message) { this.message = message; }
+    }
+
+    public static class PriorityBroadcastNotificationRequest {
+        private Notification.RecipientType recipientType;
+        private Notification.NotificationType notificationType;
+        private String title;
+        private String message;
+        private boolean highPriority;
+
+        // Getters and setters
+        public Notification.RecipientType getRecipientType() { return recipientType; }
+        public void setRecipientType(Notification.RecipientType recipientType) { this.recipientType = recipientType; }
+
+        public Notification.NotificationType getNotificationType() { return notificationType; }
+        public void setNotificationType(Notification.NotificationType notificationType) { this.notificationType = notificationType; }
+
+        public String getTitle() { return title; }
+        public void setTitle(String title) { this.title = title; }
+
+        public String getMessage() { return message; }
+        public void setMessage(String message) { this.message = message; }
+
+        public boolean isHighPriority() { return highPriority; }
+        public void setHighPriority(boolean highPriority) { this.highPriority = highPriority; }
     }
 }

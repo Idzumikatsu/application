@@ -37,8 +37,17 @@ const DashboardPage: React.FC = () => {
     switch (user?.role) {
       case UserRole.ADMIN:
         return [
+          { title: 'Панель администратора', path: '/admin/dashboard', description: 'Управление пользователями, системой и отчетами' },
           { title: 'Управление пользователями', path: '/admin/users', description: 'Управление менеджерами, преподавателями и студентами' },
           { title: 'Системные настройки', path: '/admin/settings', description: 'Конфигурация системы и параметры' },
+          { title: 'Отчеты и экспорт', path: '/admin/reports', description: 'Генерация отчетов и экспорт данных' },
+        ];
+      case UserRole.MANAGER:
+        return [
+          { title: 'Управление преподавателями', path: '/manager/teachers', description: 'Просмотр и управление преподавателями' },
+          { title: 'Управление студентами', path: '/manager/students', description: 'Просмотр и управление студентами' },
+          { title: 'Планирование уроков', path: '/manager/scheduling', description: 'Планирование индивидуальных и групповых уроков' },
+          { title: 'Пакеты уроков', path: '/manager/packages', description: 'Управление пакетами уроков студентов' },
         ];
       case UserRole.MANAGER:
         return [
@@ -127,6 +136,16 @@ const DashboardPage: React.FC = () => {
             >
               {getRoleDisplayName(user?.role || UserRole.STUDENT)}
             </Typography>
+            {user?.role === UserRole.ADMIN && (
+              <Button 
+                variant="outlined" 
+                size="small" 
+                sx={{ mt: 1, ml: isMobile ? 0 : 1 }}
+                onClick={() => navigate('/admin/dashboard')}
+              >
+                Перейти в панель администратора
+              </Button>
+            )}
           </Box>
         </Box>
 

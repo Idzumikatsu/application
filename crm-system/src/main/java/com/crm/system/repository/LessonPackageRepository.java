@@ -35,4 +35,7 @@ public interface LessonPackageRepository extends JpaRepository<LessonPackage, Lo
 
     @Query("SELECT lp FROM LessonPackage lp WHERE lp.createdAt < :expirationThreshold AND lp.remainingLessons > 0")
     List<LessonPackage> findExpiredPackages(@Param("expirationThreshold") LocalDateTime expirationThreshold);
+    
+    // Added for dashboard statistics
+    List<LessonPackage> findByRemainingLessonsLessThanEqual(int threshold);
 }

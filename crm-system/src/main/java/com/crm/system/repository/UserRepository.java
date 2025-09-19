@@ -18,4 +18,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findByTelegramChatId(Long chatId);
     
     Boolean existsByTelegramChatId(Long chatId);
+    
+    // Added for dashboard statistics
+    long countByRole(UserRole role);
 }

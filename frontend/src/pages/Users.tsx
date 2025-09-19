@@ -1,11 +1,14 @@
 import React from 'react';
+import { Box, Typography } from '@mui/material';
 
 const Users: React.FC = () => {
   return (
-    <div>
-      <h1>Users</h1>
-      <p>Manage users here.</p>
-    </div>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h5">Управление пользователями</Typography>
+      <Typography variant="body1" sx={{ mt: 2 }}>
+        Здесь будет реализована функциональность управления пользователями.
+      </Typography>
+    </Box>
   );
 };
 

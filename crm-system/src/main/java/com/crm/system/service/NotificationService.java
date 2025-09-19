@@ -4,6 +4,8 @@ import com.crm.system.model.Notification;
 import com.crm.system.model.Notification.NotificationStatus;
 import com.crm.system.model.Notification.RecipientType;
 import com.crm.system.model.Notification.NotificationType;
+import com.crm.system.model.Student;
+import com.crm.system.model.User;
 import com.crm.system.repository.NotificationRepository;
 import com.crm.system.repository.UserRepository;
 import com.crm.system.repository.StudentRepository;
@@ -188,6 +190,57 @@ public class NotificationService {
         return notification.getStatusName();
     }
 
+    // Broadcast notification methods
+    public List<Notification> createBroadcastNotifications(RecipientType recipientType, 
+                                                         NotificationType notificationType, 
+                                                         String title, String message) {
+        List<Notification> notifications = null;
+        
+        switch (recipientType) {
+            case STUDENT:
+                List<Student> students = studentRepository.findAll();
+                notifications = students.stream()
+                    .map(student -> new Notification(student.getId(), recipientType, notificationType, title, message))
+                    .collect(Collectors.toList());
+                break;
+            case TEACHER:
+                List<User> teachers = userRepository.findByRole(com.crm.system.model.UserRole.TEACHER);
+                notifications = teachers.stream()
+                    .map(teacher -> new Notification(teacher.getId(), recipientType, notificationType, title, message))
+                    .collect(Collectors.toList());
+                break;
+            case MANAGER:
+                List<User> managers = userRepository.findByRole(com.crm.system.model.UserRole.MANAGER);
+                notifications = managers.stream()
+                    .map(manager -> new Notification(manager.getId(), recipientType, notificationType, title, message))
+                    .collect(Collectors.toList());
+                break;
+            case ADMIN:
+                List<User> admins = userRepository.findByRole(com.crm.system.model.UserRole.ADMIN);
+                notifications = admins.stream()
+                    .map(admin -> new Notification(admin.getId(), recipientType, notificationType, title, message))
+                    .collect(Collectors.toList());
+                break;
+        }
+        
+        if (notifications != null) {
+            return notificationRepository.saveAll(notifications);
+        }
+        
+        return null;
+    }
+
+    public List<Notification> createFilteredBroadcastNotifications(RecipientType recipientType, 
+                                                                 NotificationType notificationType, 
+                                                                 String title, String message,
+                                                                 List<Long> recipientIds) {
+        List<Notification> notifications = recipientIds.stream()
+            .map(id -> new Notification(id, recipientType, notificationType, title, message))
+            .collect(Collectors.toList());
+        
+        return notificationRepository.saveAll(notifications);
+    }
+
     // Business methods
     public Notification sendLessonScheduledNotification(Long recipientId, RecipientType recipientType, 
                                                        String lessonInfo) {
@@ -261,7 +314,7 @@ public class NotificationService {
 
     public Notification sendPaymentDueNotification(Long recipientId, RecipientType recipientType, 
                                                  String paymentInfo) {
-        String title = "Оплата по расписанию";
+        String title = "Напоминание об оплате";
         String message = "Напоминание об оплате:\n\n" + paymentInfo;
         
         Notification notification = new Notification(recipientId, recipientType, 
@@ -276,6 +329,31 @@ public class NotificationService {
         Notification notification = new Notification(recipientId, recipientType, 
                                                    NotificationType.SYSTEM_MESSAGE, title, message);
         return notificationRepository.save(notification);
+    }
+
+    public Notification sendSystemMaintenanceNotification(String title, String message) {
+        // Create broadcast notification for all users
+        // Create notifications for all recipient types
+        List<Notification> teacherNotifications = createBroadcastNotifications(
+            RecipientType.TEACHER, NotificationType.SYSTEM_MAINTENANCE, title, message);
+        
+        List<Notification> managerNotifications = createBroadcastNotifications(
+            RecipientType.MANAGER, NotificationType.SYSTEM_MAINTENANCE, title, message);
+        
+        List<Notification> adminNotifications = createBroadcastNotifications(
+            RecipientType.ADMIN, NotificationType.SYSTEM_MAINTENANCE, title, message);
+        
+        // Combine all notifications
+        List<Notification> allNotifications = teacherNotifications;
+        if (managerNotifications != null) {
+            allNotifications.addAll(managerNotifications);
+        }
+        if (adminNotifications != null) {
+            allNotifications.addAll(adminNotifications);
+        }
+        
+        // Return the first notification as example
+        return allNotifications != null && !allNotifications.isEmpty() ? allNotifications.get(0) : null;
     }
 
     public Notification sendFeedbackRequestNotification(Long recipientId, RecipientType recipientType, 
@@ -448,6 +526,30 @@ public class NotificationService {
         Pageable pageable = PageRequest.of(0, 100);
         Page<Notification> notificationPage = findByRecipientIdAndRecipientTypeAndNotificationTypesAndStatuses(
                 recipientId, recipientType, systemTypes, statuses, pageable);
+        
+        return notificationPage.getContent().stream()
+                .filter(n -> n.getCreatedAt().isAfter(startDateTime) || n.getCreatedAt().isEqual(startDateTime))
+                .filter(n -> n.getCreatedAt().isBefore(endDateTime) || n.getCreatedAt().isEqual(endDateTime))
+                .collect(Collectors.toList());
+    }
+
+    public List<Notification> findSystemMaintenanceNotificationsByRecipient(
+            Long recipientId, RecipientType recipientType, LocalDate startDate, LocalDate endDate) {
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+        
+        List<NotificationType> maintenanceTypes = List.of(NotificationType.SYSTEM_MAINTENANCE);
+        
+        List<NotificationStatus> statuses = List.of(
+            NotificationStatus.PENDING,
+            NotificationStatus.SENT,
+            NotificationStatus.DELIVERED,
+            NotificationStatus.READ
+        );
+        
+        Pageable pageable = PageRequest.of(0, 100);
+        Page<Notification> notificationPage = findByRecipientIdAndRecipientTypeAndNotificationTypesAndStatuses(
+                recipientId, recipientType, maintenanceTypes, statuses, pageable);
         
         return notificationPage.getContent().stream()
                 .filter(n -> n.getCreatedAt().isAfter(startDateTime) || n.getCreatedAt().isEqual(startDateTime))
