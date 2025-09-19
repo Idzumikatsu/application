@@ -95,6 +95,11 @@ services:
       retries: 3
     labels:
       - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`app.crm-synergy.ru`) && !PathPrefix(`/api`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.frontend.service=frontend"
+      - "traefik.http.routers.frontend.priority=15"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
     # Add restart policy to ensure containers restart if they fail
     restart: unless-stopped

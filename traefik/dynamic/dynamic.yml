@@ -8,6 +8,14 @@ http:
       tls:
         certResolver: letsencrypt
 
+    traefik-http:
+      rule: "Host(`traefik.crm-synergy.ru`)"
+      entryPoints:
+        - web
+      service: traefik
+      middlewares:
+        - redirect-https
+
     backend-api:
       rule: "Host(`app.crm-synergy.ru`) && PathPrefix(`/api`)"
       entryPoints:
@@ -15,6 +23,15 @@ http:
       service: backend
       tls:
         certResolver: letsencrypt
+      priority: 10
+
+    backend-api-http:
+      rule: "Host(`app.crm-synergy.ru`) && PathPrefix(`/api`)"
+      entryPoints:
+        - web
+      service: backend
+      middlewares:
+        - redirect-https
       priority: 10
 
     backend:
@@ -25,6 +42,14 @@ http:
       tls:
         certResolver: letsencrypt
 
+    backend-http:
+      rule: "Host(`api.crm-synergy.ru`)"
+      entryPoints:
+        - web
+      service: backend
+      middlewares:
+        - redirect-https
+
     frontend:
       rule: "Host(`app.crm-synergy.ru`) && !PathPrefix(`/api`)"
       entryPoints:
@@ -32,6 +57,15 @@ http:
       service: frontend
       tls:
         certResolver: letsencrypt
+      priority: 15
+
+    frontend-http:
+      rule: "Host(`app.crm-synergy.ru`) && !PathPrefix(`/api`)"
+      entryPoints:
+        - web
+      service: frontend
+      middlewares:
+        - redirect-https
       priority: 15
 
     email-service:
@@ -42,6 +76,14 @@ http:
       tls:
         certResolver: letsencrypt
 
+    email-service-http:
+      rule: "Host(`email.crm-synergy.ru`)"
+      entryPoints:
+        - web
+      service: email-service
+      middlewares:
+        - redirect-https
+
     telegram-service:
       rule: "Host(`telegram.crm-synergy.ru`)"
       entryPoints:
@@ -49,6 +91,20 @@ http:
       service: telegram-service
       tls:
         certResolver: letsencrypt
+
+    telegram-service-http:
+      rule: "Host(`telegram.crm-synergy.ru`)"
+      entryPoints:
+        - web
+      service: telegram-service
+      middlewares:
+        - redirect-https
+
+  middlewares:
+    redirect-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
 
   services:
     traefik:
