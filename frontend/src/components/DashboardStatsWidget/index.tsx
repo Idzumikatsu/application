@@ -40,6 +40,30 @@ const DashboardStatsWidget: React.FC = () => {
       const demoStats: DashboardStats = {
         totalStudents: 156,
         totalTeachers: 24,
+        totalManagers: 8,
+        activeStudents: 142,
+        activeTeachers: 22,
+        lessonsToday: 42,
+        lessonsThisWeek: 156,
+        studentsEndingSoon: [
+          {
+            studentId: 1,
+            studentName: 'Иванов Петр',
+            teacherName: 'Смирнова Анна',
+            remainingLessons: 2,
+            totalLessons: 10,
+            packageEndDate: '2024-10-15'
+          },
+          {
+            studentId: 2,
+            studentName: 'Петрова Мария',
+            teacherName: 'Кузнецов Дмитрий',
+            remainingLessons: 1,
+            totalLessons: 8,
+            packageEndDate: '2024-10-12'
+          }
+        ],
+        lastUpdated: new Date().toISOString(),
         scheduledLessons: 42,
         completedLessons: 785,
         cancelledLessons: 45,

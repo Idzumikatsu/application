@@ -2,14 +2,46 @@ import httpClient from './httpClient';
 import { logInfo, logError } from '../utils/logger';
 import { DashboardStats } from '../types';
 
+interface StudentEndingSoon {
+  studentId: number;
+  studentName: string;
+  teacherName: string;
+  remainingLessons: number;
+  totalLessons: number;
+  packageEndDate: string;
+}
+
 class AdminService {
   // Dashboard endpoints
-  public async getDashboardStats(): Promise<any> {
+  public async getDashboardStats(): Promise<DashboardStats> {
     logInfo('Fetching dashboard stats');
     try {
       const response = await httpClient.get('/admin/dashboard/stats');
       logInfo('Dashboard stats fetched successfully');
-      return response.data;
+
+      // Transform API response to match DashboardStats interface
+      const data = response.data as any;
+      const transformedStats: DashboardStats = {
+        totalStudents: data.totalStudents || 0,
+        totalTeachers: data.totalTeachers || 0,
+        totalManagers: data.totalManagers || 0,
+        activeStudents: data.activeStudents || 0,
+        activeTeachers: data.activeTeachers || 0,
+        lessonsToday: data.lessonsToday || 0,
+        lessonsThisWeek: data.lessonsThisWeek || 0,
+        studentsEndingSoon: data.studentsEndingSoon || [],
+        lastUpdated: data.lastUpdated || new Date().toISOString(),
+        // Optional fields for backward compatibility
+        scheduledLessons: data.scheduledLessons,
+        completedLessons: data.completedLessons,
+        cancelledLessons: data.cancelledLessons,
+        upcomingLessons: data.upcomingLessons,
+        availableSlots: data.availableSlots,
+        bookedSlots: data.bookedSlots,
+        unreadNotifications: data.unreadNotifications,
+      };
+
+      return transformedStats;
     } catch (error) {
       logError('Failed to fetch dashboard stats', error);
       throw error;
