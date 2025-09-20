@@ -12,27 +12,7 @@ import { Refresh } from '@mui/icons-material';
 import { RootState } from '@/store';
 import { useGetDashboardStatsQuery } from '@/apiSlice';
 import AdminStats from '@/components/Admin/AdminStats';
-import { DashboardStats as ApiDashboardStats } from '@/types';
-
-// Define the local interface that matches what AdminStats expects
-interface DashboardStats {
-  totalStudents: number;
-  totalTeachers: number;
-  totalManagers: number;
-  activeStudents: number;
-  activeTeachers: number;
-  lessonsToday: number;
-  lessonsThisWeek: number;
-  studentsEndingSoon: Array<{
-    studentId: number;
-    studentName: string;
-    teacherName: string;
-    remainingLessons: number;
-    totalLessons: number;
-    packageEndDate: string;
-  }>;
-  lastUpdated: string;
-}
+import { DashboardStats } from '@/types';
 
 const AdminDashboardPage: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);

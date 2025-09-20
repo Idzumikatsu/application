@@ -54,9 +54,9 @@ const AdminStats: React.FC<AdminStatsProps> = ({ stats, loading, error, onRefres
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
-        <Button 
-          variant="contained" 
-          startIcon={<Refresh />} 
+        <Button
+          variant="contained"
+          startIcon={<Refresh />}
           onClick={onRefresh}
         >
           Повторить попытку
@@ -68,10 +68,32 @@ const AdminStats: React.FC<AdminStatsProps> = ({ stats, loading, error, onRefres
   if (!stats) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography variant="body1">Нет данных для отображения</Typography>
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Данные статистики недоступны. Попробуйте обновить страницу.
+        </Alert>
+        <Button
+          variant="outlined"
+          startIcon={<Refresh />}
+          onClick={onRefresh}
+        >
+          Обновить данные
+        </Button>
       </Box>
     );
   }
+
+  // Use default values for missing fields
+  const safeStats = {
+    totalStudents: stats.totalStudents || 0,
+    totalTeachers: stats.totalTeachers || 0,
+    totalManagers: stats.totalManagers || 0,
+    activeStudents: stats.activeStudents || 0,
+    activeTeachers: stats.activeTeachers || 0,
+    lessonsToday: stats.lessonsToday || 0,
+    lessonsThisWeek: stats.lessonsThisWeek || 0,
+    studentsEndingSoon: stats.studentsEndingSoon || [],
+    lastUpdated: stats.lastUpdated || new Date().toISOString(),
+  };
 
   return (
     <Box sx={{ p: 3 }}>

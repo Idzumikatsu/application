@@ -356,13 +356,27 @@ export interface SystemSettings {
 export interface DashboardStats {
   totalStudents: number;
   totalTeachers: number;
-  scheduledLessons: number;
-  completedLessons: number;
-  cancelledLessons: number;
-  upcomingLessons: number;
-  availableSlots: number;
-  bookedSlots: number;
-  unreadNotifications: number;
+  totalManagers: number;
+  activeStudents: number;
+  activeTeachers: number;
+  lessonsToday: number;
+  lessonsThisWeek: number;
+  studentsEndingSoon: Array<{
+    studentId: number;
+    studentName: string;
+    teacherName: string;
+    remainingLessons: number;
+    totalLessons: number;
+    packageEndDate: string;
+  }>;
+  lastUpdated: string;
+  scheduledLessons?: number;
+  completedLessons?: number;
+  cancelledLessons?: number;
+  upcomingLessons?: number;
+  availableSlots?: number;
+  bookedSlots?: number;
+  unreadNotifications?: number;
 }
 
 export interface TeacherStats {
