@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
   Typography,
-  Paper,
   Grid,
+  Paper,
   CircularProgress,
   TextField,
   InputAdornment,
@@ -18,10 +17,19 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Chip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Snackbar,
+  Alert,
 } from '@mui/material';
-import { Search, Add, Edit, Delete, LockReset } from '@mui/icons-material';
-import { RootState } from '../store';
-import { adminService } from '../services';
+import { Search, Add, Edit, Delete, LockReset, Refresh } from '@mui/icons-material';
+import adminService from '@/services/adminService';
 
 interface Teacher {
   id: number;
@@ -31,6 +39,7 @@ interface Teacher {
   phone: string;
   telegramUsername: string;
   isActive: boolean;
+  role?: string;
 }
 
 const AdminTeachersPage: React.FC = () => {
@@ -48,6 +57,8 @@ const AdminTeachersPage: React.FC = () => {
     telegramUsername: '',
     isActive: true,
   });
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   useEffect(() => {
     loadTeachers();
@@ -56,9 +67,29 @@ const AdminTeachersPage: React.FC = () => {
   const loadTeachers = async () => {
     try {
       setLoading(true);
-      const response = await adminService.getAllTeachers();
-      setTeachers(response as unknown as Teacher[]);
+      setError(null);
+      
+      console.log('🔄 Loading teachers...');
+      
+      // Fetch real teachers from the backend API
+      const teachersData: any[] = await adminService.getAllTeachers();
+      
+      // Transform the data to match the expected interface
+      const transformedTeachers: Teacher[] = teachersData.map((teacher: any) => ({
+        id: teacher.id,
+        firstName: teacher.firstName,
+        lastName: teacher.lastName,
+        email: teacher.email,
+        phone: teacher.phone || '',
+        telegramUsername: teacher.telegramUsername || '',
+        isActive: teacher.isActive !== undefined ? teacher.isActive : true,
+        role: teacher.role
+      }));
+      
+      setTeachers(transformedTeachers);
+      console.log('✅ Teachers loaded successfully:', transformedTeachers);
     } catch (err: any) {
+      console.error('❌ Error loading teachers:', err);
       setError(err.message || 'Ошибка загрузки преподавателей');
     } finally {
       setLoading(false);
@@ -67,11 +98,25 @@ const AdminTeachersPage: React.FC = () => {
 
   const handleCreateTeacher = async () => {
     try {
-      await adminService.createTeacher(formData);
+      console.log('🔄 Creating teacher:', formData);
+      
+      // Create teacher through the backend API
+      await adminService.createTeacher({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        telegramUsername: formData.telegramUsername,
+        isActive: formData.isActive,
+      });
+      
       handleCloseDialog();
       loadTeachers();
+      showSnackbar('Преподаватель успешно создан!');
     } catch (err: any) {
+      console.error('❌ Error creating teacher:', err);
       setError(err.message || 'Ошибка создания преподавателя');
+      showSnackbar('Ошибка создания преподавателя: ' + (err.message || ''));
     }
   };
 
@@ -79,31 +124,58 @@ const AdminTeachersPage: React.FC = () => {
     if (!editingTeacher) return;
     
     try {
-      await adminService.updateTeacher(editingTeacher.id, formData);
+      console.log('🔄 Updating teacher:', editingTeacher.id, formData);
+      
+      // Update teacher through the backend API
+      await adminService.updateTeacher(editingTeacher.id, {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        telegramUsername: formData.telegramUsername,
+        isActive: formData.isActive,
+      });
+      
       handleCloseDialog();
       loadTeachers();
+      showSnackbar('Преподаватель успешно обновлен!');
     } catch (err: any) {
+      console.error('❌ Error updating teacher:', err);
       setError(err.message || 'Ошибка обновления преподавателя');
+      showSnackbar('Ошибка обновления преподавателя: ' + (err.message || ''));
     }
   };
 
   const handleDeleteTeacher = async (id: number) => {
     if (window.confirm('Вы уверены, что хотите удалить этого преподавателя?')) {
       try {
+        console.log('🔄 Deleting teacher with id:', id);
+        
+        // Delete teacher through the backend API
         await adminService.deleteTeacher(id);
+        
         loadTeachers();
+        showSnackbar('Преподаватель успешно удален!');
       } catch (err: any) {
+        console.error('❌ Error deleting teacher:', err);
         setError(err.message || 'Ошибка удаления преподавателя');
+        showSnackbar('Ошибка удаления преподавателя: ' + (err.message || ''));
       }
     }
   };
 
   const handleResetPassword = async (id: number) => {
     try {
+      console.log('🔄 Resetting password for teacher with id:', id);
+      
+      // Reset password through the backend API
       await adminService.resetTeacherPassword(id);
-      alert('Пароль сброшен успешно!');
+      
+      showSnackbar('Пароль сброшен успешно!');
     } catch (err: any) {
+      console.error('❌ Error resetting password:', err);
       setError(err.message || 'Ошибка сброса пароля');
+      showSnackbar('Ошибка сброса пароля: ' + (err.message || ''));
     }
   };
 
@@ -128,7 +200,7 @@ const AdminTeachersPage: React.FC = () => {
       email: teacher.email,
       phone: teacher.phone || '',
       telegramUsername: teacher.telegramUsername || '',
-      isActive: teacher.isActive || true,
+      isActive: teacher.isActive !== undefined ? teacher.isActive : true,
     });
     setOpenDialog(true);
   };
@@ -152,6 +224,15 @@ const AdminTeachersPage: React.FC = () => {
     teacher.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const showSnackbar = (message: string) => {
+    setSnackbarMessage(message);
+    setSnackbarOpen(true);
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -165,28 +246,40 @@ const AdminTeachersPage: React.FC = () => {
         </Button>
       </Box>
 
-      <TextField
-        fullWidth
-        variant="outlined"
-        placeholder="Поиск преподавателей..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <IconButton>
-                <Search />
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
-        sx={{ mb: 3 }}
-      />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Поиск преподавателей..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <IconButton>
+                  <Search />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+          sx={{ maxWidth: 400 }}
+        />
+        
+        <Button
+          variant="outlined"
+          startIcon={<Refresh />}
+          onClick={loadTeachers}
+          disabled={loading}
+          sx={{ ml: 2 }}
+        >
+          Обновить
+        </Button>
+      </Box>
 
       {error && (
-        <Typography color="error" sx={{ mb: 2 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
           {error}
-        </Typography>
+        </Alert>
       )}
 
       {loading ? (
@@ -194,62 +287,70 @@ const AdminTeachersPage: React.FC = () => {
           <CircularProgress />
         </Box>
       ) : (
-        <Grid container spacing={2}>
-          {filteredTeachers.map((teacher) => (
-            <Grid item xs={12} sm={6} md={4} key={teacher.id}>
-              <Paper sx={{ p: 2, height: '100%' }}>
-                <Typography variant="h6">
-                  {teacher.firstName} {teacher.lastName}
-                </Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  Email: {teacher.email}
-                </Typography>
-                {teacher.phone && (
-                  <Typography variant="body2">
-                    Телефон: {teacher.phone}
-                  </Typography>
-                )}
-                {teacher.telegramUsername && (
-                  <Typography variant="body2">
-                    Telegram: @{teacher.telegramUsername}
-                  </Typography>
-                )}
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  Статус: {teacher.isActive ? (
-                    <span style={{ color: 'green' }}>Активен</span>
-                  ) : (
-                    <span style={{ color: 'red' }}>Неактивен</span>
-                  )}
-                </Typography>
-                
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, gap: 1 }}>
-                  <IconButton 
-                    size="small" 
-                    onClick={() => handleOpenEditDialog(teacher)}
-                    title="Редактировать"
-                  >
-                    <Edit />
-                  </IconButton>
-                  <IconButton 
-                    size="small" 
-                    onClick={() => handleResetPassword(teacher.id)}
-                    title="Сбросить пароль"
-                  >
-                    <LockReset />
-                  </IconButton>
-                  <IconButton 
-                    size="small" 
-                    onClick={() => handleDeleteTeacher(teacher.id)}
-                    title="Удалить"
-                    color="error"
-                  >
-                    <Delete />
-                  </IconButton>
-                </Box>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Имя</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Телефон</TableCell>
+                <TableCell>Telegram</TableCell>
+                <TableCell>Статус</TableCell>
+                <TableCell>Действия</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredTeachers.map((teacher) => (
+                <TableRow key={teacher.id}>
+                  <TableCell>
+                    <Typography variant="body1">
+                      {teacher.firstName} {teacher.lastName}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>{teacher.email}</TableCell>
+                  <TableCell>{teacher.phone || '-'}</TableCell>
+                  <TableCell>
+                    {teacher.telegramUsername ? `@${teacher.telegramUsername}` : '-'}
+                  </TableCell>
+                  <TableCell>
+                    {teacher.isActive ? (
+                      <Chip label="Активен" color="success" size="small" />
+                    ) : (
+                      <Chip label="Неактивен" color="error" size="small" />
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Tooltip title="Редактировать">
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleOpenEditDialog(teacher)}
+                      >
+                        <Edit />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Сбросить пароль">
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleResetPassword(teacher.id)}
+                      >
+                        <LockReset />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Удалить">
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleDeleteTeacher(teacher.id)}
+                        color="error"
+                      >
+                        <Delete />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
 
       <Dialog open={openDialog} onClose={handleCloseDialog}>
@@ -264,6 +365,7 @@ const AdminTeachersPage: React.FC = () => {
             fullWidth
             value={formData.firstName}
             onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+            sx={{ mb: 2 }}
           />
           <TextField
             margin="dense"
@@ -271,6 +373,7 @@ const AdminTeachersPage: React.FC = () => {
             fullWidth
             value={formData.lastName}
             onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+            sx={{ mb: 2 }}
           />
           <TextField
             margin="dense"
@@ -278,6 +381,7 @@ const AdminTeachersPage: React.FC = () => {
             fullWidth
             value={formData.email}
             onChange={(e) => setFormData({...formData, email: e.target.value})}
+            sx={{ mb: 2 }}
           />
           <TextField
             margin="dense"
@@ -285,6 +389,7 @@ const AdminTeachersPage: React.FC = () => {
             fullWidth
             value={formData.phone}
             onChange={(e) => setFormData({...formData, phone: e.target.value})}
+            sx={{ mb: 2 }}
           />
           <TextField
             margin="dense"
@@ -292,6 +397,7 @@ const AdminTeachersPage: React.FC = () => {
             fullWidth
             value={formData.telegramUsername}
             onChange={(e) => setFormData({...formData, telegramUsername: e.target.value})}
+            sx={{ mb: 2 }}
           />
           
           <FormControl fullWidth margin="dense">
@@ -315,6 +421,13 @@ const AdminTeachersPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        message={snackbarMessage}
+      />
     </Box>
   );
 };

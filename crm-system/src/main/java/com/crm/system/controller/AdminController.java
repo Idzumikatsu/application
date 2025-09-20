@@ -1,9 +1,7 @@
 package com.crm.system.controller;
 
-import com.crm.system.dto.LessonPackageDto;
-import com.crm.system.dto.MessageDto;
-import com.crm.system.dto.StudentDto;
-import com.crm.system.dto.UserDto;
+import com.crm.system.dto.*;
+import com.crm.system.model.Lesson;
 import com.crm.system.model.LessonPackage;
 import com.crm.system.model.Student;
 import com.crm.system.model.User;
@@ -18,6 +16,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,6 +52,9 @@ public class AdminController {
 
     @Autowired
     ReportService reportService;
+
+    @Autowired
+    LessonService lessonService;
 
     @Autowired
     PasswordEncoder passwordEncoder;
@@ -109,83 +112,9 @@ public class AdminController {
         return ResponseEntity.ok(new MessageDto("Manager deleted successfully!"));
     }
 
-    @PostMapping("/managers/{id}/reset-password")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> resetManagerPassword(@PathVariable Long id) {
-        User user = userService.findById(id).orElseThrow(() -> new RuntimeException("Manager not found"));
-        // In a real application, you would send an email with a password reset link
-        user.setPasswordHash(passwordEncoder.encode("temporary")); // Set temporary password
-        userService.updateUser(user);
-        return ResponseEntity.ok(new MessageDto("Password reset email sent!"));
-    }
-
     // Teacher management endpoints (duplicated from TeacherController for admin access)
-    @GetMapping("/teachers")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserDto>> getAllTeachers() {
-        System.out.println("=== AdminController: getAllTeachers called ===");
-        List<User> teachers = userService.findByRole(UserRole.TEACHER);
-        System.out.println("=== AdminController: Found " + teachers.size() + " teachers ===");
-        List<UserDto> teacherDtos = teachers.stream().map(this::convertToDto).collect(Collectors.toList());
-        System.out.println("=== AdminController: Converted to " + teacherDtos.size() + " DTOs ===");
-        return ResponseEntity.ok(teacherDtos);
-    }
-
-    @PostMapping("/teachers")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> createTeacher(@RequestBody UserDto userDto) {
-        if (userService.existsByEmail(userDto.getEmail())) {
-            return ResponseEntity.badRequest().body(new MessageDto("Error: Email is already taken!"));
-        }
-
-        User user = new User();
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
-        user.setEmail(userDto.getEmail());
-        user.setPasswordHash(passwordEncoder.encode(userDto.getEmail())); // Temporary password
-        user.setRole(UserRole.TEACHER);
-        user.setIsActive(userDto.getIsActive() != null ? userDto.getIsActive() : true);
-        user.setPhone(userDto.getPhone());
-        user.setTelegramUsername(userDto.getTelegramUsername());
-
-        User savedUser = userService.saveUser(user);
-
-        return ResponseEntity.ok(new MessageDto("Teacher created successfully!"));
-    }
-
-    @PutMapping("/teachers/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateTeacher(@PathVariable Long id, @RequestBody UserDto userDto) {
-        User user = userService.findById(id).orElseThrow(() -> new RuntimeException("Teacher not found"));
-
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
-        user.setEmail(userDto.getEmail());
-        user.setPhone(userDto.getPhone());
-        user.setTelegramUsername(userDto.getTelegramUsername());
-        user.setIsActive(userDto.getIsActive());
-
-        userService.updateUser(user);
-
-        return ResponseEntity.ok(new MessageDto("Teacher updated successfully!"));
-    }
-
-    @DeleteMapping("/teachers/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteTeacher(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return ResponseEntity.ok(new MessageDto("Teacher deleted successfully!"));
-    }
-
-    @PostMapping("/teachers/{id}/reset-password")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> resetTeacherPassword(@PathVariable Long id) {
-        User user = userService.findById(id).orElseThrow(() -> new RuntimeException("Teacher not found"));
-        // In a real application, you would send an email with a password reset link
-        user.setPasswordHash(passwordEncoder.encode("temporary")); // Set temporary password
-        userService.updateUser(user);
-        return ResponseEntity.ok(new MessageDto("Password reset email sent!"));
-    }
+    // Note: These endpoints have been removed to avoid conflicts with TeacherController
+    // Admins should use the TeacherController endpoints for teacher management
 
     // Student management endpoints for admin
     @GetMapping("/students")
@@ -206,6 +135,54 @@ public class AdminController {
         
         Page<StudentDto> studentDtos = studentPage.map(this::convertToStudentDto);
         return ResponseEntity.ok(studentDtos);
+    }
+
+    @PostMapping("/students")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createStudent(@Valid @RequestBody StudentDto studentDto) {
+        if (studentService.existsByEmail(studentDto.getEmail())) {
+            return ResponseEntity.badRequest().body(new MessageDto("Error: Email is already taken!"));
+        }
+
+        Student student = new Student();
+        student.setFirstName(studentDto.getFirstName());
+        student.setLastName(studentDto.getLastName());
+        student.setEmail(studentDto.getEmail());
+        student.setPhone(studentDto.getPhone());
+        student.setTelegramUsername(studentDto.getTelegramUsername());
+        student.setDateOfBirth(studentDto.getDateOfBirth());
+        // Note: Student doesn't have setIsActive method, so we skip it
+
+        Student savedStudent = studentService.saveStudent(student);
+
+        return ResponseEntity.ok(new MessageDto("Student created successfully!"));
+    }
+
+    @PutMapping("/students/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateStudent(@PathVariable Long id, @Valid @RequestBody StudentDto studentDto) {
+        Student student = studentService.findById(id)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+        
+        student.setFirstName(studentDto.getFirstName());
+        student.setLastName(studentDto.getLastName());
+        student.setEmail(studentDto.getEmail());
+        student.setPhone(studentDto.getPhone());
+        student.setTelegramUsername(studentDto.getTelegramUsername());
+        student.setDateOfBirth(studentDto.getDateOfBirth());
+        
+        // Note: setIsActive method doesn't exist in Student model, so we'll skip it for now
+        
+        studentService.updateStudent(student);
+        
+        return ResponseEntity.ok(new MessageDto("Student updated successfully!"));
+    }
+
+    @DeleteMapping("/students/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteStudent(@PathVariable Long id) {
+        studentService.deleteStudent(id);
+        return ResponseEntity.ok(new MessageDto("Student deleted successfully!"));
     }
 
     @GetMapping("/students/{id}")
@@ -230,15 +207,78 @@ public class AdminController {
         return ResponseEntity.ok(convertToStudentDto(student));
     }
 
-    // Lesson package management endpoints for admin
-    @GetMapping("/students/{studentId}/lesson-packages")
+    // Lesson management endpoints for admin
+    @GetMapping("/lessons")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<LessonPackageDto>> getStudentLessonPackages(@PathVariable Long studentId) {
-        List<LessonPackage> lessonPackages = lessonPackageService.findByStudentIdOrderByCreatedAtDesc(studentId);
-        List<LessonPackageDto> lessonPackageDtos = lessonPackages.stream()
-                .map(this::convertToLessonPackageDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(lessonPackageDtos);
+    public ResponseEntity<Page<LessonDto>> getAllLessons(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search) {
+        
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Lesson> lessonPage = lessonService.getAllLessons(pageable); // Changed from findAllLessons to getAllLessons
+        Page<LessonDto> lessonDtos = lessonPage.map(this::convertToLessonDto);
+        return ResponseEntity.ok(lessonDtos);
+    }
+
+    @PostMapping("/lessons")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<LessonDto> createLesson(@Valid @RequestBody LessonDto lessonDto) {
+        Student student = studentService.findById(lessonDto.getStudentId())
+                .orElseThrow(() -> new RuntimeException("Student not found with id: " + lessonDto.getStudentId()));
+
+        User teacher = userService.findById(lessonDto.getTeacherId())
+                .orElseThrow(() -> new RuntimeException("Teacher not found with id: " + lessonDto.getTeacherId()));
+
+        Lesson lesson = new Lesson(student, teacher, lessonDto.getScheduledDate(), lessonDto.getScheduledTime());
+        lesson.setDurationMinutes(lessonDto.getDurationMinutes());
+        lesson.setNotes(lessonDto.getNotes());
+
+        Lesson savedLesson = lessonService.saveLesson(lesson);
+        return ResponseEntity.ok(convertToLessonDto(savedLesson));
+    }
+
+    @PutMapping("/lessons/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<LessonDto> updateLesson(@PathVariable Long id, @Valid @RequestBody LessonDto lessonDto) {
+        Lesson lesson = lessonService.findById(id)
+                .orElseThrow(() -> new RuntimeException("Lesson not found with id: " + id));
+
+        Student student = studentService.findById(lessonDto.getStudentId())
+                .orElseThrow(() -> new RuntimeException("Student not found with id: " + lessonDto.getStudentId()));
+
+        User teacher = userService.findById(lessonDto.getTeacherId())
+                .orElseThrow(() -> new RuntimeException("Teacher not found with id: " + lessonDto.getTeacherId()));
+
+        lesson.setStudent(student);
+        lesson.setTeacher(teacher);
+        lesson.setScheduledDate(lessonDto.getScheduledDate());
+        lesson.setScheduledTime(lessonDto.getScheduledTime());
+        lesson.setDurationMinutes(lessonDto.getDurationMinutes());
+        lesson.setStatus(lessonDto.getStatus());
+        lesson.setNotes(lessonDto.getNotes());
+        lesson.setConfirmedByTeacher(lessonDto.getConfirmedByTeacher());
+
+        Lesson updatedLesson = lessonService.updateLesson(lesson);
+        return ResponseEntity.ok(convertToLessonDto(updatedLesson));
+    }
+
+    @DeleteMapping("/lessons/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteLesson(@PathVariable Long id) {
+        if (!lessonService.findById(id).isPresent()) {
+            throw new RuntimeException("Lesson not found with id: " + id);
+        }
+        lessonService.deleteLesson(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/lessons/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<LessonDto> getLessonById(@PathVariable Long id) {
+        Lesson lesson = lessonService.findById(id)
+                .orElseThrow(() -> new RuntimeException("Lesson not found with id: " + id));
+        return ResponseEntity.ok(convertToLessonDto(lesson));
     }
 
     // System settings management endpoints
@@ -322,6 +362,61 @@ public class AdminController {
         return ResponseEntity.ok(new MessageDto("Bulk email sent successfully!"));
     }
 
+    // Dashboard endpoints for admin statistics
+    @GetMapping("/dashboard/stats")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AdminDashboardDto> getAdminDashboardStats() {
+        // Create a comprehensive dashboard DTO with all admin statistics
+        AdminDashboardDto dashboardDto = new AdminDashboardDto();
+        
+        // Set user statistics
+        dashboardDto.setTotalStudents(dashboardService.getTotalStudents());
+        dashboardDto.setTotalTeachers(dashboardService.getTotalTeachers());
+        dashboardDto.setTotalManagers(dashboardService.getTotalManagers());
+        dashboardDto.setTotalAdmins(dashboardService.getTotalAdmins());
+        dashboardDto.setActiveStudents(dashboardService.getTotalStudents()); // Using getTotalStudents as placeholder
+        dashboardDto.setActiveTeachers(dashboardService.getTotalTeachers()); // Using getTotalTeachers as placeholder
+        dashboardDto.setActiveManagers(dashboardService.getTotalManagers()); // Using getTotalManagers as placeholder
+        dashboardDto.setActiveAdmins(dashboardService.getTotalAdmins()); // Using getTotalAdmins as placeholder
+        
+        // Set lesson statistics
+        dashboardDto.setLessonsToday(0); // Placeholder
+        dashboardDto.setLessonsThisWeek(0); // Placeholder
+        dashboardDto.setLessonsThisMonth(0); // Placeholder
+        dashboardDto.setTotalCompletedLessons(0); // Placeholder
+        dashboardDto.setTotalCancelledLessons(0); // Placeholder
+        dashboardDto.setTotalMissedLessons(0); // Placeholder
+        dashboardDto.setTotalScheduledLessons(0); // Placeholder
+        
+        // Set lesson package statistics
+        dashboardDto.setTotalLessonPackages(0); // Placeholder
+        dashboardDto.setActiveLessonPackages(0); // Placeholder
+        dashboardDto.setExpiredLessonPackages(0); // Placeholder
+        
+        // Set rate statistics
+        dashboardDto.setLessonCompletionRate(0.0); // Placeholder
+        dashboardDto.setLessonCancellationRate(0.0); // Placeholder
+        
+        // Set other statistics
+        dashboardDto.setStudentsWithoutTeacher(0); // Placeholder
+        dashboardDto.setPendingNotifications(0); // Placeholder
+        dashboardDto.setFailedNotifications(0); // Placeholder
+        
+        // Set students ending soon
+        dashboardDto.setStudentsEndingSoon(new ArrayList<>()); // Placeholder
+        
+        dashboardDto.setLastUpdated(java.time.LocalDateTime.now());
+        
+        return ResponseEntity.ok(dashboardDto);
+    }
+
+    @GetMapping("/dashboard/students-ending-soon")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<StudentEndingSoonDto>> getStudentsWithEndingPackages() {
+        List<StudentEndingSoonDto> studentsEndingSoon = new ArrayList<>(); // Placeholder
+        return ResponseEntity.ok(studentsEndingSoon);
+    }
+
     // System overview endpoints
     @GetMapping("/overview")
     @PreAuthorize("hasRole('ADMIN')")
@@ -373,6 +468,37 @@ public class AdminController {
         dto.setTotalLessons(lessonPackage.getTotalLessons());
         dto.setRemainingLessons(lessonPackage.getRemainingLessons());
         dto.setCreatedAt(lessonPackage.getCreatedAt().toString());
+        return dto;
+    }
+
+    private LessonDto convertToLessonDto(Lesson lesson) {
+        LessonDto dto = new LessonDto();
+        dto.setId(lesson.getId());
+        dto.setStudentId(lesson.getStudent().getId());
+        dto.setStudentName(lesson.getStudent().getFirstName() + " " + lesson.getStudent().getLastName());
+        dto.setTeacherId(lesson.getTeacher().getId());
+        dto.setTeacherName(lesson.getTeacher().getFirstName() + " " + lesson.getTeacher().getLastName());
+        
+        if (lesson.getSlot() != null) {
+            dto.setSlotId(lesson.getSlot().getId());
+        }
+        
+        dto.setScheduledDate(lesson.getScheduledDate());
+        dto.setScheduledTime(lesson.getScheduledTime());
+        dto.setDurationMinutes(lesson.getDurationMinutes());
+        dto.setStatus(lesson.getStatus());
+        dto.setCancellationReason(lesson.getCancellationReason());
+        dto.setCancelledBy(lesson.getCancelledBy());
+        dto.setNotes(lesson.getNotes());
+        dto.setConfirmedByTeacher(lesson.getConfirmedByTeacher());
+        
+        if (lesson.getCreatedAt() != null) {
+            dto.setCreatedAt(lesson.getCreatedAt().toString());
+        }
+        if (lesson.getUpdatedAt() != null) {
+            dto.setUpdatedAt(lesson.getUpdatedAt().toString());
+        }
+        
         return dto;
     }
 
@@ -458,6 +584,79 @@ public class AdminController {
 
         public String getMessage() { return message; }
         public void setMessage(String message) { this.message = message; }
+    }
+
+    // Report endpoints for admin
+    @GetMapping("/reports/students")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> generateStudentsReport(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        
+        java.time.LocalDateTime startDateTime = parseDateTime(startDate);
+        java.time.LocalDateTime endDateTime = parseDateTime(endDate);
+        
+        try {
+            ExportReportDto exportDto = reportService.generateStudentsReport(startDateTime, endDateTime);
+            return createExcelResponse(exportDto);
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating students report: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/reports/teachers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> generateTeachersReport(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        
+        java.time.LocalDateTime startDateTime = parseDateTime(startDate);
+        java.time.LocalDateTime endDateTime = parseDateTime(endDate);
+        
+        try {
+            ExportReportDto exportDto = reportService.generateTeachersReport(startDateTime, endDateTime);
+            return createExcelResponse(exportDto);
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating teachers report: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/reports/lessons")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> generateLessonsReport(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        
+        java.time.LocalDateTime startDateTime = parseDateTime(startDate);
+        java.time.LocalDateTime endDateTime = parseDateTime(endDate);
+        
+        try {
+            ExportReportDto exportDto = reportService.generateLessonsReport(startDateTime, endDateTime);
+            return createExcelResponse(exportDto);
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating lessons report: " + e.getMessage());
+        }
+    }
+
+    private java.time.LocalDateTime parseDateTime(String dateTimeStr) {
+        if (dateTimeStr == null || dateTimeStr.isEmpty()) {
+            return null;
+        }
+        
+        try {
+            return java.time.LocalDateTime.parse(dateTimeStr, java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid date format. Expected ISO_LOCAL_DATE_TIME format.");
+        }
+    }
+
+    private ResponseEntity<org.springframework.core.io.Resource> createExcelResponse(ExportReportDto exportDto) {
+        org.springframework.core.io.ByteArrayResource resource = new org.springframework.core.io.ByteArrayResource(exportDto.getData());
+        
+        return org.springframework.http.ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM)
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + exportDto.getFileName() + "\"")
+                .body(resource);
     }
 
     public static class BulkEmailDto {

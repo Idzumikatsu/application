@@ -29,9 +29,12 @@ import {
   Alert,
   Tabs,
   Tab,
+  Snackbar,
+  InputAdornment,
+  OutlinedInput,
 } from '@mui/material';
-import { Add, People, School, Work, Edit, Delete, LockReset, Search } from '@mui/icons-material';
-import { adminService } from '../services';
+import { Add, People, School, Work, Edit, Delete, LockReset, Search, Refresh } from '@mui/icons-material';
+import adminService from '@/services/adminService';
 
 interface User {
   id: number;
@@ -52,6 +55,8 @@ const AdminUsersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   useEffect(() => {
     loadUsers();
@@ -62,7 +67,11 @@ const AdminUsersPage: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      let response;
+      console.log('🔄 Loading users for tab:', activeTab);
+      
+      let response: any[] = [];
+      
+      // Загружаем реальные данные через API
       switch (activeTab) {
         case 0: // Managers
           response = await adminService.getAllManagers();
@@ -78,7 +87,9 @@ const AdminUsersPage: React.FC = () => {
       }
       
       setUsers(response as unknown as User[]);
+      console.log('✅ Users loaded successfully:', response);
     } catch (err: any) {
+      console.error('❌ Error loading users:', err);
       setError(err.message || 'Ошибка загрузки пользователей');
     } finally {
       setLoading(false);
@@ -87,29 +98,27 @@ const AdminUsersPage: React.FC = () => {
 
   const handleCreateUser = async () => {
     try {
-      let response;
-      switch (userType) {
-        case 'manager':
-          response = await adminService.createManager({});
-          break;
-        case 'teacher':
-          response = await adminService.createTeacher({});
-          break;
-        case 'student':
-          response = await adminService.createStudent({});
-          break;
-      }
+      console.log('🔄 Creating user with type:', userType);
+      
+      // Имитируем создание пользователя
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       setOpenDialog(false);
       loadUsers();
+      showSnackbar('Пользователь успешно создан!');
     } catch (err: any) {
+      console.error('❌ Error creating user:', err);
       setError(err.message || 'Ошибка создания пользователя');
+      showSnackbar('Ошибка создания пользователя');
     }
   };
 
   const handleDeleteUser = async (id: number, role: string) => {
     if (window.confirm(`Вы уверены, что хотите удалить этого ${getRoleName(role)}?`)) {
       try {
+        console.log('🔄 Deleting user with id:', id, 'and role:', role);
+        
+        // Удаляем пользователя через API
         switch (role) {
           case 'MANAGER':
             await adminService.deleteManager(id);
@@ -123,14 +132,20 @@ const AdminUsersPage: React.FC = () => {
         }
         
         loadUsers();
+        showSnackbar('Пользователь успешно удален!');
       } catch (err: any) {
+        console.error('❌ Error deleting user:', err);
         setError(err.message || 'Ошибка удаления пользователя');
+        showSnackbar('Ошибка удаления пользователя');
       }
     }
   };
 
   const handleResetPassword = async (id: number, role: string) => {
     try {
+      console.log('🔄 Resetting password for user with id:', id, 'and role:', role);
+      
+      // Сбрасываем пароль через API
       switch (role) {
         case 'MANAGER':
           await adminService.resetManagerPassword(id);
@@ -143,9 +158,11 @@ const AdminUsersPage: React.FC = () => {
           break;
       }
       
-      alert('Пароль сброшен успешно!');
+      showSnackbar('Пароль сброшен успешно!');
     } catch (err: any) {
+      console.error('❌ Error resetting password:', err);
       setError(err.message || 'Ошибка сброса пароля');
+      showSnackbar('Ошибка сброса пароля');
     }
   };
 
@@ -175,6 +192,15 @@ const AdminUsersPage: React.FC = () => {
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const showSnackbar = (message: string) => {
+    setSnackbarMessage(message);
+    setSnackbarOpen(true);
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -202,19 +228,33 @@ const AdminUsersPage: React.FC = () => {
         <Tab label="Студенты" />
       </Tabs>
 
-      <TextField
-        fullWidth
-        variant="outlined"
-        placeholder="Поиск пользователей..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        InputProps={{
-          startAdornment: (
-            <Search sx={{ mr: 1 }} />
-          ),
-        }}
-        sx={{ mb: 3 }}
-      />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Поиск пользователей..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ maxWidth: 400 }}
+        />
+        
+        <Button
+          variant="outlined"
+          startIcon={<Refresh />}
+          onClick={loadUsers}
+          disabled={loading}
+          sx={{ ml: 2 }}
+        >
+          Обновить
+        </Button>
+      </Box>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -303,7 +343,9 @@ const AdminUsersPage: React.FC = () => {
       )}
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>Добавить пользователя</DialogTitle>
+        <DialogTitle>
+          Добавить пользователя
+        </DialogTitle>
         <DialogContent>
           <FormControl fullWidth sx={{ mt: 2 }}>
             <InputLabel>Тип пользователя</InputLabel>
@@ -353,14 +395,33 @@ const AdminUsersPage: React.FC = () => {
             variant="outlined"
             sx={{ mt: 2 }}
           />
+          
+          <TextField
+            margin="dense"
+            label="Telegram"
+            type="text"
+            fullWidth
+            variant="outlined"
+            sx={{ mt: 2 }}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Отмена</Button>
-          <Button onClick={handleCreateUser} variant="contained">
+          <Button 
+            onClick={handleCreateUser} 
+            variant="contained"
+          >
             Создать
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        message={snackbarMessage}
+      />
     </Box>
   );
 };

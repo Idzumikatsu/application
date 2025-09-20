@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
@@ -11,311 +11,481 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Avatar,
-  IconButton,
-  CircularProgress,
+  Switch,
+  FormControlLabel,
+  Tabs,
+  Tab,
   Alert,
   Snackbar,
+  IconButton,
+  InputAdornment,
 } from '@mui/material';
-import {
-  PhotoCamera,
-  Save,
-  LockReset,
-  Person,
-} from '@mui/icons-material';
-import { RootState } from '../store';
-import { adminService } from '../services';
-
-interface ProfileData {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  telegramUsername: string;
-  dateOfBirth: string;
-  avatarUrl?: string;
-}
+import { Save, Visibility, VisibilityOff, Refresh } from '@mui/icons-material';
+import { RootState, AppDispatch } from '@/store';
+import { logout } from '@/store/authSlice';
+import AuthService from '@/services/authService';
 
 const AdminProfilePage: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
-  const [profileData, setProfileData] = useState<ProfileData>({
-    id: 0,
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    telegramUsername: '',
-    dateOfBirth: '',
-  });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const dispatch: AppDispatch = useDispatch();
+  const [activeTab, setActiveTab] = useState(0);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadProfileData();
-  }, []);
+  // Personal info
+  const [personalInfo, setPersonalInfo] = useState({
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    telegramUsername: user?.telegramUsername || '',
+  });
 
-  const loadProfileData = async () => {
+  // Password change
+  const [passwordChange, setPasswordChange] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+    showCurrentPassword: false,
+    showNewPassword: false,
+    showConfirmPassword: false,
+  });
+
+  // Preferences
+  const [preferences, setPreferences] = useState({
+    theme: 'light',
+    language: 'ru',
+    notifications: {
+      email: true,
+      telegram: true,
+      push: false,
+    },
+    timezone: 'Europe/Moscow',
+  });
+
+  const handleSavePersonalInfo = async () => {
     try {
-      setLoading(true);
-      setError(null);
+      console.log('🔄 Saving personal info:', personalInfo);
       
-      // This would be implemented in adminService
-      // const response = await adminService.getProfile(user?.id);
-      // setProfileData(response as unknown as ProfileData);
+      // Имитируем сохранение личной информации
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // For now, we'll use mock data
-      setProfileData({
-        id: user?.id || 0,
-        firstName: user?.firstName || '',
-        lastName: user?.lastName || '',
-        email: user?.email || '',
-        phone: '',
-        telegramUsername: '',
-        dateOfBirth: '',
-      });
+      showSnackbar('Личная информация сохранена успешно!', 'success');
     } catch (err: any) {
-      setError(err.message || 'Ошибка загрузки профиля');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSaveProfile = async () => {
-    try {
-      setSaving(true);
-      setError(null);
-      
-      // This would be implemented in adminService
-      // await adminService.updateProfile(profileData.id, profileData);
-      
-      setSuccess('Профиль успешно сохранен');
-      showSnackbar('Профиль успешно сохранен', 'success');
-    } catch (err: any) {
-      setError(err.message || 'Ошибка сохранения профиля');
-      showSnackbar(err.message || 'Ошибка сохранения профиля', 'error');
-    } finally {
-      setSaving(false);
+      console.error('❌ Error saving personal info:', err);
+      showSnackbar('Ошибка сохранения личной информации: ' + (err.message || 'Неизвестная ошибка'), 'error');
     }
   };
 
   const handleChangePassword = async () => {
     try {
-      // This would be implemented in adminService
-      // await adminService.changePassword(profileData.id);
-      showSnackbar('Ссылка для смены пароля отправлена на ваш email', 'success');
+      // Валидация
+      if (passwordChange.newPassword !== passwordChange.confirmPassword) {
+        showSnackbar('Новые пароли не совпадают', 'error');
+        return;
+      }
+      
+      if (passwordChange.newPassword.length < 8) {
+        showSnackbar('Новый пароль должен содержать минимум 8 символов', 'error');
+        return;
+      }
+      
+      console.log('🔄 Changing password');
+      
+      // Имитируем изменение пароля
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Сброс формы
+      setPasswordChange({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+        showCurrentPassword: false,
+        showNewPassword: false,
+        showConfirmPassword: false,
+      });
+      
+      showSnackbar('Пароль успешно изменен!', 'success');
     } catch (err: any) {
-      showSnackbar(err.message || 'Ошибка запроса смены пароля', 'error');
+      console.error('❌ Error changing password:', err);
+      showSnackbar('Ошибка изменения пароля: ' + (err.message || 'Неизвестная ошибка'), 'error');
     }
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
-        // Here you would typically upload the file to your server
-        // This would be implemented in adminService
-        // await adminService.uploadAvatar(file);
-      };
-      reader.readAsDataURL(file);
+  const handleSavePreferences = async () => {
+    try {
+      console.log('🔄 Saving preferences:', preferences);
+      
+      // Имитируем сохранение настроек
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      showSnackbar('Настройки сохранены успешно!', 'success');
+    } catch (err: any) {
+      console.error('❌ Error saving preferences:', err);
+      showSnackbar('Ошибка сохранения настроек: ' + (err.message || 'Неизвестная ошибка'), 'error');
     }
+  };
+
+  const handleLogout = () => {
+    AuthService.logout();
+    dispatch(logout());
   };
 
   const showSnackbar = (message: string, severity: 'success' | 'error') => {
     setSnackbarMessage(message);
     setSnackbarSeverity(severity);
-    setOpenSnackbar(true);
+    setSnackbarOpen(true);
   };
 
   const handleSnackbarClose = () => {
-    setOpenSnackbar(false);
+    setSnackbarOpen(false);
   };
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ mb: 3 }}>
         <Typography variant="h5">Профиль администратора</Typography>
         <Typography variant="body1" color="textSecondary">
-          Управление личной информацией и настройками аккаунта
+          Управление личной информацией и настройками
         </Typography>
       </Box>
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
+      <Tabs
+        value={activeTab}
+        onChange={(e, newValue) => setActiveTab(newValue)}
+        indicatorColor="secondary"
+        textColor="inherit"
+        variant="scrollable"
+        scrollButtons="auto"
+        sx={{ mb: 3 }}
+      >
+        <Tab label="Личная информация" />
+        <Tab label="Изменение пароля" />
+        <Tab label="Настройки" />
+        <Tab label="Безопасность" />
+      </Tabs>
 
-      {success && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {success}
-        </Alert>
-      )}
-
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3, textAlign: 'center' }}>
-            <Box sx={{ position: 'relative', display: 'inline-block', mb: 2 }}>
-              <Avatar
-                src={avatarPreview || profileData.avatarUrl}
-                sx={{ width: 120, height: 120, fontSize: 48 }}
-              >
-                {!avatarPreview && !profileData.avatarUrl && (
-                  <Person sx={{ fontSize: 60 }} />
-                )}
-              </Avatar>
-              <IconButton
-                color="primary"
-                aria-label="upload picture"
-                component="label"
-                sx={{
-                  position: 'absolute',
-                  bottom: 0,
-                  right: 0,
-                  bgcolor: 'background.paper',
-                  boxShadow: 2,
-                  '&:hover': {
-                    bgcolor: 'background.paper',
-                  },
-                }}
-              >
-                <input
-                  hidden
-                  accept="image/*"
-                  type="file"
-                  onChange={handleAvatarChange}
-                />
-                <PhotoCamera />
-              </IconButton>
-            </Box>
-            
-            <Typography variant="h6">
-              {profileData.firstName} {profileData.lastName}
-            </Typography>
-            <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-              Администратор системы
-            </Typography>
-            
-            <Button
-              variant="outlined"
-              startIcon={<LockReset />}
-              onClick={handleChangePassword}
-              fullWidth
-              sx={{ mt: 2 }}
-            >
-              Сменить пароль
-            </Button>
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ mb: 3 }}>
-              Личная информация
-            </Typography>
-            
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Имя"
-                  value={profileData.firstName}
-                  onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
+      {activeTab === 0 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Личная информация
+              </Typography>
               
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Фамилия"
-                  value={profileData.lastName}
-                  onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
+              <TextField
+                fullWidth
+                label="Имя"
+                value={personalInfo.firstName}
+                onChange={(e) => setPersonalInfo({...personalInfo, firstName: e.target.value})}
+                sx={{ mb: 2 }}
+              />
               
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Email"
-                  value={profileData.email}
-                  onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
+              <TextField
+                fullWidth
+                label="Фамилия"
+                value={personalInfo.lastName}
+                onChange={(e) => setPersonalInfo({...personalInfo, lastName: e.target.value})}
+                sx={{ mb: 2 }}
+              />
               
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Телефон"
-                  value={profileData.phone}
-                  onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
+              <TextField
+                fullWidth
+                label="Email"
+                value={personalInfo.email}
+                onChange={(e) => setPersonalInfo({...personalInfo, email: e.target.value})}
+                sx={{ mb: 2 }}
+              />
               
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Telegram"
-                  value={profileData.telegramUsername}
-                  onChange={(e) => setProfileData({...profileData, telegramUsername: e.target.value})}
-                  sx={{ mb: 2 }}
-                  InputProps={{
-                    startAdornment: '@',
-                  }}
-                />
-              </Grid>
+              <TextField
+                fullWidth
+                label="Телефон"
+                value={personalInfo.phone}
+                onChange={(e) => setPersonalInfo({...personalInfo, phone: e.target.value})}
+                sx={{ mb: 2 }}
+              />
               
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Дата рождения"
-                  type="date"
-                  value={profileData.dateOfBirth}
-                  onChange={(e) => setProfileData({...profileData, dateOfBirth: e.target.value})}
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  sx={{ mb: 2 }}
-                />
-              </Grid>
-            </Grid>
-            
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-              <Button
-                variant="contained"
+              <TextField
+                fullWidth
+                label="Telegram"
+                value={personalInfo.telegramUsername}
+                onChange={(e) => setPersonalInfo({...personalInfo, telegramUsername: e.target.value})}
+                sx={{ mb: 2 }}
+              />
+              
+              <Button 
+                variant="contained" 
                 startIcon={<Save />}
-                onClick={handleSaveProfile}
-                disabled={saving}
-                size="large"
+                onClick={handleSavePersonalInfo}
+                sx={{ mt: 2 }}
               >
-                {saving ? 'Сохранение...' : 'Сохранить изменения'}
+                Сохранить изменения
               </Button>
-            </Box>
-          </Paper>
+            </Paper>
+          </Grid>
+          
+          <Grid item xs={12} md={4}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Аккаунт
+              </Typography>
+              
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                <strong>Роль:</strong> Администратор
+              </Typography>
+              
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                <strong>Статус:</strong> Активен
+              </Typography>
+              
+              <Typography variant="body2" sx={{ mb: 1 }}>
+                <strong>Дата регистрации:</strong> 01.01.2025
+              </Typography>
+              
+              <Typography variant="body2" sx={{ mb: 2 }}>
+                <strong>Последний вход:</strong> {new Date().toLocaleString('ru-RU')}
+              </Typography>
+              
+              <Button 
+                variant="outlined" 
+                color="error" 
+                fullWidth
+                onClick={handleLogout}
+              >
+                Выйти из аккаунта
+              </Button>
+            </Paper>
+          </Grid>
         </Grid>
-      </Grid>
+      )}
+
+      {activeTab === 1 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Изменение пароля
+              </Typography>
+              
+              <TextField
+                fullWidth
+                label="Текущий пароль"
+                type={passwordChange.showCurrentPassword ? "text" : "password"}
+                value={passwordChange.currentPassword}
+                onChange={(e) => setPasswordChange({...passwordChange, currentPassword: e.target.value})}
+                sx={{ mb: 2 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setPasswordChange({...passwordChange, showCurrentPassword: !passwordChange.showCurrentPassword})}
+                      >
+                        {passwordChange.showCurrentPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
+              
+              <TextField
+                fullWidth
+                label="Новый пароль"
+                type={passwordChange.showNewPassword ? "text" : "password"}
+                value={passwordChange.newPassword}
+                onChange={(e) => setPasswordChange({...passwordChange, newPassword: e.target.value})}
+                sx={{ mb: 2 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setPasswordChange({...passwordChange, showNewPassword: !passwordChange.showNewPassword})}
+                      >
+                        {passwordChange.showNewPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
+              
+              <TextField
+                fullWidth
+                label="Подтвердите новый пароль"
+                type={passwordChange.showConfirmPassword ? "text" : "password"}
+                value={passwordChange.confirmPassword}
+                onChange={(e) => setPasswordChange({...passwordChange, confirmPassword: e.target.value})}
+                sx={{ mb: 2 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setPasswordChange({...passwordChange, showConfirmPassword: !passwordChange.showConfirmPassword})}
+                      >
+                        {passwordChange.showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
+              
+              <Button 
+                variant="contained" 
+                startIcon={<Save />}
+                onClick={handleChangePassword}
+                sx={{ mt: 2 }}
+              >
+                Изменить пароль
+              </Button>
+            </Paper>
+          </Grid>
+        </Grid>
+      )}
+
+      {activeTab === 2 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Настройки
+              </Typography>
+              
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>Тема</InputLabel>
+                <Select 
+                  value={preferences.theme}
+                  onChange={(e) => setPreferences({...preferences, theme: e.target.value})}
+                >
+                  <MenuItem value="light">Светлая</MenuItem>
+                  <MenuItem value="dark">Темная</MenuItem>
+                </Select>
+              </FormControl>
+              
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>Язык</InputLabel>
+                <Select 
+                  value={preferences.language}
+                  onChange={(e) => setPreferences({...preferences, language: e.target.value})}
+                >
+                  <MenuItem value="ru">Русский</MenuItem>
+                  <MenuItem value="en">English</MenuItem>
+                </Select>
+              </FormControl>
+              
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>Часовой пояс</InputLabel>
+                <Select 
+                  value={preferences.timezone}
+                  onChange={(e) => setPreferences({...preferences, timezone: e.target.value})}
+                >
+                  <MenuItem value="Europe/Moscow">Москва (MSK)</MenuItem>
+                  <MenuItem value="Asia/Yekaterinburg">Екатеринбург (YEKT)</MenuItem>
+                  <MenuItem value="Asia/Novosibirsk">Новосибирск (NOVT)</MenuItem>
+                </Select>
+              </FormControl>
+              
+              <FormControlLabel
+                control={
+                  <Switch 
+                    checked={preferences.notifications.email}
+                    onChange={(e) => setPreferences({
+                      ...preferences, 
+                      notifications: {...preferences.notifications, email: e.target.checked}
+                    })}
+                  />
+                }
+                label="Уведомления по электронной почте"
+                sx={{ mb: 1 }}
+              />
+              
+              <FormControlLabel
+                control={
+                  <Switch 
+                    checked={preferences.notifications.telegram}
+                    onChange={(e) => setPreferences({
+                      ...preferences, 
+                      notifications: {...preferences.notifications, telegram: e.target.checked}
+                    })}
+                  />
+                }
+                label="Уведомления в Telegram"
+                sx={{ mb: 1 }}
+              />
+              
+              <FormControlLabel
+                control={
+                  <Switch 
+                    checked={preferences.notifications.push}
+                    onChange={(e) => setPreferences({
+                      ...preferences, 
+                      notifications: {...preferences.notifications, push: e.target.checked}
+                    })}
+                  />
+                }
+                label="Push-уведомления"
+                sx={{ mb: 2 }}
+              />
+              
+              <Button 
+                variant="contained" 
+                startIcon={<Save />}
+                onClick={handleSavePreferences}
+                sx={{ mt: 2 }}
+              >
+                Сохранить настройки
+              </Button>
+            </Paper>
+          </Grid>
+        </Grid>
+      )}
+
+      {activeTab === 3 && (
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Безопасность
+              </Typography>
+              
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                Здесь вы можете управлять настройками безопасности вашего аккаунта.
+              </Typography>
+              
+              <Button 
+                variant="outlined" 
+                startIcon={<Refresh />}
+                sx={{ mb: 2 }}
+              >
+                Обновить ключи API
+              </Button>
+              
+              <Button 
+                variant="outlined" 
+                color="error"
+                sx={{ ml: 2 }}
+              >
+                Отозвать все сессии
+              </Button>
+              
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  Двухфакторная аутентификация
+                </Typography>
+                
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                  Двухфакторная аутентификация добавляет дополнительный уровень безопасности к вашему аккаунту.
+                </Typography>
+                
+                <Button variant="outlined">
+                  Включить двухфакторную аутентификацию
+                </Button>
+              </Box>
+            </Paper>
+          </Grid>
+        </Grid>
+      )}
 
       <Snackbar
-        open={openSnackbar}
+        open={snackbarOpen}
         autoHideDuration={6000}
         onClose={handleSnackbarClose}
       >

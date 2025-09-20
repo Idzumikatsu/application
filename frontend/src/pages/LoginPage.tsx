@@ -51,8 +51,29 @@ const LoginPage: React.FC = () => {
 
       AuthService.setToken(response.token);
 
-      console.log('🏠 Navigation to dashboard...');
-      navigate('/dashboard');
+      // После успешного входа проверяем роль пользователя и перенаправляем соответственно
+      const userRole = response.user?.role;
+      let redirectPath = '/dashboard';
+      
+      switch (userRole) {
+        case 'ADMIN':
+          redirectPath = '/admin/dashboard';
+          break;
+        case 'MANAGER':
+          redirectPath = '/manager/dashboard';
+          break;
+        case 'TEACHER':
+          redirectPath = '/teacher/dashboard';
+          break;
+        case 'STUDENT':
+          redirectPath = '/student/dashboard';
+          break;
+        default:
+          redirectPath = '/dashboard';
+      }
+
+      console.log('🏠 Navigation to:', redirectPath);
+      navigate(redirectPath);
     } catch (err: any) {
       console.error('❌ Login failed:', {
         status: err.response?.status,

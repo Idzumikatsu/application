@@ -4,13 +4,7 @@ import {
   Typography,
   Paper,
   Grid,
-  Card,
-  CardContent,
   Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   FormControl,
   InputLabel,
@@ -29,8 +23,15 @@ import {
   Alert,
   Tabs,
   Tab,
-  Checkbox,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Radio,
+  RadioGroup,
   FormControlLabel,
+  FormLabel,
+  Checkbox,
   FormGroup,
 } from '@mui/material';
 import {
@@ -42,8 +43,8 @@ import {
   Refresh,
   Check,
   Close,
+  Search,
 } from '@mui/icons-material';
-import { adminService } from '../services';
 
 interface Notification {
   id: number;
@@ -75,6 +76,7 @@ const AdminNotificationsPage: React.FC = () => {
   });
   const [selectedNotifications, setSelectedNotifications] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadNotifications();
@@ -85,11 +87,12 @@ const AdminNotificationsPage: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      // This would be implemented in adminService
-      // const response = await adminService.getNotifications(activeTab);
-      // setNotifications(response as unknown as Notification[]);
+      console.log('🔄 Loading notifications for tab:', activeTab);
       
-      // For now, we'll use mock data
+      // Имитируем загрузку уведомлений
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Моковые данные для демонстрации
       const mockNotifications: Notification[] = [
         {
           id: 1,
@@ -137,7 +140,9 @@ const AdminNotificationsPage: React.FC = () => {
       ];
       
       setNotifications(mockNotifications);
+      console.log('✅ Notifications loaded successfully:', mockNotifications);
     } catch (err: any) {
+      console.error('❌ Error loading notifications:', err);
       setError(err.message || 'Ошибка загрузки уведомлений');
     } finally {
       setLoading(false);
@@ -146,9 +151,10 @@ const AdminNotificationsPage: React.FC = () => {
 
   const handleCreateNotification = async () => {
     try {
-      // This would be implemented in adminService
-      // const response = await adminService.createNotification(newNotification);
-      // setNotifications(prev => [response as unknown as Notification, ...prev]);
+      console.log('🔄 Creating notification:', newNotification);
+      
+      // Имитируем создание уведомления
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       setOpenDialog(false);
       setNewNotification({
@@ -159,51 +165,80 @@ const AdminNotificationsPage: React.FC = () => {
         recipientType: 'ALL',
         recipientId: undefined,
       });
+      loadNotifications();
     } catch (err: any) {
+      console.error('❌ Error creating notification:', err);
       setError(err.message || 'Ошибка создания уведомления');
     }
   };
 
   const handleSendNotification = async (id: number) => {
     try {
-      // This would be implemented in adminService
-      // await adminService.sendNotification(id);
-      // setNotifications(prev => prev.map(n => n.id === id ? {...n, status: 'SENT', sentAt: new Date().toISOString()} : n));
+      console.log('🔄 Sending notification with id:', id);
+      
+      // Имитируем отправку уведомления
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Обновляем статус уведомления
+      setNotifications(prev => 
+        prev.map(n => 
+          n.id === id ? {...n, status: 'SENT', sentAt: new Date().toISOString()} : n
+        )
+      );
     } catch (err: any) {
+      console.error('❌ Error sending notification:', err);
       setError(err.message || 'Ошибка отправки уведомления');
     }
   };
 
   const handleDeleteNotification = async (id: number) => {
     try {
-      // This would be implemented in adminService
-      // await adminService.deleteNotification(id);
-      // setNotifications(prev => prev.filter(n => n.id !== id));
+      console.log('🔄 Deleting notification with id:', id);
+      
+      // Имитируем удаление уведомления
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setNotifications(prev => prev.filter(n => n.id !== id));
     } catch (err: any) {
+      console.error('❌ Error deleting notification:', err);
       setError(err.message || 'Ошибка удаления уведомления');
     }
   };
 
   const handleBatchDelete = async () => {
     try {
-      // This would be implemented in adminService
-      // await adminService.batchDeleteNotifications(selectedNotifications);
-      // setNotifications(prev => prev.filter(n => !selectedNotifications.includes(n.id)));
+      console.log('🔄 Batch deleting notifications:', selectedNotifications);
+      
+      // Имитируем массовое удаление уведомлений
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setNotifications(prev => prev.filter(n => !selectedNotifications.includes(n.id)));
       setSelectedNotifications([]);
       setSelectAll(false);
     } catch (err: any) {
+      console.error('❌ Error batch deleting notifications:', err);
       setError(err.message || 'Ошибка массового удаления уведомлений');
     }
   };
 
   const handleBatchSend = async () => {
     try {
-      // This would be implemented in adminService
-      // await adminService.batchSendNotifications(selectedNotifications);
-      // setNotifications(prev => prev.map(n => selectedNotifications.includes(n.id) ? {...n, status: 'SENT', sentAt: new Date().toISOString()} : n));
+      console.log('🔄 Batch sending notifications:', selectedNotifications);
+      
+      // Имитируем массовую отправку уведомлений
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setNotifications(prev => 
+        prev.map(n => 
+          selectedNotifications.includes(n.id) 
+            ? {...n, status: 'SENT', sentAt: new Date().toISOString()} 
+            : n
+        )
+      );
       setSelectedNotifications([]);
       setSelectAll(false);
     } catch (err: any) {
+      console.error('❌ Error batch sending notifications:', err);
       setError(err.message || 'Ошибка массовой отправки уведомлений');
     }
   };
@@ -276,6 +311,11 @@ const AdminNotificationsPage: React.FC = () => {
     }
   };
 
+  const filteredNotifications = notifications.filter(notification =>
+    notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    notification.message.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -306,6 +346,20 @@ const AdminNotificationsPage: React.FC = () => {
       </Tabs>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Поиск уведомлений..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <Search sx={{ mr: 1 }} />
+            ),
+          }}
+          sx={{ maxWidth: 400 }}
+        />
+        
         <Box>
           <Button
             variant="outlined"
@@ -382,7 +436,7 @@ const AdminNotificationsPage: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {notifications.map((notification) => (
+              {filteredNotifications.map((notification) => (
                 <TableRow key={notification.id}>
                   <TableCell padding="checkbox">
                     <Checkbox

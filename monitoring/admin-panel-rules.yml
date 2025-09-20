@@ -1,0 +1,87 @@
+groups:
+- name: admin-panel-alerts
+  rules:
+  # Admin Panel Backend Alerts
+  - alert: AdminPanelBackendDown
+    expr: up{job="admin-panel-backend"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Admin panel backend is down"
+      description: "Admin panel backend service has been down for more than 1 minute"
+
+  - alert: AdminPanelHighResponseTime
+    expr: histogram_quantile(0.95, rate(http_server_requests_seconds_bucket{job="admin-panel-backend"}[5m])) > 2
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High response time for admin panel backend"
+      description: "95th percentile response time for admin panel backend is above 2 seconds"
+
+  - alert: AdminPanelHighMemoryUsage
+    expr: jvm_memory_used_bytes{job="admin-panel-backend", area="heap"} / jvm_memory_max_bytes{job="admin-panel-backend", area="heap"} > 0.85
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High memory usage in admin panel backend"
+      description: "Heap memory usage in admin panel backend is above 85%"
+
+  - alert: AdminPanelHighCPUUsage
+    expr: rate(process_cpu_seconds_total{job="admin-panel-backend"}[5m]) > 0.8
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High CPU usage in admin panel backend"
+      description: "CPU usage in admin panel backend is above 80%"
+
+  # Admin Panel Frontend Alerts
+  - alert: AdminPanelFrontendDown
+    expr: up{job="admin-panel-frontend"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Admin panel frontend is down"
+      description: "Admin panel frontend service has been down for more than 1 minute"
+
+  # Database Alerts
+  - alert: DatabaseDown
+    expr: up{job="postgres"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Database is down"
+      description: "PostgreSQL database service has been down for more than 1 minute"
+
+  - alert: DatabaseHighConnectionCount
+    expr: sum(pg_stat_activity_count) > 100
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High number of database connections"
+      description: "Number of database connections is above 100"
+
+  # Traefik Alerts
+  - alert: TraefikDown
+    expr: up{job="traefik"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Traefik is down"
+      description: "Traefik reverse proxy service has been down for more than 1 minute"
+
+  - alert: HighRequestErrorRate
+    expr: rate(traefik_entrypoint_requests_total{code=~"5.."}[5m]) / rate(traefik_entrypoint_requests_total[5m]) > 0.05
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High error rate in requests"
+      description: "Error rate for requests is above 5%"

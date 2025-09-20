@@ -1,0 +1,8 @@
+# Admin Panel Backup Schedule
+# This crontab file schedules regular backups of the admin panel
+
+# Daily backup at 2:00 AM
+0 2 * * * /opt/application/scripts/admin-panel-backup.sh >> /var/log/admin-panel-backup.log 2>&1
+
+# Weekly backup (Sunday at 1:00 AM)
+0 1 * * 0 /opt/application/scripts/admin-panel-backup.sh --full >> /var/log/admin-panel-backup.log 2>&1

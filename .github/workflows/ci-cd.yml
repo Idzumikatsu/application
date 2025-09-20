@@ -415,6 +415,7 @@ jobs:
             ("SPRING_BOOT_HEALTHCHECK_TIMEOUT", "30s"),
             ("SPRING_BOOT_HEALTHCHECK_INTERVAL", "10s"),
             ("BACKUP_RETENTION_DAYS", "7"),
+            ("GRAFANA_ADMIN_PASSWORD", "admin"),
         ])
 
         with open(".env", "w", encoding="utf-8") as f:
@@ -424,6 +425,20 @@ jobs:
         chmod 600 .env
         echo "🔍 Pulling latest code from repository"
         git pull origin master || (echo "❌ Failed to pull latest code" && exit 1)
+        
+        # Create log directories
+        echo "📂 Creating log directories"
+        mkdir -p /opt/application/monitoring/backend-logs
+        mkdir -p /opt/application/monitoring/frontend-logs
+        mkdir -p /opt/application/monitoring/postgres-logs
+        mkdir -p /opt/application/monitoring/traefik-logs
+        mkdir -p /opt/application/backups
+        
+        # Set up cron job for backups
+        echo "⏰ Setting up cron job for backups"
+        sudo cp /opt/application/scripts/cron/admin-panel-backup-cron /etc/cron.d/admin-panel-backup
+        sudo chmod 0644 /etc/cron.d/admin-panel-backup
+        sudo crontab /etc/cron.d/admin-panel-backup
         
         # Authenticate with GitHub Container Registry
         echo "🔐 Authenticating with GitHub Container Registry"
@@ -447,5 +462,18 @@ jobs:
         else
           echo '⚠️  Backend health check failed (may still be starting up)'
           docker compose logs backend --tail=30
+        fi
+        
+        # Check monitoring services
+        if docker compose exec prometheus curl -f http://localhost:9090/-/healthy >/dev/null 2>&1; then
+          echo '✅ Prometheus healthy'
+        else
+          echo '⚠️  Prometheus health check failed (may still be starting up)'
+        fi
+        
+        if docker compose exec grafana curl -f http://localhost:3000/api/health >/dev/null 2>&1; then
+          echo '✅ Grafana healthy'
+        else
+          echo '⚠️  Grafana health check failed (may still be starting up)'
         fi
         EOF

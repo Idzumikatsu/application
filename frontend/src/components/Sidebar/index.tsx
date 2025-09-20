@@ -26,6 +26,7 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
+import AdminSidebar from './AdminSidebar';
 
 interface SidebarProps {
   open: boolean;
@@ -40,6 +41,17 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onNotificationClick })
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user } = useSelector((state: RootState) => state.auth);
 
+  // Если пользователь - администратор, используем специальную боковую панель
+  if (user?.role === 'ADMIN') {
+    return (
+      <AdminSidebar 
+        open={open} 
+        onClose={onClose} 
+        onDrawerToggle={onNotificationClick}
+      />
+    );
+  }
+
   const getMenuItems = () => {
     const items: Array<{
       text: string;
@@ -48,17 +60,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onNotificationClick })
       roles: string[];
     }> = [];
 
-    if (user?.role === 'ADMIN') {
-      items.push(
-        { text: 'Главная', icon: <DashboardIcon />, path: '/admin/dashboard', roles: ['ADMIN'] },
-        { text: 'Пользователи', icon: <PersonIcon />, path: '/admin/users', roles: ['ADMIN'] },
-        { text: 'Менеджеры', icon: <PeopleIcon />, path: '/admin/managers', roles: ['ADMIN'] },
-        { text: 'Преподаватели', icon: <SchoolIcon />, path: '/admin/teachers', roles: ['ADMIN'] },
-        { text: 'Студенты', icon: <GroupIcon />, path: '/admin/students', roles: ['ADMIN'] },
-        { text: 'Отчеты', icon: <ReportsIcon />, path: '/admin/reports', roles: ['ADMIN'] },
-        { text: 'Настройки', icon: <SettingsIcon />, path: '/admin/settings', roles: ['ADMIN'] },
-      );
-    } else if (user?.role === 'MANAGER') {
+    if (user?.role === 'MANAGER') {
       items.push(
         { text: 'Главная', icon: <DashboardIcon />, path: '/manager/dashboard', roles: ['MANAGER'] },
         { text: 'Преподаватели', icon: <PeopleIcon />, path: '/manager/teachers', roles: ['MANAGER'] },
@@ -124,7 +126,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, onNotificationClick })
         flexShrink: 0,
         '& .MuiDrawer-paper': {
           width: 280,
-          boxSizing: 'border-box',
+          boxSizeing: 'border-box',
           borderRight: '1px solid',
           borderColor: 'divider',
           boxShadow: '0 2px 10px rgba(0,0,0,0.05)',

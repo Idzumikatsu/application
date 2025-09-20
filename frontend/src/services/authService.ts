@@ -54,9 +54,25 @@ class AuthService {
     if (!token) return false;
 
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.exp * 1000 > Date.now();
-    } catch {
+      // Проверяем, что токен является JWT
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        console.warn('Invalid JWT token format');
+        return false;
+      }
+      
+      const payload = JSON.parse(atob(parts[1]));
+      
+      // Проверяем, что токен не истек
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (payload.exp < currentTime) {
+        console.warn('Token has expired');
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error parsing token:', error);
       return false;
     }
   }

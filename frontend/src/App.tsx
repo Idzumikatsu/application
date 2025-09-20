@@ -38,59 +38,45 @@ function App() {
   console.log('🔄 App render - isAuthenticated:', isAuthenticated, 'user:', user, 'loading:', loading, 'initializing:', initializing);
 
   useEffect(() => {
-    const token = AuthService.getToken();
-    console.log('🔄 App initialization - token in localStorage:', token ? 'PRESENT' : 'NOT FOUND');
+    const initializeApp = async () => {
+      const token = AuthService.getToken();
+      console.log('🔄 App initialization - token in localStorage:', token ? 'PRESENT' : 'NOT FOUND');
 
-    if (token) {
-      // Проверяем, действителен ли токен перед попыткой восстановления сессии
-      if (AuthService.isAuthenticated()) {
-        console.log('🔄 Token is valid, attempting to restore session...');
-        try {
-          // Проверяем токен и восстанавливаем сессию
-          AuthService.getCurrentUser()
-            .then((userData) => {
-              console.log('✅ Session restored successfully:', userData);
-              console.log('🔄 Dispatching loginSuccess action...');
-              const action = loginSuccess({ user: userData, token });
-              console.log('🔄 Action to dispatch:', action);
-              const result = dispatch(action);
-              console.log('✅ loginSuccess action dispatched, result:', result);
-              console.log('🔄 Setting initializing to false...');
-              setInitializing(false);
-              console.log('✅ Initializing set to false');
-            })
-            .catch((error) => {
-              console.error('❌ Session restoration failed:', error);
-              // Очищаем недействительный токен
-              AuthService.logout();
-              dispatch(logout());
-              console.log('🔄 Setting initializing to false due to error...');
-              setInitializing(false);
-              console.log('✅ Initializing set to false due to error');
-            });
-        } catch (error) {
-          console.error('❌ Unexpected error during session restoration:', error);
+      if (token) {
+        // Проверяем, действителен ли токен перед попыткой восстановления сессии
+        if (AuthService.isAuthenticated()) {
+          console.log('🔄 Token is valid, attempting to restore session...');
+          try {
+            // Проверяем токен и восстанавливаем сессию
+            const userData = await AuthService.getCurrentUser();
+            console.log('✅ Session restored successfully:', userData);
+            console.log('🔄 Dispatching loginSuccess action...');
+            const action = loginSuccess({ user: userData, token });
+            console.log('🔄 Action to dispatch:', action);
+            const result = dispatch(action);
+            console.log('✅ loginSuccess action dispatched, result:', result);
+          } catch (error) {
+            console.error('❌ Session restoration failed:', error);
+            // Очищаем недействительный токен
+            AuthService.logout();
+            dispatch(logout());
+          }
+        } else {
+          console.log('ℹ️ Token is expired or invalid, clearing session');
+          // Токен недействителен, очищаем сессию
           AuthService.logout();
           dispatch(logout());
-          console.log('🔄 Setting initializing to false due to exception...');
-          setInitializing(false);
-          console.log('✅ Initializing set to false due to exception');
         }
       } else {
-        console.log('ℹ️ Token is expired or invalid, clearing session');
-        // Токен недействителен, очищаем сессию
-        AuthService.logout();
-        dispatch(logout());
-        console.log('🔄 Setting initializing to false due to invalid token...');
-        setInitializing(false);
-        console.log('✅ Initializing set to false due to invalid token');
+        console.log('ℹ️ No token found, user not authenticated');
       }
-    } else {
-      console.log('ℹ️ No token found, user not authenticated');
-      console.log('🔄 Setting initializing to false due to no token...');
+      
+      console.log('🔄 Setting initializing to false...');
       setInitializing(false);
-      console.log('✅ Initializing set to false due to no token');
-    }
+      console.log('✅ Initializing set to false');
+    };
+
+    initializeApp();
   }, [dispatch]);
 
   useEffect(() => {

@@ -16,8 +16,10 @@ import {
   Tab,
   Alert,
   Snackbar,
+  IconButton,
+  InputAdornment,
 } from '@mui/material';
-import { Save } from '@mui/icons-material';
+import { Save, Refresh, Visibility, VisibilityOff } from '@mui/icons-material';
 
 const AdminSettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -43,6 +45,7 @@ const AdminSettingsPage: React.FC = () => {
     smtpPassword: '',
     fromEmail: 'noreply@englishschool.com',
     fromName: 'Online English School',
+    showPassword: false,
   });
 
   // Telegram settings
@@ -50,6 +53,7 @@ const AdminSettingsPage: React.FC = () => {
     botToken: '',
     botUsername: '',
     enableTelegram: true,
+    showToken: false,
   });
 
   // Security settings
@@ -275,10 +279,21 @@ const AdminSettingsPage: React.FC = () => {
               <TextField
                 fullWidth
                 label="SMTP Пароль"
-                type="password"
+                type={emailSettings.showPassword ? "text" : "password"}
                 value={emailSettings.smtpPassword}
                 onChange={(e) => setEmailSettings({...emailSettings, smtpPassword: e.target.value})}
                 sx={{ mb: 2 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setEmailSettings({...emailSettings, showPassword: !emailSettings.showPassword})}
+                      >
+                        {emailSettings.showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
               />
               
               <TextField
@@ -321,9 +336,21 @@ const AdminSettingsPage: React.FC = () => {
               <TextField
                 fullWidth
                 label="Токен бота"
+                type={telegramSettings.showToken ? "text" : "password"}
                 value={telegramSettings.botToken}
                 onChange={(e) => setTelegramSettings({...telegramSettings, botToken: e.target.value})}
                 sx={{ mb: 2 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setTelegramSettings({...telegramSettings, showToken: !telegramSettings.showToken})}
+                      >
+                        {telegramSettings.showToken ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
               />
               
               <TextField

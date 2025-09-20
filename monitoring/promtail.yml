@@ -1,0 +1,59 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: system
+    entry_parser: raw
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: varlogs
+          __path__: /var/log/*log
+
+  - job_name: admin-panel-backend
+    entry_parser: raw
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: backend
+          app: admin-panel
+          __path__: /var/log/admin-panel/backend.log
+
+  - job_name: admin-panel-frontend
+    entry_parser: raw
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: frontend
+          app: admin-panel
+          __path__: /var/log/admin-panel/frontend.log
+
+  - job_name: postgres
+    entry_parser: raw
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: database
+          app: postgres
+          __path__: /var/log/postgresql/*.log
+
+  - job_name: traefik
+    entry_parser: raw
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: proxy
+          app: traefik
+          __path__: /var/log/traefik/*.log

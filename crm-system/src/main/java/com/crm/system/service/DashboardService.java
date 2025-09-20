@@ -1,6 +1,7 @@
 package com.crm.system.service;
 
 import com.crm.system.dto.DashboardStatsDto;
+import com.crm.system.dto.StudentEndingSoonDto;
 import com.crm.system.dto.StudentLessonSummaryDto;
 import com.crm.system.model.LessonPackage;
 import com.crm.system.model.Student;
@@ -83,6 +84,25 @@ public class DashboardService {
                 teacher != null ? teacher.getFirstName() + " " + teacher.getLastName() : "Не назначен",
                 pkg.getRemainingLessons(),
                 pkg.getTotalLessons()
+            );
+        }).collect(Collectors.toList());
+    }
+
+    public List<StudentEndingSoonDto> getStudentsWithEndingPackagesSoon() {
+        // Find lesson packages with 3 or fewer remaining lessons
+        List<LessonPackage> packages = lessonPackageRepository.findByRemainingLessonsLessThanEqual(3);
+        
+        return packages.stream().map(pkg -> {
+            Student student = pkg.getStudent();
+            User teacher = student.getAssignedTeacher();
+            
+            return new StudentEndingSoonDto(
+                student.getId(),
+                student.getFirstName() + " " + student.getLastName(),
+                teacher != null ? teacher.getFirstName() + " " + teacher.getLastName() : "Не назначен",
+                pkg.getRemainingLessons(),
+                pkg.getTotalLessons(),
+                pkg.getCreatedAt().toLocalDate().plusDays(30) // Assuming 30-day package duration
             );
         }).collect(Collectors.toList());
     }

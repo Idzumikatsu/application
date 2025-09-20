@@ -19,7 +19,13 @@ class HttpClient {
       (config: any) => {
         const token = AuthService.getToken();
         if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
+          // Проверяем, действителен ли токен перед добавлением в заголовок
+          if (AuthService.isAuthenticated()) {
+            config.headers.Authorization = `Bearer ${token}`;
+          } else {
+            // Если токен недействителен, удаляем его
+            AuthService.logout();
+          }
         }
         return config;
       },
@@ -30,9 +36,15 @@ class HttpClient {
       (response: any) => response,
       async (error: any) => {
         if (error.response?.status === 401) {
-          AuthService.logout();
-          if (window.location.pathname !== '/login') {
-            window.location.href = '/login';
+          // Логируем ошибку для диагностики
+          console.warn('Received 401 Unauthorized response:', error.config?.url);
+          
+          // Очищаем токен только если это не запрос на вход
+          if (!error.config?.url?.includes('/auth/login')) {
+            AuthService.logout();
+            if (window.location.pathname !== '/login') {
+              window.location.href = '/login';
+            }
           }
         }
         return Promise.reject(error);

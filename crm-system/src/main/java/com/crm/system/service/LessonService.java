@@ -142,4 +142,8 @@ public class LessonService {
         }
         return false;
     }
+
+    public Page<Lesson> getAllLessons(Pageable pageable) {
+        return lessonRepository.findAll(pageable);
+    }
 }

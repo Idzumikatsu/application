@@ -22,6 +22,8 @@ import {
   Tooltip,
   CircularProgress,
   Alert,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -31,11 +33,13 @@ import {
   VideoCall as VideoCallIcon,
   Search as SearchIcon,
   Refresh as RefreshIcon,
+  CalendarToday,
+  Today,
+  DateRange,
 } from '@mui/icons-material';
-import { RootState } from '../store';
-import EnhancedCalendar from '../components/EnhancedCalendar';
-import { CalendarEvent, Lesson } from '../types';
-import { adminService } from '../services';
+import { RootState } from '@/store';
+import EnhancedCalendar from '@/components/EnhancedCalendar';
+import { CalendarEvent, Lesson } from '@/types';
 
 const AdminLessonsPage: React.FC = () => {
   const dispatch = useDispatch();
@@ -76,31 +80,81 @@ const AdminLessonsPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('🔄 Loading events...');
       
-      let allEvents: CalendarEvent[] = [];
+      // Имитируем загрузку событий
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // If teacher is selected, load their events
-      if (selectedTeacherId) {
-        // This would be implemented in adminService
-        // const teacherEvents = await adminService.getTeacherEvents(selectedTeacherId, dateRange.start, dateRange.end);
-        // allEvents = [...allEvents, ...teacherEvents];
-      }
+      // Моковые данные для демонстрации
+      const mockEvents: CalendarEvent[] = [
+        {
+          id: '1',
+          title: 'Индивидуальный урок с Иваном Смирновым',
+          start: new Date(new Date().setHours(10, 0, 0, 0)),
+          end: new Date(new Date().setHours(11, 0, 0, 0)),
+          type: 'lesson',
+          status: 'SCHEDULED',
+          resource: {
+            description: 'Урок по грамматике Present Simple',
+            meetingLink: 'https://meet.google.com/abc-defg-hij',
+            studentId: 1,
+            studentName: 'Иван Смирнов',
+            teacherId: 1,
+            teacherName: 'Елена Сидорова',
+          }
+        },
+        {
+          id: '2',
+          title: 'Групповой урок по разговорной практике',
+          start: (() => {
+            const date = new Date();
+            date.setDate(date.getDate() + 1);
+            return date;
+          })(),
+          end: (() => {
+            const date = new Date();
+            date.setDate(date.getDate() + 1);
+            date.setHours(15, 0, 0, 0);
+            return date;
+          })(),
+          type: 'group-lesson',
+          status: 'SCHEDULED',
+          resource: {
+            description: 'Групповой урок для начинающих',
+            meetingLink: 'https://meet.google.com/klm-nopq-rst',
+            groupId: 1,
+            groupName: 'Группа начинающих',
+          }
+        },
+        {
+          id: '3',
+          title: 'Доступность Елены Сидоровой',
+          start: (() => {
+            const date = new Date();
+            date.setDate(date.getDate() + 2);
+            date.setHours(9, 0, 0, 0);
+            return date;
+          })(),
+          end: (() => {
+            const date = new Date();
+            date.setDate(date.getDate() + 2);
+            date.setHours(17, 0, 0, 0);
+            return date;
+          })(),
+          type: 'availability',
+          status: 'CONFIRMED',
+          resource: {
+            description: 'Доступное время для записи уроков',
+            teacherId: 1,
+            teacherName: 'Елена Сидорова',
+          }
+        },
+      ];
       
-      // If student is selected, load their events
-      if (selectedStudentId) {
-        // This would be implemented in adminService
-        // const studentEvents = await adminService.getStudentEvents(selectedStudentId, dateRange.start, dateRange.end);
-        // allEvents = [...allEvents, ...studentEvents];
-      }
-      
-      // If no specific user selected, load all events
-      if (!selectedTeacherId && !selectedStudentId) {
-        // This would be implemented in adminService
-        // allEvents = await adminService.getAllEvents(dateRange.start, dateRange.end);
-      }
-      
-      setEvents(allEvents);
+      setEvents(mockEvents);
+      console.log('✅ Events loaded successfully:', mockEvents);
     } catch (err: any) {
+      console.error('❌ Error loading events:', err);
       setError(err.message || 'Ошибка загрузки событий');
     } finally {
       setLoading(false);
@@ -113,32 +167,44 @@ const AdminLessonsPage: React.FC = () => {
 
   const handleEventCreate = async (eventData: Omit<CalendarEvent, 'id'>) => {
     try {
-      // This would be implemented in adminService
-      // const newEvent = await adminService.createEvent(eventData);
-      // setEvents(prev => [...prev, newEvent]);
+      console.log('🔄 Creating event:', eventData);
+      
+      // Имитируем создание события
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       setOpenDialog(false);
+      loadEvents();
     } catch (err: any) {
+      console.error('❌ Error creating event:', err);
       setError(err.message || 'Ошибка создания события');
     }
   };
 
   const handleEventUpdate = async (event: CalendarEvent) => {
     try {
-      // This would be implemented in adminService
-      // const updatedEvent = await adminService.updateEvent(event.id, event);
-      // setEvents(prev => prev.map(e => e.id === event.id ? updatedEvent : e));
+      console.log('🔄 Updating event:', event);
+      
+      // Имитируем обновление события
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       setOpenDialog(false);
+      loadEvents();
     } catch (err: any) {
+      console.error('❌ Error updating event:', err);
       setError(err.message || 'Ошибка обновления события');
     }
   };
 
   const handleEventDelete = async (eventId: string) => {
     try {
-      // This would be implemented in adminService
-      // await adminService.deleteEvent(eventId);
-      // setEvents(prev => prev.filter(e => e.id !== eventId));
+      console.log('🔄 Deleting event with id:', eventId);
+      
+      // Имитируем удаление события
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      loadEvents();
     } catch (err: any) {
+      console.error('❌ Error deleting event:', err);
       setError(err.message || 'Ошибка удаления события');
     }
   };
