@@ -121,7 +121,7 @@ export const lessonSlice = createSlice({
         const id = action.meta.arg.id;
         const lesson = state.lessons.find(l => l.id === id);
         if (lesson) {
-          lesson.status = action.meta.arg.statusChange.status; // Assume statusChange has status
+          lesson.status = (action.meta.arg.statusChange as any).status; // Assume statusChange has status
         }
       })
       .addCase(changeLessonStatus.fulfilled, (state, action) => {
@@ -144,6 +144,7 @@ export const lessonSlice = createSlice({
   },
 });
 
-export const { setLessons, clearError } = lessonSlice.actions; // add others if needed
+
+export const { setLessons, setGroupLessons, setLoading, setError, clearError } = lessonSlice.actions;
 
 export default lessonSlice.reducer;

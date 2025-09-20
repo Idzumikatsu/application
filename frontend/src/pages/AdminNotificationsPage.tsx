@@ -34,17 +34,7 @@ import {
   Checkbox,
   FormGroup,
 } from '@mui/material';
-import {
-  Add,
-  Notifications,
-  Email,
-  Send,
-  Delete,
-  Refresh,
-  Check,
-  Close,
-  Search,
-} from '@mui/icons-material';
+import {\n  Add,\n  Notifications,\n  Email,\n  Send,\n  Delete,\n  Refresh,\n  Check,\n  Close,\n  Search,\n} from '@mui/icons-material';\n\nimport toast from 'react-hot-toast';\nimport { useBroadcastNotificationMutation } from '../apiSlice';
 
 interface Notification {
   id: number;

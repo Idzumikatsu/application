@@ -18,7 +18,8 @@ const initialState: AdminNotificationsState = {
 
 export const getAdminNotifications = createAsyncThunk(
   'adminNotifications/getAdminNotifications',
-  async (options?: { status?: string; type?: string; page?: number; size?: number }, { rejectWithValue }) => {
+  async (options?: { status?: string; type?: string; page?: number; size?: number }, thunkAPI) => {
+    const { rejectWithValue } = thunkAPI;
     try {
       const data = await notificationService.getAdminNotifications(options);
       return data;

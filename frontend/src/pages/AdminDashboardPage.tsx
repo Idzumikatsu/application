@@ -38,7 +38,7 @@ const AdminDashboardPage: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const [stats, setStats] = useState<DashboardStats | null>(null);
 
-  const { data: apiStats, isLoading, error, refetch } = useGetDashboardStatsQuery();
+  const { data: apiStats, isLoading, error, refetch } = useGetDashboardStatsQuery(undefined);
 
   React.useEffect(() => {
     if (apiStats) {

@@ -53,7 +53,7 @@ const LessonStatusAutomation: React.FC<LessonStatusAutomationProps> = ({
       const lesson = await LessonStatusTransitionService.checkAndApplyTransitions({ id: lessonId } as any);
       
       if (lesson) {
-        dispatch(updateLesson(lesson));
+        dispatch(updateLesson({ id: lesson.id, lessonData: lesson }));
       }
       
       setLastCheck(new Date());

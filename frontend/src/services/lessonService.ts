@@ -213,11 +213,6 @@ class LessonService {
     return response.data;
   }
 
-  public async changeLessonStatus(lessonId: number, statusChange: LessonStatusChangeRequest): Promise<Lesson> {
-    const response = await httpClient.put<Lesson>(`/lessons/${lessonId}/status`, statusChange);
-    return response.data;
-  }
-
   public async getOverallLessonStats(startDate?: string, endDate?: string): Promise<LessonStatusStats> {
     const params = new URLSearchParams();
     if (startDate) params.append('startDate', startDate);

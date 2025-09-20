@@ -148,11 +148,7 @@ const LoginPage: React.FC = () => {
               margin="normal"
               required
               fullWidth
-              name="password"
-              label="Пароль"
-              type="password"
-              id="password"
-              autoComplete="current-password"
+              label=\"Пароль\"\n              type=\"password\"\n              id=\"password\"\n              autoComplete=\"current-password\"
               error={!!errors.password}
               helperText={errors.password?.message}
               {...register('password')}

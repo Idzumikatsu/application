@@ -38,6 +38,7 @@ import {
 } from '@mui/material';
 import { Add, People, School, Work, Edit, Delete, LockReset, Search, Refresh } from '@mui/icons-material';
 import { useGetUsersQuery } from '@/apiSlice';
+import adminService from '../../services/adminService';
 
 interface UserDto {
   firstName: string;
