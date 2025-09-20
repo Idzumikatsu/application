@@ -77,6 +77,7 @@ const LoginPage: React.FC = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
+      console.log('onSubmit called with data:', data);
       console.log('🔐 Attempting login for:', data.email);
       const result = await login({ email: data.email, password: data.password }).unwrap();
       if (result.mfaEnabled) {
