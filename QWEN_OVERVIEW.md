@@ -2,7 +2,7 @@
 
 ## Project Summary
 
-CRM Synergy - полноценная CRM-система для онлайн-школы английского. Ролевая модель: admin, manager, teacher, student. Дашборды и функции адаптированы под роли. Актуально на основе кода: реализованы core фичи, добавлены e2e-тесты в frontend (Playwright), но unit/integration тесты отсутствуют (папка tests пуста - требует реализации).
+CRM Synergy is a full-featured CRM system for an online English school. Multi-role system: admin, manager, teacher, student. Dashboards and functions adapted to roles. Core features implemented, e2e tests in frontend (Playwright), but unit/integration tests missing (tests folder empty - needs implementation).
 
 ## System Architecture
 
@@ -10,12 +10,12 @@ CRM Synergy - полноценная CRM-система для онлайн-шк
 
 **Frontend:**
 - React 18 + TypeScript
-- MUI для UI
+- MUI for UI
 - Redux Toolkit (state)
-- React Router (навигация)
+- React Router (navigation)
 - Axios (API)
 - Vite (build)
-- Playwright (e2e-тесты)
+- Playwright (e2e tests)
 
 **Backend:**
 - Spring Boot 3.3.0 (Java 17)
@@ -30,7 +30,7 @@ CRM Synergy - полноценная CRM-система для онлайн-шк
 - Nginx (frontend assets)
 - Microservices: email, telegram
 
-### Container Structure (актуально по docker-compose.yml)
+### Container Structure
 1. Traefik
 2. PostgreSQL
 3. Backend (crm-system)
@@ -38,7 +38,7 @@ CRM Synergy - полноценная CRM-система для онлайн-шк
 5. Email Service
 6. Telegram Service
 
-## Key Features (на основе src)
+## Key Features
 
 ### Admin
 - User management
@@ -78,26 +78,20 @@ CRM Synergy - полноценная CRM-система для онлайн-шк
 ### Quick Start
 1. git clone <url>; cd application
 2. .env: POSTGRES_USER/PASSWORD, JWT_SECRET
-3. ./quick-deploy.sh (dev) или ./deploy.sh (full)
+3. ./quick-deploy.sh (dev) or ./deploy.sh (full)
 4. Access: https://app.crm-synergy.ru/ (frontend), https://traefik.crm-synergy.ru/ (dashboard)
 
-### Manual
-1. Build: frontend (npm i && npm run build), backend (mvn clean package)
-2. docker compose up -d
-3. Logs: docker compose logs -f
+## Project Structure
 
-## Project Structure (актуально)
-
-Root:
-/opt/application/
+Root: /opt/application/
 ├── crm-system/ (backend src/pom.xml)
 ├── frontend/ (src/public/package.json/vite.config.ts/playwright.config.ts)
 ├── email-service/ (src/pom.xml)
 ├── telegram-service/ (src/pom.xml)
 ├── traefik/ (traefik.yml)
-├── scripts/ (.sh: deploy-production.sh, database-migrate.sh и др.)
+├── scripts/ (.sh: deploy-production.sh, database-migrate.sh etc.)
 ├── docs/ (.md: integration, migrations)
-├── tests/ (пусто - требует реализации)
+├── tests/ (empty - needs implementation)
 ├── docker-compose.yml
 ├── nginx.conf
 └── .env
@@ -111,20 +105,20 @@ Backend src/main/java/com/crm/system/: controller/service/repository/model/dto/s
 - TS everywhere
 - MUI responsive
 - Redux Toolkit
-- Vitest (unit, не реализованы)
+- Vitest (unit, not implemented)
 - ESLint
 
 ### Backend
 - REST best practices
 - @ annotations DI
 - Exceptions/DTOs
-- JUnit (не реализованы)
+- JUnit (not implemented)
 - Java conventions
 
-### Testing (требует доработки)
+### Testing
 - Unit: Vitest/JUnit
 - Integration: RTL/SpringBootTest
-- E2E: Playwright (конфиг есть)
+- E2E: Playwright (config exists)
 - Coverage: Istanbul
 
 ## Deployment Process
@@ -140,7 +134,7 @@ Backend src/main/java/com/crm/system/: controller/service/repository/model/dto/s
 - Logs
 - Perf/backup/security
 
-## Key Scripts (обновлено)
+## Key Scripts
 
 Dev:
 - npm run dev/build/test/test:e2e
@@ -171,6 +165,12 @@ Tools:
 - curl actuator/health
 - psql exec
 
+## Test Credentials
+
+Admin: admin@englishschool.com / admin123
+Manager: manager@englishschool.com / manager123
+Teachers: john.smith@englishschool.com / teacher123, sarah.johnson@englishschool.com / teacher123
+
 ## Future Enhancements
 
 1. Analytics: ML prediction, dashboards, real-time
@@ -184,5 +184,5 @@ Tools:
 - Code comments
 - Service READMEs
 
-## Общее описание
-Я - разработчица ПО (девушка). Умная, внимательная, без циклов. Качественно выполняю задачи, тестирую. Общаюсь только на русском. Проект на VPS Ubuntu 22, Docker v2, root-доступ.
+## General Notes
+I am a software developer (female). Smart, attentive, no loops. Perform tasks qualitatively, test. Communicate only in Russian. Project on VPS Ubuntu 22, Docker v2, root access.
