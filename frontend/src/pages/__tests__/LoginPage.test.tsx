@@ -2,9 +2,12 @@ import * as React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { BrowserRouter } from 'react-router-dom';
 import LoginPage from '../../pages/LoginPage';
 import authSlice from '../../store/authSlice';
+
+import { apiSlice } from '../../apiSlice';
 import { UserRole } from '../../types';
 
 vi.mock('../../services/authService', () => ({
@@ -15,7 +18,19 @@ vi.mock('../../services/authService', () => ({
 
 const mockedAuthService = vi.mocked((await import('../../services/authService')).default);
 
-vi.mock('react-redux', async () => {\n  const actual = await vi.importActual('react-redux');\n  return {\n    ...actual,\n    useSelector: vi.fn().mockReturnValue({\n      isAuthenticated: false,\n      user: null,\n      loading: false,\n      error: null,\n    }),\n    useDispatch: vi.fn(() => vi.fn()),\n  };\n}); 
+vi.mock('react-redux', async () => {
+  const actual: any = await vi.importActual('react-redux');
+  return {
+    ...actual,
+    useSelector: vi.fn().mockReturnValue({
+      isAuthenticated: false,
+      user: null,
+      loading: false,
+      error: null,
+    }),
+    useDispatch: vi.fn(() => vi.fn()),
+  };
+});
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom') as any;
@@ -28,6 +43,7 @@ vi.mock('react-router-dom', async () => {
 const store = configureStore({
   reducer: {
     auth: authSlice,
+    [apiSlice.reducerPath]: apiSlice.reducer,
   },
 });
 

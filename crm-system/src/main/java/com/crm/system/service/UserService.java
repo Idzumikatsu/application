@@ -76,4 +76,5 @@ public class UserService {
     public User getById(Long id) {
         return findById(id).orElseThrow(() -> new com.crm.system.exception.UserNotFoundException(id));
     }
-}\n
+}
+

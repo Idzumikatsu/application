@@ -6,7 +6,12 @@ import com.crm.system.service.SystemSettingsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;\nimport jakarta.validation.Valid;\nimport java.time.LocalDateTime;\n
+import org.springframework.web.bind.annotation.*;
+
+import jakarta.validation.Valid;
+
+import java.time.LocalDateTime;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,7 +51,8 @@ public class SystemSettingsController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")\n    public ResponseEntity<SystemSettingsDto> createSystemSetting(@Valid @RequestBody CreateSystemSettingsDto settingDto) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<SystemSettingsDto> createSystemSetting(@Valid @RequestBody CreateSystemSettingsDto settingDto) {
         if (systemSettingsService.existsBySettingKey(settingDto.getSettingKey())) {
             throw new RuntimeException("System setting with key '" + settingDto.getSettingKey() + "' already exists");
         }
@@ -56,7 +62,9 @@ public class SystemSettingsController {
         return ResponseEntity.ok(convertToDto(setting));
     }
 
-    @PutMapping("/{id}")\n    @PreAuthorize("hasRole('ADMIN')")\n    public ResponseEntity<SystemSettingsDto> updateSystemSetting(@PathVariable Long id, @Valid @RequestBody UpdateSystemSettingsDto settingDto) {
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<SystemSettingsDto> updateSystemSetting(@PathVariable Long id, @Valid @RequestBody UpdateSystemSettingsDto settingDto) {
         SystemSettings setting = systemSettingsService.findById(id)
                 .orElseThrow(() -> new RuntimeException("System setting not found with id: " + id));
 
@@ -68,7 +76,8 @@ public class SystemSettingsController {
     }
 
     @PutMapping("/keys/{key}")
-    @PreAuthorize("hasRole('ADMIN')")\n    public ResponseEntity<SystemSettingsDto> updateSystemSettingByKey(@PathVariable String key, @Valid @RequestBody UpdateSystemSettingsDto settingDto) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<SystemSettingsDto> updateSystemSettingByKey(@PathVariable String key, @Valid @RequestBody UpdateSystemSettingsDto settingDto) {
         SystemSettings setting = systemSettingsService.findBySettingKey(key)
                 .orElseThrow(() -> new RuntimeException("System setting not found with key: " + key));
 

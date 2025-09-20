@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,7 +37,9 @@ public class TeacherController {
         return ResponseEntity.ok(teacherDtos);
     }
 
-    @PostMapping("/teachers")\n    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")\n    public ResponseEntity<?> createTeacher(@Valid @RequestBody UserDto userDto) {
+    @PostMapping("/teachers")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity<?> createTeacher(@Valid @RequestBody UserDto userDto) {
         if (userService.existsByEmail(userDto.getEmail())) {
             return ResponseEntity.badRequest().body(new MessageDto("Error: Email is already taken!"));
         }
@@ -56,7 +59,9 @@ public class TeacherController {
         return ResponseEntity.ok(new MessageDto("Teacher created successfully!"));
     }
 
-    @PutMapping("/teachers/{id}")\n    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")\n    public ResponseEntity<?> updateTeacher(@PathVariable Long id, @Valid @RequestBody UserDto userDto) {
+    @PutMapping("/teachers/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity<?> updateTeacher(@PathVariable Long id, @Valid @RequestBody UserDto userDto) {
         User user = userService.getById(id);
 
         user.setFirstName(userDto.getFirstName());
@@ -78,7 +83,10 @@ public class TeacherController {
         return ResponseEntity.ok(new MessageDto("Teacher deleted successfully!"));
     }
 
-    @PostMapping("/teachers/{id}/reset-password")\n    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")\n    public ResponseEntity<?> resetTeacherPassword(@PathVariable Long id) {\n        User user = userService.getById(id);
+    @PostMapping("/teachers/{id}/reset-password")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity<?> resetTeacherPassword(@PathVariable Long id) {
+        User user = userService.getById(id);
         // In a real application, you would send an email with a password reset link
         user.setPasswordHash(passwordEncoder.encode("temporary")); // Set temporary password
         userService.updateUser(user);
@@ -97,4 +105,4 @@ public class TeacherController {
         userDto.setIsActive(user.getIsActive());
         return userDto;
     }
-}}
+}
