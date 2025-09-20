@@ -88,7 +88,15 @@ export const lessonSlice = createSlice({
     setLessons: (state, action: PayloadAction<Lesson[]>) => {
       state.lessons = action.payload;
     },
-    // other reducers...
+    setGroupLessons: (state, action: PayloadAction<GroupLesson[]>) => {
+      state.groupLessons = action.payload;
+    },
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.loading = action.payload;
+    },
+    setError: (state, action: PayloadAction<string | null>) => {
+      state.error = action.payload;
+    },
     clearError: (state) => {
       state.error = null;
     },
@@ -143,7 +151,6 @@ export const lessonSlice = createSlice({
       });
   },
 });
-
 
 export const { setLessons, setGroupLessons, setLoading, setError, clearError } = lessonSlice.actions;
 

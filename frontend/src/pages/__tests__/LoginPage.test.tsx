@@ -15,16 +15,7 @@ vi.mock('../../services/authService', () => ({
 
 const mockedAuthService = vi.mocked((await import('../../services/authService')).default);
 
-vi.mock('react-redux', () => ({
-  useSelector: vi.fn().mockReturnValue({
-    isAuthenticated: false,
-    user: null,
-    loading: false,
-    error: null,
-  }),
-  useDispatch: vi.fn(() => vi.fn()),
-  Provider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
+vi.mock('react-redux', async () => {\n  const actual = await vi.importActual('react-redux');\n  return {\n    ...actual,\n    useSelector: vi.fn().mockReturnValue({\n      isAuthenticated: false,\n      user: null,\n      loading: false,\n      error: null,\n    }),\n    useDispatch: vi.fn(() => vi.fn()),\n  };\n}); 
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom') as any;

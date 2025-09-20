@@ -26,6 +26,7 @@ export interface User extends BaseEntity {
   role: UserRole;
   isActive: boolean;
   dateOfBirth?: string;
+  token?: string;
 }
 
 // Student interface

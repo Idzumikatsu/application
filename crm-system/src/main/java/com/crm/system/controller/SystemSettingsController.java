@@ -6,7 +6,7 @@ import com.crm.system.service.SystemSettingsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.*;\nimport jakarta.validation.Valid;\nimport java.time.LocalDateTime;\n
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -96,7 +96,7 @@ public class SystemSettingsController {
     // Bulk operations
     @PostMapping("/bulk-update")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity&lt;MessageDto&gt; bulkUpdateSystemSettings(@Valid @RequestBody List&lt;BulkUpdateSettingDto&gt; settings) {
+    public ResponseEntity<MessageDto> bulkUpdateSystemSettings(@Valid @RequestBody List<BulkUpdateSettingDto> settings) {
         for (BulkUpdateSettingDto settingDto : settings) {
             systemSettingsService.updateSettingValue(settingDto.getSettingKey(), settingDto.getSettingValue());
         }

@@ -136,7 +136,6 @@ const LoginPage: React.FC = () => {
               fullWidth
               id="email"
               label="Email"
-              name="email"
               autoComplete="email"
               autoFocus
               error={!!errors.email}
@@ -148,7 +147,10 @@ const LoginPage: React.FC = () => {
               margin="normal"
               required
               fullWidth
-              label=\"Пароль\"\n              type=\"password\"\n              id=\"password\"\n              autoComplete=\"current-password\"
+              label="Пароль"
+              type="password"
+              id="password"
+              autoComplete="current-password"
               error={!!errors.password}
               helperText={errors.password?.message}
               {...register('password')}

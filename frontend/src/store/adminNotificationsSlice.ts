@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import notificationService from '../services/notificationService';
-import { Notification } from '../types'; // Assume type exists or define
+import { Notification, NotificationStatus } from '../types'; // Assume type exists or define
 
 interface AdminNotificationsState {
   notifications: Notification[];
@@ -18,7 +18,7 @@ const initialState: AdminNotificationsState = {
 
 export const getAdminNotifications = createAsyncThunk(
   'adminNotifications/getAdminNotifications',
-  async (options?: { status?: string; type?: string; page?: number; size?: number }, thunkAPI) => {
+  async (options: { status?: string; type?: string; page?: number; size?: number } = {}, thunkAPI) => {
     const { rejectWithValue } = thunkAPI;
     try {
       const data = await notificationService.getAdminNotifications(options);
@@ -109,7 +109,7 @@ const adminNotificationsSlice = createSlice({
         const id = action.meta.arg;
         const notification = state.notifications.find(n => n.id === id);
         if (notification) {
-          notification.status = 'SENT';
+          notification.status = NotificationStatus.SENT;
           notification.sentAt = new Date().toISOString();
         }
       })
@@ -118,7 +118,7 @@ const adminNotificationsSlice = createSlice({
         const id = action.meta.arg;
         const notification = state.notifications.find(n => n.id === id);
         if (notification) {
-          notification.status = 'PENDING';
+          notification.status = NotificationStatus.PENDING;
           notification.sentAt = undefined;
         }
       })

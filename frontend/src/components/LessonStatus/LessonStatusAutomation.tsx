@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../store';
+import type { RootState, AppDispatch } from '../../store';
 import { LessonStatusTransitionService } from '../../services/lessonStatusTransitionService';
 import { setLoading, setError } from '../../store/notificationSlice';
 import { updateLesson } from '../../store/lessonSlice';
@@ -16,7 +16,7 @@ const LessonStatusAutomation: React.FC<LessonStatusAutomationProps> = ({
   lessonId,
   showControls = false
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
   const [isRunning, setIsRunning] = useState(false);
   const [lastCheck, setLastCheck] = useState<Date | null>(null);

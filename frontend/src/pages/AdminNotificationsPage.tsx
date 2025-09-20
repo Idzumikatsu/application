@@ -34,7 +34,19 @@ import {
   Checkbox,
   FormGroup,
 } from '@mui/material';
-import {\n  Add,\n  Notifications,\n  Email,\n  Send,\n  Delete,\n  Refresh,\n  Check,\n  Close,\n  Search,\n} from '@mui/icons-material';\n\nimport toast from 'react-hot-toast';\nimport { useBroadcastNotificationMutation } from '../apiSlice';
+import {
+  Add,
+  Notifications,
+  Email,
+  Send,
+  Delete,
+  Refresh,
+  Check,
+  Close,
+  Search,
+} from '@mui/icons-material';
+import toast from 'react-hot-toast';
+import { useBroadcastNotificationMutation } from '../apiSlice';
 
 interface Notification {
   id: number;
@@ -67,6 +79,7 @@ const AdminNotificationsPage: React.FC = () => {
   const [selectedNotifications, setSelectedNotifications] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [broadcastNotification] = useBroadcastNotificationMutation();
 
   useEffect(() => {
     loadNotifications();

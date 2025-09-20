@@ -7,17 +7,7 @@ import authSlice from '../store/authSlice';
 import { BrowserRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 
-// Mock для react-redux
-vi.mock('react-redux', () => ({
-  useSelector: vi.fn().mockReturnValue({
-    isAuthenticated: false,
-    user: null,
-    loading: false,
-    error: null,
-  }),
-  useDispatch: vi.fn(() => vi.fn()),
-  Provider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
+// Mock для react-redux\nvi.mock('react-redux', () => ({\n  useSelector: vi.fn().mockReturnValue({\n    isAuthenticated: false,\n    user: null,\n    loading: false,\n    error: null,\n  }),\n  useDispatch: vi.fn(() => vi.fn()),\n}));
 
 // Mock для react-router-dom
 vi.mock('react-router-dom', async () => {

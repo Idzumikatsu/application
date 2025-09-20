@@ -1,14 +1,22 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './authSlice';
 import lessonReducer from './lessonSlice';
-import { apiSlice } from '../apiSlice'; // Note: path might need adjustment if apiSlice is in src/apiSlice.ts
-
-// Add other reducers as needed, e.g., adminNotificationsReducer, etc.
+import userReducer from './userSlice';
+import notificationReducer from './notificationSlice';
+import availabilityReducer from './availabilitySlice';
+import adminNotificationsReducer from './adminNotificationsSlice';
+import packageReducer from './packageSlice';
+import { apiSlice } from '../apiSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     lessons: lessonReducer,
+    users: userReducer,
+    notifications: notificationReducer,
+    availability: availabilityReducer,
+    adminNotifications: adminNotificationsReducer,
+    packages: packageReducer,
     [apiSlice.reducerPath]: apiSlice.reducer,
   },
   middleware: (getDefaultMiddleware) =>
