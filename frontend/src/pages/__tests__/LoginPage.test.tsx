@@ -203,8 +203,7 @@ describe('LoginPage', () => {
 
     await waitFor(() => {
       expect(mockLoginFn).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password123' });
-      const toastModule = require('react-hot-toast');
-      expect(toastModule.toast.error).toHaveBeenCalled();
+      expect(toast.error).toHaveBeenCalled();
     });
   });
 
