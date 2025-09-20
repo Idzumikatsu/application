@@ -72,4 +72,8 @@ public class UserService {
     public Boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
-}
+
+    public User getById(Long id) {
+        return findById(id).orElseThrow(() -> new com.crm.system.exception.UserNotFoundException(id));
+    }
+}\n

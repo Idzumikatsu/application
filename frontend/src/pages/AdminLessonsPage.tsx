@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import toast from 'react-hot-toast';
 import {
   Box,
   Typography,
@@ -38,6 +39,7 @@ import {
   DateRange,
 } from '@mui/icons-material';
 import { RootState } from '@/store';
+import { useGetLessonsQuery, useChangeLessonStatusMutation } from '@/apiSlice';
 import EnhancedCalendar from '@/components/EnhancedCalendar';
 import { CalendarEvent, Lesson } from '@/types';
 

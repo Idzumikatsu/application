@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
+import toast from 'react-hot-toast';
 import {
   Box,
   Typography,
@@ -9,8 +10,8 @@ import {
 } from '@mui/material';
 import { Refresh } from '@mui/icons-material';
 import { RootState } from '@/store';
+import { useGetDashboardStatsQuery } from '@/apiSlice';
 import AdminStats from '@/components/Admin/AdminStats';
-import adminService from '@/services/adminService';
 import { DashboardStats as ApiDashboardStats } from '@/types';
 
 // Define the local interface that matches what AdminStats expects
@@ -36,22 +37,11 @@ interface DashboardStats {
 const AdminDashboardPage: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchDashboardStats();
-  }, []);
+  const { data: apiStats, isLoading, error, refetch } = useGetDashboardStatsQuery();
 
-  const fetchDashboardStats = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      console.log('🔄 Fetching dashboard stats...');
-      
-      // Fetch real dashboard stats from the backend API
-      const apiStats: ApiDashboardStats = await adminService.getDashboardStats();
-      
+  React.useEffect(() => {
+    if (apiStats) {
       // Transform the data to match the expected interface
       const transformedStats: DashboardStats = {
         totalStudents: apiStats.totalStudents,
@@ -64,15 +54,18 @@ const AdminDashboardPage: React.FC = () => {
         studentsEndingSoon: [], // This field doesn't exist in the API response
         lastUpdated: new Date().toISOString() // This field doesn't exist in the API response
       };
-      
       setStats(transformedStats);
-      console.log('✅ Dashboard stats loaded successfully');
-    } catch (err: any) {
-      console.error('❌ Error loading dashboard stats:', err);
-      setError(err.message || 'Ошибка загрузки статистики');
-    } finally {
-      setLoading(false);
     }
+  }, [apiStats]);
+
+  React.useEffect(() => {
+    if (error) {
+      toast.error((error as any)?.data?.message || 'Ошибка загрузки статистики дашборда');
+    }
+  }, [error]);
+
+  const handleRefresh = () => {
+    refetch();
   };
 
   return (
@@ -86,9 +79,9 @@ const AdminDashboardPage: React.FC = () => {
 
       <AdminStats 
         stats={stats} 
-        loading={loading} 
-        error={error} 
-        onRefresh={fetchDashboardStats} 
+        loading={isLoading} 
+        error={error ? (error as any)?.data?.message || 'Ошибка загрузки' : null} 
+        onRefresh={handleRefresh} 
       />
     </Box>
   );

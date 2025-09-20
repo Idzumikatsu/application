@@ -70,7 +70,7 @@ public class AdminController {
 
     @PostMapping("/managers")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> createManager(@RequestBody UserDto userDto) {
+    public ResponseEntity<?> createManager(@Valid @RequestBody UserDto userDto) {
         if (userService.existsByEmail(userDto.getEmail())) {
             return ResponseEntity.badRequest().body(new MessageDto("Error: Email is already taken!"));
         }
@@ -90,8 +90,8 @@ public class AdminController {
 
     @PutMapping("/managers/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateManager(@PathVariable Long id, @RequestBody UserDto userDto) {
-        User user = userService.findById(id).orElseThrow(() -> new RuntimeException("Manager not found"));
+    public ResponseEntity<?> updateManager(@PathVariable Long id, @Valid @RequestBody UserDto userDto) {
+        User user = userService.getById(id);
 
         user.setFirstName(userDto.getFirstName());
         user.setLastName(userDto.getLastName());
@@ -302,7 +302,7 @@ public class AdminController {
 
     @PostMapping("/system-settings")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<SystemSettingsDto> createSystemSetting(@RequestBody SystemSettingsDto settingDto) {
+    public ResponseEntity<SystemSettingsDto> createSystemSetting(@Valid @RequestBody SystemSettingsDto settingDto) {
         com.crm.system.model.SystemSettings setting = systemSettingsService.createSystemSettings(
                 settingDto.getSettingKey(), settingDto.getSettingValue(), settingDto.getDescription());
         return ResponseEntity.ok(convertToSystemSettingsDto(setting));
@@ -310,7 +310,7 @@ public class AdminController {
 
     @PutMapping("/system-settings/{key}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<SystemSettingsDto> updateSystemSetting(@PathVariable String key, @RequestBody SystemSettingsDto settingDto) {
+    public ResponseEntity<SystemSettingsDto> updateSystemSetting(@PathVariable String key, @Valid @RequestBody SystemSettingsDto settingDto) {
         com.crm.system.model.SystemSettings setting = systemSettingsService.findBySettingKey(key)
                 .orElseThrow(() -> new RuntimeException("System setting not found with key: " + key));
         setting.setSettingValue(settingDto.getSettingValue());
@@ -329,7 +329,7 @@ public class AdminController {
     // Broadcast notification endpoints
     @PostMapping("/broadcast-notifications")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> sendBroadcastNotification(@RequestBody BroadcastNotificationDto notificationDto) {
+    public ResponseEntity<MessageDto> sendBroadcastNotification(@Valid @RequestBody BroadcastNotificationDto notificationDto) {
         notificationBroadcastService.broadcastToRecipientType(
                 notificationDto.getRecipientType(),
                 notificationDto.getNotificationType(),
@@ -340,7 +340,7 @@ public class AdminController {
 
     @PostMapping("/broadcast-notifications/filtered")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> sendFilteredBroadcastNotification(@RequestBody FilteredBroadcastNotificationDto notificationDto) {
+    public ResponseEntity<MessageDto> sendFilteredBroadcastNotification(@Valid @RequestBody FilteredBroadcastNotificationDto notificationDto) {
         notificationBroadcastService.broadcastToFilteredRecipients(
                 notificationDto.getRecipientIds(),
                 notificationDto.getRecipientType(),
@@ -353,7 +353,7 @@ public class AdminController {
     // Bulk email endpoints
     @PostMapping("/bulk-emails")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> sendBulkEmail(@RequestBody BulkEmailDto emailDto) {
+    public ResponseEntity<MessageDto> sendBulkEmail(@Valid @RequestBody BulkEmailDto emailDto) {
         emailService.sendBulkEmail(
                 emailDto.getRecipientEmails(),
                 emailDto.getSubject(),

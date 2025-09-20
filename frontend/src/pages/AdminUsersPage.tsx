@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 import {
   Box,
   Typography,
@@ -34,18 +37,30 @@ import {
   OutlinedInput,
 } from '@mui/material';
 import { Add, People, School, Work, Edit, Delete, LockReset, Search, Refresh } from '@mui/icons-material';
-import adminService from '@/services/adminService';
+import { useGetUsersQuery } from '@/apiSlice';
 
-interface User {
-  id: number;
+interface UserDto {
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
   telegramUsername: string;
-  role: string;
+  role: 'MANAGER' | 'TEACHER' | 'STUDENT';
+}
+
+interface User extends UserDto {
+  id: number;
   isActive: boolean;
 }
+
+const userSchema = yup.object({
+  firstName: yup.string().required('Имя обязательно'),
+  lastName: yup.string().required('Фамилия обязательна'),
+  email: yup.string().email('Неверный формат email').required('Email обязателен'),
+  phone: yup.string().matches(/^[\\+]?[1-9][\\d]{0,15}$/, 'Неверный формат телефона').optional(),
+  telegramUsername: yup.string().matches(/^@[a-zA-Z0-9_]{5,32}$/, 'Неверный формат Telegram').optional(),
+  role: yup.string().oneOf(['MANAGER', 'TEACHER', 'STUDENT']).required(),
+});
 
 const AdminUsersPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);

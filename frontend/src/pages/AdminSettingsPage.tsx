@@ -398,7 +398,7 @@ const AdminSettingsPage: React.FC = () => {
                 label="Минимальная длина пароля"
                 type="number"
                 value={securitySettings.passwordMinLength}
-                onChange={(e) => setSecuritySettings({...securitySettings, passwordMinLength: parseInt(e.target.value)})}
+                onChange={(e) => setSecuritySettings({...securitySettings, passwordMinLength: parseInt(e.target.value) || 8})}
                 sx={{ mb: 2 }}
               />
               
@@ -429,7 +429,7 @@ const AdminSettingsPage: React.FC = () => {
                 label="Таймаут сессии (минуты)"
                 type="number"
                 value={securitySettings.sessionTimeout}
-                onChange={(e) => setSecuritySettings({...securitySettings, sessionTimeout: parseInt(e.target.value)})}
+                onChange={(e) => setSecuritySettings({...securitySettings, sessionTimeout: parseInt(e.target.value) || 30})}
                 sx={{ mb: 2 }}
               />
               

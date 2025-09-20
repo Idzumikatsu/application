@@ -104,7 +104,7 @@ public class NotificationController {
     // Extended admin notification management endpoints
     @PostMapping("/broadcast")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> sendBroadcastNotification(@RequestBody BroadcastNotificationRequest request) {
+    public ResponseEntity<MessageDto> sendBroadcastNotification(@Valid @RequestBody BroadcastNotificationRequest request) {
         notificationBroadcastService.broadcastToRecipientType(
                 request.getRecipientType(),
                 request.getNotificationType(),
@@ -115,7 +115,7 @@ public class NotificationController {
 
     @PostMapping("/broadcast/filtered")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> sendFilteredBroadcastNotification(@RequestBody FilteredBroadcastNotificationRequest request) {
+    public ResponseEntity<MessageDto> sendFilteredBroadcastNotification(@Valid @RequestBody FilteredBroadcastNotificationRequest request) {
         notificationBroadcastService.broadcastToFilteredRecipients(
                 request.getRecipientIds(),
                 request.getRecipientType(),
@@ -127,7 +127,7 @@ public class NotificationController {
 
     @PostMapping("/broadcast/priority")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> sendPriorityBroadcastNotification(@RequestBody PriorityBroadcastNotificationRequest request) {
+    public ResponseEntity<MessageDto> sendPriorityBroadcastNotification(@Valid @RequestBody PriorityBroadcastNotificationRequest request) {
         notificationBroadcastService.broadcastWithPriority(
                 request.getRecipientType(),
                 request.getNotificationType(),

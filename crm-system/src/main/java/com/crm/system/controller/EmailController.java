@@ -9,8 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import jakarta.validation.Valid;
+ import java.util.List;
+ import java.util.concurrent.CompletableFuture;
+
+
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -26,7 +29,7 @@ public class EmailController {
     // Basic bulk email sending for admin
     @PostMapping("/bulk-send")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> sendBulkEmail(@RequestBody BulkEmailRequest request) {
+    public ResponseEntity<MessageDto> sendBulkEmail(@Valid @RequestBody BulkEmailRequest request) {
         CompletableFuture<Boolean> future = emailService.sendBulkEmail(
                 request.getRecipientEmails(),
                 request.getSubject(),
@@ -43,7 +46,7 @@ public class EmailController {
     // Bulk email sending by recipient type for admin
     @PostMapping("/bulk-send-by-type")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> sendBulkEmailByRecipientType(@RequestBody BulkEmailByTypeRequest request) {
+    public ResponseEntity<MessageDto> sendBulkEmailByRecipientType(@Valid @RequestBody BulkEmailByTypeRequest request) {
         CompletableFuture<Boolean> future = emailService.sendBulkEmailByRecipientType(
                 request.getRecipientType(),
                 request.getSubject(),
@@ -60,7 +63,7 @@ public class EmailController {
     // Bulk email sending with filtering for admin
     @PostMapping("/bulk-send-filtered")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> sendFilteredBulkEmail(@RequestBody FilteredBulkEmailRequest request) {
+    public ResponseEntity<MessageDto> sendFilteredBulkEmail(@Valid @RequestBody FilteredBulkEmailRequest request) {
         CompletableFuture<Boolean> future = emailService.sendFilteredBulkEmail(
                 request.getRecipientIds(),
                 request.getRecipientType(),
@@ -78,7 +81,7 @@ public class EmailController {
     // System maintenance emails for admin
     @PostMapping("/system-maintenance")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> sendSystemMaintenanceEmail(@RequestBody SystemMaintenanceEmailRequest request) {
+    public ResponseEntity<MessageDto> sendSystemMaintenanceEmail(@Valid @RequestBody SystemMaintenanceEmailRequest request) {
         CompletableFuture<Boolean> future = emailService.sendSystemMaintenanceEmail(
                 request.getSubject(),
                 request.getMessage());
@@ -93,7 +96,7 @@ public class EmailController {
     // System alert emails for admin
     @PostMapping("/system-alert")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> sendSystemAlertEmail(@RequestBody SystemAlertEmailRequest request) {
+    public ResponseEntity<MessageDto> sendSystemAlertEmail(@Valid @RequestBody SystemAlertEmailRequest request) {
         CompletableFuture<Boolean> future = emailService.sendSystemAlertEmail(
                 request.getSubject(),
                 request.getMessage(),
@@ -109,7 +112,7 @@ public class EmailController {
     // System report emails for admin
     @PostMapping("/system-report")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> sendSystemReportEmail(@RequestBody SystemReportEmailRequest request) {
+    public ResponseEntity<MessageDto> sendSystemReportEmail(@Valid @RequestBody SystemReportEmailRequest request) {
         CompletableFuture<Boolean> future = emailService.sendSystemReportEmail(
                 request.getSubject(),
                 request.getReportContent(),
@@ -125,7 +128,7 @@ public class EmailController {
     // Security alert emails for admin
     @PostMapping("/security-alert")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> sendSecurityAlertEmail(@RequestBody SecurityAlertEmailRequest request) {
+    public ResponseEntity<MessageDto> sendSecurityAlertEmail(@Valid @RequestBody SecurityAlertEmailRequest request) {
         CompletableFuture<Boolean> future = emailService.sendSecurityAlertEmail(
                 request.getSubject(),
                 request.getAlertMessage(),
@@ -142,7 +145,7 @@ public class EmailController {
     // Performance alert emails for admin
     @PostMapping("/performance-alert")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> sendPerformanceAlertEmail(@RequestBody PerformanceAlertEmailRequest request) {
+    public ResponseEntity<MessageDto> sendPerformanceAlertEmail(@Valid @RequestBody PerformanceAlertEmailRequest request) {
         CompletableFuture<Boolean> future = emailService.sendPerformanceAlertEmail(
                 request.getSubject(),
                 request.getAlertMessage(),
@@ -160,7 +163,7 @@ public class EmailController {
     // Backup status emails for admin
     @PostMapping("/backup-status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> sendBackupStatusEmail(@RequestBody BackupStatusEmailRequest request) {
+    public ResponseEntity<MessageDto> sendBackupStatusEmail(@Valid @RequestBody BackupStatusEmailRequest request) {
         CompletableFuture<Boolean> future = emailService.sendBackupStatusEmail(
                 request.getSubject(),
                 request.getBackupStatus(),
@@ -184,14 +187,14 @@ public class EmailController {
 
     @PostMapping("/templates")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> createEmailTemplate(@RequestBody EmailTemplateRequest request) {
+    public ResponseEntity<MessageDto> createEmailTemplate(@Valid @RequestBody EmailTemplateRequest request) {
         // This would create a new email template
         return ResponseEntity.ok(new MessageDto("Email template created successfully - to be implemented"));
     }
 
     @PutMapping("/templates/{templateId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> updateEmailTemplate(@PathVariable Long templateId, @RequestBody EmailTemplateRequest request) {
+    public ResponseEntity<MessageDto> updateEmailTemplate(@PathVariable Long templateId, @Valid @RequestBody EmailTemplateRequest request) {
         // This would update an existing email template
         return ResponseEntity.ok(new MessageDto("Email template updated successfully - to be implemented"));
     }

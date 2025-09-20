@@ -36,9 +36,7 @@ public class TeacherController {
         return ResponseEntity.ok(teacherDtos);
     }
 
-    @PostMapping("/teachers")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> createTeacher(@RequestBody UserDto userDto) {
+    @PostMapping("/teachers")\n    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")\n    public ResponseEntity<?> createTeacher(@Valid @RequestBody UserDto userDto) {
         if (userService.existsByEmail(userDto.getEmail())) {
             return ResponseEntity.badRequest().body(new MessageDto("Error: Email is already taken!"));
         }
@@ -58,10 +56,8 @@ public class TeacherController {
         return ResponseEntity.ok(new MessageDto("Teacher created successfully!"));
     }
 
-    @PutMapping("/teachers/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> updateTeacher(@PathVariable Long id, @RequestBody UserDto userDto) {
-        User user = userService.findById(id).orElseThrow(() -> new RuntimeException("Teacher not found"));
+    @PutMapping("/teachers/{id}")\n    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")\n    public ResponseEntity<?> updateTeacher(@PathVariable Long id, @Valid @RequestBody UserDto userDto) {
+        User user = userService.getById(id);
 
         user.setFirstName(userDto.getFirstName());
         user.setLastName(userDto.getLastName());
@@ -82,10 +78,7 @@ public class TeacherController {
         return ResponseEntity.ok(new MessageDto("Teacher deleted successfully!"));
     }
 
-    @PostMapping("/teachers/{id}/reset-password")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> resetTeacherPassword(@PathVariable Long id) {
-        User user = userService.findById(id).orElseThrow(() -> new RuntimeException("Teacher not found"));
+    @PostMapping("/teachers/{id}/reset-password")\n    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")\n    public ResponseEntity<?> resetTeacherPassword(@PathVariable Long id) {\n        User user = userService.getById(id);
         // In a real application, you would send an email with a password reset link
         user.setPasswordHash(passwordEncoder.encode("temporary")); // Set temporary password
         userService.updateUser(user);
@@ -104,4 +97,4 @@ public class TeacherController {
         userDto.setIsActive(user.getIsActive());
         return userDto;
     }
-}
+}}

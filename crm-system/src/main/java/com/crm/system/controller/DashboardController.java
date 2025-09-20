@@ -9,10 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -184,7 +186,7 @@ public class DashboardController {
 
     @PostMapping("/admin/broadcast-alert")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> broadcastSystemAlert(@RequestBody BroadcastAlertDto alertDto) {
+    public ResponseEntity<MessageDto> broadcastSystemAlert(@Valid @RequestBody BroadcastAlertDto alertDto) {
         // Send system alert notification to all admins
         notificationBroadcastService.broadcastToRecipientType(
                 com.crm.system.model.Notification.RecipientType.ADMIN,

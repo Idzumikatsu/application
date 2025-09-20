@@ -46,8 +46,7 @@ public class SystemSettingsController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<SystemSettingsDto> createSystemSetting(@RequestBody CreateSystemSettingsDto settingDto) {
+    @PreAuthorize("hasRole('ADMIN')")\n    public ResponseEntity<SystemSettingsDto> createSystemSetting(@Valid @RequestBody CreateSystemSettingsDto settingDto) {
         if (systemSettingsService.existsBySettingKey(settingDto.getSettingKey())) {
             throw new RuntimeException("System setting with key '" + settingDto.getSettingKey() + "' already exists");
         }
@@ -57,9 +56,7 @@ public class SystemSettingsController {
         return ResponseEntity.ok(convertToDto(setting));
     }
 
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<SystemSettingsDto> updateSystemSetting(@PathVariable Long id, @RequestBody UpdateSystemSettingsDto settingDto) {
+    @PutMapping("/{id}")\n    @PreAuthorize("hasRole('ADMIN')")\n    public ResponseEntity<SystemSettingsDto> updateSystemSetting(@PathVariable Long id, @Valid @RequestBody UpdateSystemSettingsDto settingDto) {
         SystemSettings setting = systemSettingsService.findById(id)
                 .orElseThrow(() -> new RuntimeException("System setting not found with id: " + id));
 
@@ -71,8 +68,7 @@ public class SystemSettingsController {
     }
 
     @PutMapping("/keys/{key}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<SystemSettingsDto> updateSystemSettingByKey(@PathVariable String key, @RequestBody UpdateSystemSettingsDto settingDto) {
+    @PreAuthorize("hasRole('ADMIN')")\n    public ResponseEntity<SystemSettingsDto> updateSystemSettingByKey(@PathVariable String key, @Valid @RequestBody UpdateSystemSettingsDto settingDto) {
         SystemSettings setting = systemSettingsService.findBySettingKey(key)
                 .orElseThrow(() -> new RuntimeException("System setting not found with key: " + key));
 
@@ -100,7 +96,7 @@ public class SystemSettingsController {
     // Bulk operations
     @PostMapping("/bulk-update")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> bulkUpdateSystemSettings(@RequestBody List<BulkUpdateSettingDto> settings) {
+    public ResponseEntity&lt;MessageDto&gt; bulkUpdateSystemSettings(@Valid @RequestBody List&lt;BulkUpdateSettingDto&gt; settings) {
         for (BulkUpdateSettingDto settingDto : settings) {
             systemSettingsService.updateSettingValue(settingDto.getSettingKey(), settingDto.getSettingValue());
         }
@@ -109,7 +105,7 @@ public class SystemSettingsController {
 
     @PostMapping("/bulk-create")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageDto> bulkCreateSystemSettings(@RequestBody List<CreateSystemSettingsDto> settings) {
+    public ResponseEntity<MessageDto> bulkCreateSystemSettings(@Valid @RequestBody List<CreateSystemSettingsDto> settings) {
         for (CreateSystemSettingsDto settingDto : settings) {
             if (!systemSettingsService.existsBySettingKey(settingDto.getSettingKey())) {
                 systemSettingsService.createSystemSettings(

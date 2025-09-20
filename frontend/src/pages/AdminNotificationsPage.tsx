@@ -151,10 +151,10 @@ const AdminNotificationsPage: React.FC = () => {
 
   const handleCreateNotification = async () => {
     try {
-      console.log('🔄 Creating notification:', newNotification);
+      console.log('🔄 Broadcasting notification:', newNotification);
       
-      // Имитируем создание уведомления
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await broadcastNotification(newNotification).unwrap();
+      toast.success('Уведомление успешно отправлено всем пользователям');
       
       setOpenDialog(false);
       setNewNotification({
@@ -167,8 +167,9 @@ const AdminNotificationsPage: React.FC = () => {
       });
       loadNotifications();
     } catch (err: any) {
-      console.error('❌ Error creating notification:', err);
-      setError(err.message || 'Ошибка создания уведомления');
+      console.error('❌ Error broadcasting notification:', err);
+      toast.error(err.data?.message || 'Ошибка отправки уведомления');
+      setError(err.data?.message || 'Ошибка отправки уведомления');
     }
   };
 

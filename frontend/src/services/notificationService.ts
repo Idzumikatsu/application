@@ -70,6 +70,49 @@ class NotificationService {
     const response = await httpClient.get<Notification[]>(`/notifications/recipients/${recipientId}/${recipientType}/pending`);
     return response.data;
   }
+
+  // Admin methods
+  public async getAdminNotifications(options?: {
+    status?: string;
+    type?: string;
+    page?: number;
+    size?: number;
+  }): Promise<any> {
+    const params: Record<string, any> = {};
+    if (options?.status) params.status = options.status;
+    if (options?.type) params.type = options.type;
+    if (options?.page !== undefined) params.page = options.page;
+    if (options?.size !== undefined) params.size = options.size;
+
+    const response = await httpClient.get('/api/admin/notifications', { params });
+    return response.data;
+  }
+
+  public async broadcastNotification(data: {
+    title: string;
+    message: string;
+    type: string;
+    priority: string;
+    recipientType: string;
+    recipientId?: number;
+  }): Promise<any> {
+    const response = await httpClient.post('/api/admin/broadcast-notifications', data);
+    return response.data;
+  }
+
+  public async getStatistics(): Promise<any> {
+    const response = await httpClient.get('/api/admin/notifications/stats');
+    return response.data;
+  }
+
+  public async sendNotification(id: number): Promise<any> {
+    const response = await httpClient.post(`/api/admin/notifications/${id}/send`);
+    return response.data;
+  }
+
+  public async deleteNotification(id: number): Promise<void> {
+    await httpClient.delete(`/api/admin/notifications/${id}`);
+  }
 }
 
 const notificationService = new NotificationService();

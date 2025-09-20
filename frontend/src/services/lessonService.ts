@@ -202,6 +202,22 @@ class LessonService {
     return response.data;
   }
 
+  public async getAllLessons(startDate?: string, endDate?: string, teacherId?: number, studentId?: number): Promise<Lesson[]> {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    if (teacherId) params.append('teacherId', teacherId.toString());
+    if (studentId) params.append('studentId', studentId.toString());
+    
+    const response = await httpClient.get<Lesson[]>('/api/admin/lessons', { params });
+    return response.data;
+  }
+
+  public async changeLessonStatus(lessonId: number, statusChange: LessonStatusChangeRequest): Promise<Lesson> {
+    const response = await httpClient.put<Lesson>(`/lessons/${lessonId}/status`, statusChange);
+    return response.data;
+  }
+
   public async getOverallLessonStats(startDate?: string, endDate?: string): Promise<LessonStatusStats> {
     const params = new URLSearchParams();
     if (startDate) params.append('startDate', startDate);

@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-hot-toast';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 import {
   Container,
   Box,
@@ -8,54 +12,49 @@ import {
   Button,
   Typography,
   Paper,
-  Alert,
   CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  DialogContentText,
 } from '@mui/material';
-import { loginStart, loginSuccess, loginFailure } from '../store/authSlice';
+import { setCredentials } from '../store/authSlice'; // Assuming setCredentials action for setting user and token
+import { RootState } from '../store';
 import AuthService from '../services/authService';
+import { useLoginMutation, useVerifyMfaMutation } from '../apiSlice';
+
+const schema = yup.object({
+  email: yup.string().email('Неверный формат email').required('Email обязателен'),
+  password: yup.string().min(6, 'Пароль должен содержать минимум 6 символов').required('Пароль обязателен'),
+});
+
+type LoginFormData = yup.InferType<typeof schema>;
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [mfaDialogOpen, setMfaDialogOpen] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [tempUser, setTempUser] = useState<any>(null);
+  const [wasAuthenticated, setWasAuthenticated] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { isAuthenticated, user, loading: authLoading } = useSelector((state: RootState) => state.auth);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+  const [login, { isLoading: loginLoading }] = useLoginMutation();
+  const [verifyMfa, { isLoading: mfaLoading }] = useVerifyMfaMutation();
 
-    // Validate inputs
-    if (!email || !password) {
-      setError('Введите email и пароль');
-      setLoading(false);
-      return;
-    }
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<LoginFormData>({
+    resolver: yupResolver(schema),
+  });
 
-    dispatch(loginStart());
+  const loading = loginLoading || mfaLoading || authLoading;
 
-    try {
-      console.log('🔐 Attempting login for:', email);
-      const response = await AuthService.login({ email, password });
-
-      console.log('✅ Login successful, user data:', {
-        hasToken: !!response.token,
-        role: response.user?.role,
-        firstName: response.user?.firstName
-      });
-
-      dispatch(loginSuccess({ user: response.user, token: response.token }));
-
-      AuthService.setToken(response.token);
-
-      // После успешного входа проверяем роль пользователя и перенаправляем соответственно
-      const userRole = response.user?.role;
+  useEffect(() => {
+    if (isAuthenticated && user && !wasAuthenticated) {
+      AuthService.setToken(user.token || '');
       let redirectPath = '/dashboard';
-      
-      switch (userRole) {
+      switch (user.role) {
         case 'ADMIN':
           redirectPath = '/admin/dashboard';
           break;
@@ -71,45 +70,44 @@ const LoginPage: React.FC = () => {
         default:
           redirectPath = '/dashboard';
       }
+      navigate(redirectPath, { replace: true });
+      setWasAuthenticated(true);
+    }
+  }, [isAuthenticated, user, navigate, wasAuthenticated]);
 
-      console.log('🏠 Navigation to:', redirectPath);
-      navigate(redirectPath);
-    } catch (err: any) {
-      console.error('❌ Login failed:', {
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-        message: err.response?.data?.message || err.message,
-        hasResponse: !!err.response
-      });
-
-      let errorMessage = 'Ошибка входа в систему';
-
-      // Добавляем больше информации об ошибке для диагностики
-      if (err.response?.status === 401) {
-        errorMessage = 'Неверный email или пароль';
-        console.log('🔍 401 Unauthorized - проверьте правильность учетных данных');
-      } else if (err.response?.status === 400) {
-        errorMessage = 'Некорректные данные для входа';
-        console.log('🔍 400 Bad Request - проверьте формат данных');
-      } else if (err.response?.status === 404) {
-        errorMessage = 'Сервис аутентификации недоступен';
-        console.log('🔍 404 Not Found - проверьте URL API endpoint');
-      } else if (err.response?.status === 500) {
-        errorMessage = 'Ошибка сервера';
-        console.log('🔍 500 Internal Server Error - проблема на стороне сервера');
-      } else if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      } else if (err.message) {
-        errorMessage = err.message;
-      } else if (err.code === 'NETWORK_ERROR') {
-        errorMessage = 'Ошибка сети. Проверьте подключение к интернету.';
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      console.log('🔐 Attempting login for:', data.email);
+      const result = await login({ email: data.email, password: data.password }).unwrap();
+      if (result.mfaEnabled) {
+        setTempUser(result);
+        setMfaDialogOpen(true);
+      } else {
+        dispatch(setCredentials(result));
+        toast.success('Успешный вход в систему');
       }
+    } catch (err: any) {
+      console.error('Login error:', err);
+      const errorMessage = err.data?.message || 'Ошибка входа в систему';
+      if (err.status === 401) {
+        toast.error('Неверный email или пароль');
+      } else {
+        toast.error(errorMessage);
+      }
+    }
+  };
 
-      console.log('🔍 Финальное сообщение об ошибке:', errorMessage);
-      dispatch(loginFailure(errorMessage));
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
+  const handleVerifyMfa = async () => {
+    if (!tempUser || !otp) return;
+    try {
+      const result = await verifyMfa({ token: tempUser.token, otp }).unwrap();
+      dispatch(setCredentials(result));
+      setMfaDialogOpen(false);
+      setOtp('');
+      toast.success('Успешный вход в систему');
+    } catch (err: any) {
+      toast.error('Неверный OTP код');
+      setOtp('');
     }
   };
 
@@ -131,13 +129,7 @@ const LoginPage: React.FC = () => {
             Онлайн школа английского языка
           </Typography>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }} className="crm-alert crm-alert-error">
-              {error}
-            </Alert>
-          )}
-
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+          <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 1 }}>
             <TextField
               margin="normal"
               required
@@ -147,8 +139,9 @@ const LoginPage: React.FC = () => {
               name="email"
               autoComplete="email"
               autoFocus
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              error={!!errors.email}
+              helperText={errors.email?.message}
+              {...register('email')}
               className="login-form-input"
             />
             <TextField
@@ -160,8 +153,9 @@ const LoginPage: React.FC = () => {
               type="password"
               id="password"
               autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              error={!!errors.password}
+              helperText={errors.password?.message}
+              {...register('password')}
               className="login-form-input"
             />
             <Button
@@ -177,6 +171,32 @@ const LoginPage: React.FC = () => {
           </Box>
         </Paper>
       </Box>
+
+      {/* MFA Dialog */}
+      <Dialog open={mfaDialogOpen} onClose={() => { setMfaDialogOpen(false); reset(); }}>
+        <DialogTitle>Подтверждение двухфакторной аутентификации</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Введите одноразовый пароль из вашего приложения-аутентификатора.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="OTP код"
+            type="text"
+            fullWidth
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            inputProps={{ maxLength: 6 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { setMfaDialogOpen(false); setOtp(''); reset(); }}>Отмена</Button>
+          <Button onClick={handleVerifyMfa} variant="contained" disabled={!otp || mfaLoading}>
+            Подтвердить
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
