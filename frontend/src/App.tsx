@@ -99,7 +99,7 @@ function App() {
 
   const renderRoleBasedRoute = (allowedRoles: string[], element: React.ReactElement) => {
     console.log('🔄 renderRoleBasedRoute - isAuthenticated:', isAuthenticated, 'user:', user, 'allowedRoles:', allowedRoles, 'initializing:', initializing);
-    
+
     // If still initializing, show loading indicator
     if (initializing) {
       return (
@@ -109,17 +109,23 @@ function App() {
         </Box>
       );
     }
-    
+
     if (!isAuthenticated) {
       console.log('❌ User not authenticated, redirecting to login');
       return <Navigate to="/login" replace />;
     }
-    
+
+    // Администратор имеет доступ ко всем страницам
+    if (user && user.role === 'ADMIN') {
+      console.log('✅ Admin user has access to all pages, rendering element');
+      return element;
+    }
+
     if (user && allowedRoles.includes(user.role)) {
       console.log('✅ User authenticated and has correct role, rendering element');
       return element;
     }
-    
+
     // Если роль пользователя не соответствует разрешенным, перенаправляем на dashboard
     console.log('❌ User does not have correct role, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
@@ -173,21 +179,21 @@ function App() {
               />
               
               {/* Teacher routes */}
-              <Route 
-                path="/teacher/*" 
-                element={renderRoleBasedRoute(['TEACHER'], <TeacherRoutes />)} 
+              <Route
+                path="/teacher/*"
+                element={renderRoleBasedRoute(['TEACHER', 'ADMIN'], <TeacherRoutes />)}
               />
-              
+
               {/* Manager routes */}
-              <Route 
-                path="/manager/*" 
-                element={renderRoleBasedRoute(['MANAGER', 'ADMIN'], <ManagerRoutes />)} 
+              <Route
+                path="/manager/*"
+                element={renderRoleBasedRoute(['MANAGER', 'ADMIN'], <ManagerRoutes />)}
               />
-              
+
               {/* Student routes */}
-              <Route 
-                path="/student/*" 
-                element={renderRoleBasedRoute(['STUDENT'], <StudentRoutes />)} 
+              <Route
+                path="/student/*"
+                element={renderRoleBasedRoute(['STUDENT', 'ADMIN'], <StudentRoutes />)}
               />
               
               {/* Admin routes */}
