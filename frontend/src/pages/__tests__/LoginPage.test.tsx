@@ -119,13 +119,8 @@ describe('LoginPage', () => {
   it('should submit form with valid credentials', async () => {
     const useLoginMutation = (await import('../../apiSlice')).useLoginMutation;
     const mockedUseLoginMutation = vi.mocked(useLoginMutation);
-    const mockLoginFn = vi.fn().mockResolvedValue({
-      data: {
-        user: { id: 1, email: 'test@example.com', firstName: 'Test', lastName: 'User', role: 'Admin', isActive: true },
-        token: 'test-token',
-        mfaEnabled: false,
-      },
-      unwrap: () => Promise.resolve({
+    const mockLoginFn = vi.fn().mockReturnValue({
+      unwrap: vi.fn().mockResolvedValue({
         user: { id: 1, email: 'test@example.com', firstName: 'Test', lastName: 'User', role: 'Admin', isActive: true },
         token: 'test-token',
         mfaEnabled: false,
@@ -145,6 +140,7 @@ describe('LoginPage', () => {
 
     await waitFor(() => {
       expect(mockLoginFn).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password123' });
+      expect(toast.success).toHaveBeenCalledWith('Успешный вход в систему');
     });
   });
 
@@ -185,10 +181,12 @@ describe('LoginPage', () => {
   it('should show error message on login failure', async () => {
     const useLoginMutation = (await import('../../apiSlice')).useLoginMutation;
     const mockedUseLoginMutation = vi.mocked(useLoginMutation);
-    const mockLoginFn = vi.fn().mockImplementation(() => Promise.reject({
-      status: 401,
-      data: { message: 'Неверные учетные данные' }
-    }));
+    const mockLoginFn = vi.fn().mockReturnValue({
+      unwrap: vi.fn().mockRejectedValue({
+        status: 401,
+        data: { message: 'Неверные учетные данные' }
+      })
+    });
     mockedUseLoginMutation.mockReturnValue([mockLoginFn, { isLoading: false }] as any);
 
     const { user } = renderWithProviders(<LoginPage />);
@@ -203,7 +201,7 @@ describe('LoginPage', () => {
 
     await waitFor(() => {
       expect(mockLoginFn).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password123' });
-      expect(toast.error).toHaveBeenCalled();
+      expect(toast.error).toHaveBeenCalledWith('Неверный email или пароль');
     });
   });
 
