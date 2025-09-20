@@ -7,6 +7,7 @@ import { BrowserRouter } from 'react-router-dom';
 import LoginPage from '../../pages/LoginPage';
 import authSlice from '../../store/authSlice';
 import { apiSlice } from '../../apiSlice';
+import { toast } from 'react-hot-toast';
 
 // Mock modules
 vi.mock('react-hot-toast', () => ({
@@ -14,14 +15,13 @@ vi.mock('react-hot-toast', () => ({
     error: vi.fn(),
     success: vi.fn(),
   },
-  error: vi.fn(),
 }));
 
 // Mock the apiSlice properly
 vi.mock('../../apiSlice', async () => {
-  const actual = await vi.importActual('../../apiSlice');
+  const actual = await vi.importActual('../../apiSlice') as any;
   return {
-    ...actual,
+    ...actual as any,
     useLoginMutation: vi.fn(() => [vi.fn(), { isLoading: false }]),
     useVerifyMfaMutation: vi.fn(() => [vi.fn(), { isLoading: false }]),
   };
@@ -183,13 +183,12 @@ describe('LoginPage', () => {
   });
 
   it('should show error message on login failure', async () => {
-    const errorMessage = 'Неверные учетные данные';
     const useLoginMutation = (await import('../../apiSlice')).useLoginMutation;
     const mockedUseLoginMutation = vi.mocked(useLoginMutation);
-    const mockLoginFn = vi.fn().mockRejectedValue({
-      data: { message: errorMessage },
-      status: 401
-    });
+    const mockLoginFn = vi.fn().mockImplementation(() => Promise.reject({
+      status: 401,
+      data: { message: 'Неверные учетные данные' }
+    }));
     mockedUseLoginMutation.mockReturnValue([mockLoginFn, { isLoading: false }] as any);
 
     const { user } = renderWithProviders(<LoginPage />);
@@ -204,8 +203,8 @@ describe('LoginPage', () => {
 
     await waitFor(() => {
       expect(mockLoginFn).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password123' });
-      const toast = require('react-hot-toast');
-      expect(toast.toast.error).toHaveBeenCalled();
+      const toastModule = require('react-hot-toast');
+      expect(toastModule.toast.error).toHaveBeenCalled();
     });
   });
 
