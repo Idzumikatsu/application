@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -31,16 +31,6 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { RootState } from '@/store';
-import AdminDashboardPage from '@/pages/AdminDashboardPage';
-import AdminUsersPage from '@/pages/AdminUsersPage';
-import AdminManagersPage from '@/pages/AdminManagersPage';
-import AdminTeachersPage from '@/pages/AdminTeachersPage';
-import AdminStudentsPage from '@/pages/AdminStudentsPage';
-import AdminLessonsPage from '@/pages/AdminLessonsPage';
-import AdminReportsPage from '@/pages/AdminReportsPage';
-import AdminNotificationsPage from '@/pages/AdminNotificationsPage';
-import AdminProfilePage from '@/pages/AdminProfilePage';
-import AdminSettingsPage from '@/pages/AdminSettingsPage';
 import AuthService from '@/services/authService';
 import { logout } from '@/store/authSlice';
 import { AppDispatch } from '@/store';
@@ -271,19 +261,10 @@ const AdminPage: React.FC = () => {
             <CircularProgress />
           </Box>
         ) : (
-          <Routes>
-            <Route path="/" element={<AdminDashboardPage />} />
-            <Route path="/dashboard" element={<AdminDashboardPage />} />
-            <Route path="/users" element={<AdminUsersPage />} />
-            <Route path="/managers" element={<AdminManagersPage />} />
-            <Route path="/teachers" element={<AdminTeachersPage />} />
-            <Route path="/students" element={<AdminStudentsPage />} />
-            <Route path="/lessons" element={<AdminLessonsPage />} />
-            <Route path="/reports" element={<AdminReportsPage />} />
-            <Route path="/notifications" element={<AdminNotificationsPage />} />
-            <Route path="/profile" element={<AdminProfilePage />} />
-            <Route path="/settings" element={<AdminSettingsPage />} />
-          </Routes>
+          <Box>
+            {/* Маршруты теперь обрабатываются в AdminRoutes.tsx */}
+            {/* Этот компонент только предоставляет навигацию и layout */}
+          </Box>
         )}
       </Box>
     </Box>

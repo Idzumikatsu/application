@@ -101,10 +101,38 @@ const AdminUsersPage: React.FC = () => {
   const handleCreateUser = async () => {
     try {
       console.log('🔄 Creating user with type:', userType);
-      
-      // Имитируем создание пользователя
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+
+      // Получаем данные из формы
+      const form = document.querySelector('[data-testid="create-user-form"]') as HTMLFormElement;
+      const formData = new FormData(form);
+
+      const userData = {
+        firstName: formData.get('firstName') as string,
+        lastName: formData.get('lastName') as string,
+        email: formData.get('email') as string,
+        phone: formData.get('phone') as string,
+        telegramUsername: formData.get('telegram') as string,
+        role: userType.toUpperCase(),
+        password: 'TempPass123!' // Временный пароль, который будет сброшен
+      };
+
+      console.log('🔄 Creating user with data:', userData);
+
+      // Создаем пользователя через API
+      switch (userType) {
+        case 'manager':
+          await adminService.createManager(userData);
+          break;
+        case 'teacher':
+          await adminService.createTeacher(userData);
+          break;
+        case 'student':
+          await adminService.createStudent(userData);
+          break;
+        default:
+          throw new Error('Неизвестный тип пользователя');
+      }
+
       setOpenDialog(false);
       loadUsers();
       showSnackbar('Пользователь успешно создан!');
@@ -349,68 +377,80 @@ const AdminUsersPage: React.FC = () => {
           Добавить пользователя
         </DialogTitle>
         <DialogContent>
-          <FormControl fullWidth sx={{ mt: 2 }}>
-            <InputLabel>Тип пользователя</InputLabel>
-            <Select
-              value={userType}
-              onChange={(e) => setUserType(e.target.value as 'manager' | 'teacher' | 'student')}
-            >
-              <MenuItem value="manager">Менеджер</MenuItem>
-              <MenuItem value="teacher">Преподаватель</MenuItem>
-              <MenuItem value="student">Студент</MenuItem>
-            </Select>
-          </FormControl>
-          
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Имя"
-            type="text"
-            fullWidth
-            variant="outlined"
-            sx={{ mt: 2 }}
-          />
-          
-          <TextField
-            margin="dense"
-            label="Фамилия"
-            type="text"
-            fullWidth
-            variant="outlined"
-            sx={{ mt: 2 }}
-          />
-          
-          <TextField
-            margin="dense"
-            label="Email"
-            type="email"
-            fullWidth
-            variant="outlined"
-            sx={{ mt: 2 }}
-          />
-          
-          <TextField
-            margin="dense"
-            label="Телефон"
-            type="tel"
-            fullWidth
-            variant="outlined"
-            sx={{ mt: 2 }}
-          />
-          
-          <TextField
-            margin="dense"
-            label="Telegram"
-            type="text"
-            fullWidth
-            variant="outlined"
-            sx={{ mt: 2 }}
-          />
+          <form data-testid="create-user-form">
+            <FormControl fullWidth sx={{ mt: 2 }}>
+              <InputLabel>Тип пользователя</InputLabel>
+              <Select
+                name="userType"
+                value={userType}
+                onChange={(e) => setUserType(e.target.value as 'manager' | 'teacher' | 'student')}
+              >
+                <MenuItem value="manager">Менеджер</MenuItem>
+                <MenuItem value="teacher">Преподаватель</MenuItem>
+                <MenuItem value="student">Студент</MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Имя"
+              name="firstName"
+              type="text"
+              fullWidth
+              variant="outlined"
+              sx={{ mt: 2 }}
+              required
+            />
+
+            <TextField
+              margin="dense"
+              label="Фамилия"
+              name="lastName"
+              type="text"
+              fullWidth
+              variant="outlined"
+              sx={{ mt: 2 }}
+              required
+            />
+
+            <TextField
+              margin="dense"
+              label="Email"
+              name="email"
+              type="email"
+              fullWidth
+              variant="outlined"
+              sx={{ mt: 2 }}
+              required
+            />
+
+            <TextField
+              margin="dense"
+              label="Телефон"
+              name="phone"
+              type="tel"
+              fullWidth
+              variant="outlined"
+              sx={{ mt: 2 }}
+            />
+
+            <TextField
+              margin="dense"
+              label="Telegram"
+              name="telegram"
+              type="text"
+              fullWidth
+              variant="outlined"
+              sx={{ mt: 2 }}
+              placeholder="@username"
+            />
+          </form>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Отмена</Button>
-          <Button 
-            onClick={handleCreateUser} 
+          <Button
+            onClick={handleCreateUser}
             variant="contained"
           >
             Создать
