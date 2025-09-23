@@ -6,6 +6,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.ExpiredJwtException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -45,14 +48,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         // Skip authentication for public login endpoints
         String requestURI = request.getRequestURI();
-        System.out.println("=== JwtAuthenticationFilter: Checking if requestURI '" + requestURI + "' is a login endpoint ===");
-        boolean isLoginEndpoint = requestURI.endsWith("/api/auth/login") || requestURI.endsWith("/api/auth/signin") ||
-            requestURI.endsWith("/api/login") || requestURI.equals("/login") || 
-            requestURI.equals("/api/auth/login") || requestURI.equals("/api/auth/signin");
-        System.out.println("=== JwtAuthenticationFilter: isLoginEndpoint = " + isLoginEndpoint + " ===");
-        if (isLoginEndpoint) {
-            System.out.println("=== JwtAuthenticationFilter: Skipping authentication for public login endpoint: " + requestURI + " ===");
-            log.info("Skipping JWT filter for login endpoint: {}", requestURI);
+        System.out.println("=== JwtAuthenticationFilter: Checking if requestURI '" + requestURI + "' is a public endpoint ===");
+        
+        // Проверяем публичные эндпоинты
+        boolean isPublicEndpoint = requestURI.endsWith("/api/auth/login") || 
+                                 requestURI.endsWith("/api/auth/signin") ||
+                                 requestURI.endsWith("/api/login") || 
+                                 requestURI.equals("/login") || 
+                                 requestURI.equals("/api/auth/login") || 
+                                 requestURI.equals("/api/auth/signin") ||
+                                 requestURI.startsWith("/static/") ||
+                                 requestURI.startsWith("/favicon.ico") ||
+                                 requestURI.startsWith("/actuator/");
+        
+        System.out.println("=== JwtAuthenticationFilter: isPublicEndpoint = " + isPublicEndpoint + " ===");
+        if (isPublicEndpoint) {
+            System.out.println("=== JwtAuthenticationFilter: Skipping authentication for public endpoint: " + requestURI + " ===");
+            log.info("Skipping JWT filter for public endpoint: {}", requestURI);
             filterChain.doFilter(request, response);
             return;
         } else {
@@ -61,32 +73,62 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             String jwt = getJwtFromRequest(request);
-            System.out.println("JwtAuthenticationFilter: JWT from request: " + jwt);
+            System.out.println("JwtAuthenticationFilter: JWT from request: " + (jwt != null ? jwt.substring(0, 20) + "..." : "null"));
             if (StringUtils.hasText(jwt)) {
-                String email = jwtTokenUtil.getEmailFromToken(jwt);
-                log.debug("Token present for user: {}", email);
-                System.out.println("JwtAuthenticationFilter: Token present for user: " + email);
+                try {
+                    String email = jwtTokenUtil.getEmailFromToken(jwt);
+                    log.debug("Token present for user: {}", email);
+                    System.out.println("JwtAuthenticationFilter: Token present for user: " + email);
 
-                if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-                    if (jwtTokenUtil.validateToken(jwt, userDetails)) {
-                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                                userDetails, null, userDetails.getAuthorities());
-                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                        log.debug("Authentication set for user: {}", email);
-                        System.out.println("JwtAuthenticationFilter: Authentication set for user: " + email);
-                    } else {
-                        log.debug("JWT token validation failed for user: {}", email);
-                        System.out.println("JwtAuthenticationFilter: JWT token validation failed for user: " + email);
+                    if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                        if (jwtTokenUtil.validateToken(jwt, userDetails)) {
+                            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                                    userDetails, null, userDetails.getAuthorities());
+                            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                            SecurityContextHolder.getContext().setAuthentication(authentication);
+                            log.debug("Authentication set for user: {}", email);
+                            System.out.println("JwtAuthenticationFilter: Authentication set for user: " + email);
+                        } else {
+                            log.warn("JWT token validation failed for user: {}", email);
+                            System.out.println("JwtAuthenticationFilter: JWT token validation failed for user: " + email);
+                            
+                            // Если токен истек, отправляем 401 Unauthorized
+                            if (jwtTokenUtil.isTokenExpired(jwt)) {
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expired");
+                                return;
+                            }
+                        }
                     }
+                } catch (SignatureException e) {
+                    log.error("Invalid JWT signature for request: {}. Possible key mismatch.", request.getRequestURI(), e);
+                    System.out.println("=== JwtAuthenticationFilter: Invalid signature - " + e.getMessage() + " ===");
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token signature");
+                    return;
+                } catch (ExpiredJwtException e) {
+                    log.warn("JWT token expired for request: {}", request.getRequestURI());
+                    System.out.println("=== JwtAuthenticationFilter: Token expired ===");
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expired");
+                    return;
+                } catch (Exception e) {
+                    log.error("Error processing JWT token for request: {}", request.getRequestURI(), e);
+                    System.out.println("=== JwtAuthenticationFilter: JWT processing error - " + e.getMessage() + " ===");
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
+                    return;
                 }
             } else {
                 System.out.println("JwtAuthenticationFilter: No JWT token found");
+                // Для защищенных эндпоинтов без токена отправляем 401
+                if (!isPublicEndpoint) {
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication token required");
+                    return;
+                }
             }
         } catch (Exception ex) {
-            log.error("Could not set user authentication in security context", ex);
-            System.out.println("JwtAuthenticationFilter: Exception: " + ex.getMessage());
+            log.error("Could not set user authentication in security context for {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+            System.out.println("JwtAuthenticationFilter: General exception: " + ex.getMessage());
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Authentication error");
+            return;
         }
 
         System.out.println("JwtAuthenticationFilter: Continuing filter chain");

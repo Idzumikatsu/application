@@ -17,12 +17,27 @@ import org.springframework.stereotype.Component;
 public class JwtTokenUtil {
 
     private final Long expiration;
+    private final Long refreshExpiration;
     private final Key signingKey;
 
     public JwtTokenUtil(@Value("${jwt.secret}") String secret,
-                        @Value("${jwt.expiration}") Long expiration) {
+                        @Value("${jwt.expiration}") Long expiration,
+                        @Value("${jwt.refresh.expiration}") Long refreshExpiration) {
         this.expiration = expiration;
+        this.refreshExpiration = refreshExpiration;
         this.signingKey = buildKey(secret);
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + getRefreshExpirationSeconds() * 1000);
+
+        return Jwts.builder()
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(signingKey, SignatureAlgorithm.HS512)
+                .compact();
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -41,8 +56,17 @@ public class JwtTokenUtil {
         return parseClaims(token).getBody().getSubject();
     }
 
+    public Date getRefreshExpirationDateFromToken(String token) {
+        return parseClaims(token).getBody().getExpiration();
+    }
+
     public Date getExpirationDateFromToken(String token) {
         return parseClaims(token).getBody().getExpiration();
+    }
+
+    public boolean validateRefreshToken(String token, UserDetails userDetails) {
+        final String email = getEmailFromToken(token);
+        return email.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
@@ -52,6 +76,15 @@ public class JwtTokenUtil {
 
     public long getExpirationSeconds() {
         return expiration;
+    }
+
+    public long getRefreshExpirationSeconds() {
+        return 604800; // 7 days
+    }
+
+    private boolean isRefreshTokenExpired(String token) {
+        final Date expirationDate = getRefreshExpirationDateFromToken(token);
+        return expirationDate.before(new Date());
     }
 
     private boolean isTokenExpired(String token) {

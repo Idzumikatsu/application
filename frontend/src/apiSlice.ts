@@ -41,7 +41,7 @@ export const apiSlice = createApi({
       providesTags: ['Dashboard'],
     }),
     getUsers: builder.query({
-      query: () => 'admin/users',
+      query: () => 'admin/manage-users',
       providesTags: ['User'],
     }),
     generateReport: builder.mutation({
@@ -54,7 +54,7 @@ export const apiSlice = createApi({
     }),
     broadcastNotification: builder.mutation({
       query: (data) => ({
-        url: 'admin/notifications/broadcast',
+        url: 'admin/broadcast-notifications',
         method: 'POST',
         body: data,
       }),

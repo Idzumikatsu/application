@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -103,17 +103,21 @@ const AdminPage: React.FC = () => {
         sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
         aria-label="admin navigation"
       >
-        {/* Mobile drawer */}
+        {/* Unified Drawer component */}
         <Drawer
-          variant="temporary"
+          variant={mobileOpen ? "temporary" : "permanent"}
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true, // Better open performance on mobile
+            keepMounted: true,
           }}
           sx={{
-            display: { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': { 
+              boxSizing: 'border-box', 
+              width: drawerWidth,
+              zIndex: 1200,
+              backgroundColor: '#f5f5f5',
+            },
           }}
         >
           <Box
@@ -131,7 +135,20 @@ const AdminPage: React.FC = () => {
               <RefreshIcon />
             </IconButton>
           </Box>
+
           <Divider />
+
+          <Box sx={{ p: 2 }}>
+            <Typography variant="subtitle2" color="textSecondary">
+              {user?.firstName} {user?.lastName}
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              Администратор
+            </Typography>
+          </Box>
+
+          <Divider />
+
           <List>
             {menuItems.map((item) => (
               <ListItem
@@ -166,7 +183,11 @@ const AdminPage: React.FC = () => {
                 <ListItemText primary={item.text} />
               </ListItem>
             ))}
-            <Divider sx={{ my: 1 }} />
+          </List>
+
+          <Divider sx={{ mt: 'auto' }} />
+
+          <List>
             <ListItem button onClick={handleLogout}>
               <ListItemIcon>
                 <LogoutIcon />
@@ -176,12 +197,16 @@ const AdminPage: React.FC = () => {
           </List>
         </Drawer>
 
-        {/* Desktop drawer */}
+        {/* Desktop drawer - always visible */}
         <Drawer
           variant="permanent"
           sx={{
             display: { xs: 'none', md: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': { 
+              boxSizing: 'border-box', 
+              width: drawerWidth,
+              backgroundColor: '#f5f5f5',
+            },
           }}
           open
         >
@@ -196,11 +221,21 @@ const AdminPage: React.FC = () => {
             }}
           >
             <Typography variant="h6">Администрирование</Typography>
-            <IconButton onClick={handleDrawerToggle} sx={{ color: 'white' }}>
-              <RefreshIcon />
-            </IconButton>
           </Box>
+
           <Divider />
+
+          <Box sx={{ p: 2 }}>
+            <Typography variant="subtitle2" color="textSecondary">
+              {user?.firstName} {user?.lastName}
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              Администратор
+            </Typography>
+          </Box>
+
+          <Divider />
+
           <List>
             {menuItems.map((item) => (
               <ListItem
@@ -235,7 +270,11 @@ const AdminPage: React.FC = () => {
                 <ListItemText primary={item.text} />
               </ListItem>
             ))}
-            <Divider sx={{ my: 1 }} />
+          </List>
+
+          <Divider sx={{ mt: 'auto' }} />
+
+          <List>
             <ListItem button onClick={handleLogout}>
               <ListItemIcon>
                 <LogoutIcon />
@@ -251,9 +290,10 @@ const AdminPage: React.FC = () => {
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { xs: '100%', md: `calc(100% - ${drawerWidth}px)` },
+          width: { xs: '100%', md: `calc(100% - ${mobileOpen ? drawerWidth : 0}px)` },
           mt: { xs: 7, md: 8 },
-          ml: { md: `${drawerWidth}px` },
+          ml: { md: mobileOpen ? `${drawerWidth}px` : 0 },
+          transition: 'margin 225ms cubic-bezier(0, 0, 0.2, 1) 0ms',
         }}
       >
         {loading ? (
@@ -261,10 +301,7 @@ const AdminPage: React.FC = () => {
             <CircularProgress />
           </Box>
         ) : (
-          <Box>
-            {/* Маршруты теперь обрабатываются в AdminRoutes.tsx */}
-            {/* Этот компонент только предоставляет навигацию и layout */}
-          </Box>
+          <Outlet />
         )}
       </Box>
     </Box>

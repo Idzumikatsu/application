@@ -71,15 +71,27 @@ services:
       - crm-network
     volumes:
       - ./monitoring/backend-logs:/var/log/admin-panel
+    ports:
+      - "8084:8084"
     healthcheck:
-       test: ["CMD", "curl", "-f", "http://0.0.0.0:8084/actuator/health"]
+       test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
        interval: 30s
        timeout: 10s
        retries: 3
        start_period: 60s
     labels:
       - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=(Host(`localhost`) || Host(`app.crm-synergy.ru`)) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend-http.rule=(Host(`localhost`) || Host(`app.crm-synergy.ru`)) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend-http.entrypoints=web"
+      - "traefik.http.routers.backend-http.middlewares=redirect-https"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.backend.service=backend"
+      - "traefik.http.routers.backend.priority=20"
       - "traefik.http.services.backend.loadbalancer.server.port=8084"
+      - "traefik.http.services.backend.loadbalancer.healthcheck.path=/actuator/health"
+      - "traefik.http.services.backend.loadbalancer.healthcheck.interval=10s"
     # Add restart policy to ensure containers restart if they fail
     restart: unless-stopped
 
@@ -104,12 +116,15 @@ services:
       retries: 3
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`app.crm-synergy.ru`) && !PathPrefix(`/api`)"
-      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.rule=(Host(`localhost`) || Host(`app.crm-synergy.ru`)) && !PathPrefix(`/api`)"
+      - "traefik.http.routers.frontend.entrypoints=web,websecure"
       - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
       - "traefik.http.routers.frontend.service=frontend"
-      - "traefik.http.routers.frontend.priority=15"
+      - "traefik.http.routers.frontend.priority=10"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.frontend-spa.redirectregex.regex=^https?://$$(Host(`localhost`) || Host(`app.crm-synergy.ru`))/[^/]+$$"
+      - "traefik.http.middlewares.frontend-spa.redirectregex.replacement=https://$$(Host(`localhost`) || Host(`app.crm-synergy.ru`))/"
+      - "traefik.http.routers.frontend.middlewares=frontend-spa"
     # Add restart policy to ensure containers restart if they fail
     restart: unless-stopped
 

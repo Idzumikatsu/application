@@ -7,12 +7,14 @@ import com.crm.system.dto.SignupDto;
 import com.crm.system.model.User;
 import com.crm.system.model.UserRole;
 import com.crm.system.security.JwtTokenUtil;
+import com.crm.system.security.UserDetailsServiceImpl;
 import com.crm.system.service.UserService;
 import jakarta.validation.Valid;
 import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,13 +35,17 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
     private final JwtTokenUtil jwtTokenUtil;
+    private final UserDetailsServiceImpl userDetailsService;
 
+    @Autowired
     public AuthController(AuthenticationManager authenticationManager,
                           UserService userService,
-                          JwtTokenUtil jwtTokenUtil) {
+                          JwtTokenUtil jwtTokenUtil,
+                          UserDetailsServiceImpl userDetailsService) {
         this.authenticationManager = authenticationManager;
         this.userService = userService;
         this.jwtTokenUtil = jwtTokenUtil;
+        this.userDetailsService = userDetailsService;
     }
 
     @PostMapping("/auth/signin")
@@ -157,15 +163,35 @@ public class AuthController {
     }
 
     @PostMapping("/auth/refresh")
-    public ResponseEntity<?> refreshToken(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(new MessageDto("Error: Unauthorized"));
+    public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refreshToken");
+        
+        if (refreshToken == null) {
+            return ResponseEntity.badRequest().body(new MessageDto("Error: Refresh token is required"));
         }
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String jwt = jwtTokenUtil.generateToken(userDetails);
-        return ResponseEntity.ok(Map.of(
-                "token", jwt,
-                "expiresIn", jwtTokenUtil.getExpirationSeconds()));
+
+        try {
+            String email = jwtTokenUtil.getEmailFromToken(refreshToken);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            
+            if (jwtTokenUtil.validateRefreshToken(refreshToken, userDetails)) {
+                String newToken = jwtTokenUtil.generateToken(userDetails);
+                String newRefreshToken = jwtTokenUtil.generateRefreshToken(userDetails);
+                
+                Map<String, Object> response = Map.of(
+                    "token", newToken,
+                    "refreshToken", newRefreshToken,
+                    "tokenType", "Bearer",
+                    "expiresIn", jwtTokenUtil.getExpirationSeconds()
+                );
+                
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.badRequest().body(new MessageDto("Error: Invalid refresh token"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new MessageDto("Error: Invalid refresh token"));
+        }
     }
 
     @GetMapping("/auth/validate")

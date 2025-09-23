@@ -75,24 +75,36 @@ const LoginPage: React.FC = () => {
     }
   }, [isAuthenticated, user, navigate, wasAuthenticated]);
 
-      console.log('onSubmit called');
   const onSubmit = async (data: LoginFormData) => {
     try {
       console.log('onSubmit called with data:', data);
       console.log('🔐 Attempting login for:', data.email);
       const result = await login({ email: data.email, password: data.password }).unwrap();
+      console.log('API result:', result); // Debug: log flat response
+      
       if (result.mfaEnabled) {
         setTempUser(result);
         setMfaDialogOpen(true);
       } else {
-        dispatch(setCredentials(result));
+        // Construct nested payload for reducer (flat API response)
+        const credentials = {
+          user: {
+            id: result.id,
+            firstName: result.firstName,
+            lastName: result.lastName,
+            email: result.email,
+            role: result.role,
+            isActive: true,
+          },
+          token: result.token,
+        };
+        dispatch(setCredentials(credentials));
         toast.success('Успешный вход в систему');
       }
     } catch (err: any) {
       console.log('Login error:', err);
       console.error('Login error:', err);
       const errorMessage = err.data?.message || 'Ошибка входа в систему';
-      console.log('Calling toast.error with:', 'Неверный email или пароль');
       if (err.status === 401) {
         toast.error('Неверный email или пароль');
       } else {

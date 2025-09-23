@@ -1,89 +1,61 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import AuthService from './authService';
+import authService from './authService';
 
-const DEFAULT_API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api';
+const httpClient: AxiosInstance = axios.create({
+  baseURL: '/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-class HttpClient {
-  private client: AxiosInstance;
-
-  constructor(baseURL: string) {
-    this.client = axios.create({
-      baseURL,
-      timeout: 10000,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    this.client.interceptors.request.use(
-      (config: any) => {
-        const token = AuthService.getToken();
-        if (token) {
-          // Проверяем, действителен ли токен перед добавлением в заголовок
-          if (AuthService.isAuthenticated()) {
-            config.headers.Authorization = `Bearer ${token}`;
-          } else {
-            // Если токен недействителен, удаляем его
-            AuthService.logout();
-          }
-        }
-        return config;
-      },
-      (error: any) => Promise.reject(error)
-    );
-
-    this.client.interceptors.response.use(
-      (response: any) => response,
-      async (error: any) => {
-        if (error.response?.status === 401) {
-          // Логируем ошибку для диагностики
-          console.warn('Received 401 Unauthorized response:', error.config?.url);
-          
-          // Очищаем токен только если это не запрос на вход
-          if (!error.config?.url?.includes('/auth/login')) {
-            AuthService.logout();
-            if (window.location.pathname !== '/login') {
-              window.location.href = '/login';
-            }
-          }
-        }
-        return Promise.reject(error);
+// Request interceptor to add auth token
+httpClient.interceptors.request.use(
+  async (config) => {
+    try {
+      const token = await authService.getValidToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
       }
-    );
-  }
-
-  private normalizeUrl(url: string): string {
-    if (!url) {
-      return url;
+    } catch (error) {
+      console.error('Error getting valid token:', error);
     }
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      return url;
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor to handle auth errors
+httpClient.interceptors.response.use(
+  (response: AxiosResponse) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // If we get a 401 error and haven't tried to refresh yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        // Try to refresh the token
+        await authService.refreshToken();
+
+        // Retry the original request with new token
+        const newToken = await authService.getValidToken();
+        if (newToken) {
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        }
+        return httpClient(originalRequest);
+      } catch (refreshError) {
+        // If refresh fails, redirect to login
+        authService.logout();
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
     }
-    // Не удаляем ведущий слэш, чтобы сохранить абсолютный путь
-    return url;
-  }
 
-  public get<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
-    return this.client.get<T>(this.normalizeUrl(url), config);
+    return Promise.reject(error);
   }
-
-  public post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
-    return this.client.post<T>(this.normalizeUrl(url), data, config);
-  }
-
-  public put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
-    return this.client.put<T>(this.normalizeUrl(url), data, config);
-  }
-
-  public delete<T>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
-    return this.client.delete<T>(this.normalizeUrl(url), config);
-  }
-
-  public patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
-    return this.client.patch<T>(this.normalizeUrl(url), data, config);
-  }
-}
-
-const httpClient = new HttpClient(DEFAULT_API_BASE_URL);
+);
 
 export default httpClient;

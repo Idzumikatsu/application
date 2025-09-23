@@ -11,6 +11,12 @@ class AuthService {
         throw new Error('Некорректный ответ от сервера: отсутствуют данные для аутентификации');
       }
 
+      // Сохраняем токены
+      this.setToken(data.token);
+      if (data.refreshToken) {
+        this.setRefreshToken(data.refreshToken);
+      }
+
       return {
         token: data.token,
         user: {
@@ -23,7 +29,7 @@ class AuthService {
         },
       };
     } catch (error: any) {
-      throw error;
+      throw new Error(`Login failed: ${error.message}`);
     }
   }
 
@@ -41,50 +47,148 @@ class AuthService {
       const response = await httpClient.get<User>('/users/me');
       return response.data;
     } catch (error: any) {
-      throw error;
+      throw new Error(`Failed to fetch current user: ${error.message}`);
+    }
+  }
+
+  public async refreshToken(): Promise<{ token: string; refreshToken: string }> {
+    try {
+      const refreshToken = this.getRefreshToken();
+      if (!refreshToken) {
+        throw new Error('No refresh token available');
+      }
+
+      const response = await httpClient.post('/auth/refresh', { refreshToken });
+      const data = response.data as any;
+
+      if (!data.token || !data.refreshToken) {
+        throw new Error('Некорректный ответ от сервера при обновлении токена');
+      }
+
+      // Обновляем токены
+      this.setToken(data.token);
+      this.setRefreshToken(data.refreshToken);
+
+      return {
+        token: data.token,
+        refreshToken: data.refreshToken,
+      };
+    } catch (error: any) {
+      // Если refresh токен недействителен, очищаем все токены
+      this.clearTokens();
+      throw new Error(`Token refresh failed: ${error.message}`);
     }
   }
 
   public logout(): void {
-    localStorage.removeItem('token');
+    this.clearTokens();
   }
 
   public isAuthenticated(): boolean {
     const token = this.getToken();
-    if (!token) return false;
+    return !!token && !this.isTokenExpired(token);
+  }
 
+  private isTokenExpired(token: string): boolean {
     try {
-      // Проверяем, что токен является JWT
-      const parts = token.split('.');
-      if (parts.length !== 3) {
-        console.warn('Invalid JWT token format');
-        return false;
-      }
-      
-      const payload = JSON.parse(atob(parts[1]));
-      
-      // Проверяем, что токен не истек
-      const currentTime = Math.floor(Date.now() / 1000);
-      if (payload.exp < currentTime) {
-        console.warn('Token has expired');
-        return false;
-      }
-      
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.exp * 1000 < Date.now();
+    } catch {
       return true;
-    } catch (error) {
-      console.error('Error parsing token:', error);
-      return false;
     }
   }
 
-  public getToken(): string | null {
-    return localStorage.getItem('token');
+  private getToken(): string | undefined {
+    return localStorage.getItem('token') || undefined;
   }
 
-  public setToken(token: string): void {
+  private setToken(token: string): void {
     localStorage.setItem('token', token);
+  }
+
+  private getRefreshToken(): string | undefined {
+    return localStorage.getItem('refreshToken') || undefined;
+  }
+
+  private setRefreshToken(refreshToken: string): void {
+    localStorage.setItem('refreshToken', refreshToken);
+  }
+
+  private clearTokens(): void {
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+  }
+
+  public async getValidToken(): Promise<string> {
+    const token = this.getToken();
+    
+    if (!token) {
+      throw new Error('Нет токена аутентификации');
+    }
+
+    // Проверяем, истек ли токен
+    if (this.isTokenExpired(token)) {
+      try {
+        // Пытаемся обновить токен
+        const { token: newToken } = await this.refreshToken();
+        return newToken;
+      } catch (error) {
+        // Если обновить не удалось, выходим из системы
+        this.logout();
+        throw new Error('Сессия истекла. Пожалуйста, войдите снова.');
+      }
+    }
+
+    return token;
+  }
+
+  public getUserRole(): string | null {
+    try {
+      const token = this.getToken();
+      if (!token) return null;
+      
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.role || null;
+    } catch {
+      return null;
+    }
+  }
+
+  public getUserId(): number | null {
+    try {
+      const token = this.getToken();
+      if (!token) return null;
+      
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.userId || null;
+    } catch {
+      return null;
+    }
+  }
+
+  public getEmail(): string | null {
+    try {
+      const token = this.getToken();
+      if (!token) return null;
+      
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.sub || null;
+    } catch {
+      return null;
+    }
+  }
+
+  public getTokenExpiration(): Date | null {
+    try {
+      const token = this.getToken();
+      if (!token) return null;
+      
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return new Date(payload.exp * 1000);
+    } catch {
+      return null;
+    }
   }
 }
 
-const authService = new AuthService();
-export default authService;
+export default new AuthService();

@@ -34,41 +34,65 @@ class NotificationService {
       params.size = options.size;
     }
 
-    const response = await httpClient.get(`/notifications/recipients/${recipientId}/${recipientType}`, { params });
-    const data: any = response.data ?? {};
-    const content = Array.isArray(data.content) ? data.content : [];
+    try {
+      const response = await httpClient.get(`/notifications/recipients/${recipientId}/${recipientType}`, { params });
+      const data: any = response.data ?? {};
+      const content = Array.isArray(data.content) ? data.content : [];
 
-    return {
-      content,
-      totalElements: typeof data.totalElements === 'number' ? data.totalElements : content.length,
-      totalPages: typeof data.totalPages === 'number' ? data.totalPages : 1,
-      size: typeof data.size === 'number' ? data.size : content.length,
-      page: typeof data.number === 'number' ? data.number : (typeof data.page === 'number' ? data.page : 0),
-    };
+      return {
+        content,
+        totalElements: typeof data.totalElements === 'number' ? data.totalElements : content.length,
+        totalPages: typeof data.totalPages === 'number' ? data.totalPages : 1,
+        size: typeof data.size === 'number' ? data.size : content.length,
+        page: typeof data.number === 'number' ? data.number : (typeof data.page === 'number' ? data.page : 0),
+      };
+    } catch (error: any) {
+      throw new Error(`Failed to fetch notifications: ${error.message}`);
+    }
   }
 
   public async getNotificationById(id: number): Promise<Notification> {
-    const response = await httpClient.get<Notification>(`/notifications/${id}`);
-    return response.data;
+    try {
+      const response = await httpClient.get<Notification>(`/notifications/${id}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Failed to fetch notification with id ${id}: ${error.message}`);
+    }
   }
 
   public async markNotificationAsRead(id: number): Promise<Notification> {
-    const response = await httpClient.post<Notification>(`/notifications/${id}/mark-as-read`);
-    return response.data;
+    try {
+      const response = await httpClient.post<Notification>(`/notifications/${id}/mark-as-read`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Failed to mark notification as read: ${error.message}`);
+    }
   }
 
   public async markAllAsRead(recipientId: number, recipientType: string): Promise<void> {
-    await httpClient.post(`/notifications/recipients/${recipientId}/${recipientType}/mark-all-as-read`);
+    try {
+      await httpClient.post(`/notifications/recipients/${recipientId}/${recipientType}/mark-all-as-read`);
+    } catch (error: any) {
+      throw new Error(`Failed to mark all notifications as read: ${error.message}`);
+    }
   }
 
   public async getUnreadCount(recipientId: number, recipientType: string): Promise<number> {
-    const response = await httpClient.get<number>(`/notifications/recipients/${recipientId}/${recipientType}/unread-count`);
-    return response.data;
+    try {
+      const response = await httpClient.get<number>(`/notifications/recipients/${recipientId}/${recipientType}/unread-count`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Failed to fetch unread count: ${error.message}`);
+    }
   }
 
   public async getPendingNotifications(recipientId: number, recipientType: string): Promise<Notification[]> {
-    const response = await httpClient.get<Notification[]>(`/notifications/recipients/${recipientId}/${recipientType}/pending`);
-    return response.data;
+    try {
+      const response = await httpClient.get<Notification[]>(`/notifications/recipients/${recipientId}/${recipientType}/pending`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Failed to fetch pending notifications: ${error.message}`);
+    }
   }
 
   // Admin methods
@@ -84,8 +108,12 @@ class NotificationService {
     if (options?.page !== undefined) params.page = options.page;
     if (options?.size !== undefined) params.size = options.size;
 
-    const response = await httpClient.get('/api/admin/notifications', { params });
-    return response.data;
+    try {
+      const response = await httpClient.get('/admin/notifications', { params });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Failed to fetch admin notifications: ${error.message}`);
+    }
   }
 
   public async broadcastNotification(data: {
@@ -96,22 +124,38 @@ class NotificationService {
     recipientType: string;
     recipientId?: number;
   }): Promise<any> {
-    const response = await httpClient.post('/api/admin/broadcast-notifications', data);
-    return response.data;
+    try {
+      const response = await httpClient.post('/admin/broadcast-notifications', data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Failed to broadcast notification: ${error.message}`);
+    }
   }
 
   public async getStatistics(): Promise<any> {
-    const response = await httpClient.get('/api/admin/notifications/stats');
-    return response.data;
+    try {
+      const response = await httpClient.get('/admin/notifications/stats');
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Failed to fetch notification statistics: ${error.message}`);
+    }
   }
 
   public async sendNotification(id: number): Promise<any> {
-    const response = await httpClient.post(`/api/admin/notifications/${id}/send`);
-    return response.data;
+    try {
+      const response = await httpClient.post(`/admin/notifications/${id}/send`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(`Failed to send notification: ${error.message}`);
+    }
   }
 
   public async deleteNotification(id: number): Promise<void> {
-    await httpClient.delete(`/api/admin/notifications/${id}`);
+    try {
+      await httpClient.delete(`/admin/notifications/${id}`);
+    } catch (error: any) {
+      throw new Error(`Failed to delete notification: ${error.message}`);
+    }
   }
 }
 

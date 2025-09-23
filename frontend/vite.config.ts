@@ -5,6 +5,10 @@ import { fileURLToPath, URL } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// Server-side env access for config
+const isDev = process.env.NODE_ENV === 'development'
+const apiTarget = process.env.VITE_API_TARGET || (isDev ? 'http://localhost:8080' : 'http://backend:8080')
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -15,7 +19,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://backend:8084',
+        target: apiTarget,
         changeOrigin: true,
         secure: false,
       },

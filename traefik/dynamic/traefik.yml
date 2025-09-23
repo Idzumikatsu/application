@@ -1,0 +1,11 @@
+http:
+  middlewares:
+    redirect-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+    spa-fallback:
+      redirectRegex:
+        regex: "^https?://(localhost|app.crm-synergy.ru)/[^/]+$"
+        replacement: "https://${1}/"
+        permanent: false

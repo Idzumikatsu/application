@@ -31,6 +31,9 @@ const initialState: AuthState = {
   error: null,
 };
 
+// Union type for payload: nested {user, token} or flat API response
+type CredentialsPayload = { user: User; token: string } | { id: number; firstName: string; lastName: string; email: string; role: string; token: string; isActive?: boolean };
+
 export const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -60,10 +63,23 @@ export const authSlice = createSlice({
       state.user = action.payload;
       state.isAuthenticated = true;
     },
-    setCredentials: (state, action: PayloadAction<{ user: User; token: string }>) => {
+    setCredentials: (state, action: PayloadAction<CredentialsPayload>) => {
       state.isAuthenticated = true;
-      state.user = action.payload.user;
       state.token = action.payload.token;
+      const payload = action.payload as any; // Type assertion for flat handling
+      if (payload.user) {
+        state.user = payload.user;
+      } else {
+        // Handle flat response from API
+        state.user = {
+          id: payload.id || 0,
+          firstName: payload.firstName || '',
+          lastName: payload.lastName || '',
+          email: payload.email || '',
+          role: payload.role || '',
+          isActive: payload.isActive !== undefined ? payload.isActive : true,
+        };
+      }
     },
   },
   extraReducers: (builder) => {
@@ -77,8 +93,20 @@ export const authSlice = createSlice({
         console.log('✅ Login fulfilled, user data:', action.payload);
         state.loading = false;
         state.isAuthenticated = true;
-        state.user = action.payload.user;
         state.token = action.payload.token;
+        const payload = action.payload as any; // Type assertion for flat handling
+        if (payload.user) {
+          state.user = payload.user;
+        } else {
+          state.user = {
+            id: payload.id || 0,
+            firstName: payload.firstName || '',
+            lastName: payload.lastName || '',
+            email: payload.email || '',
+            role: payload.role || '',
+            isActive: payload.isActive !== undefined ? payload.isActive : true,
+          };
+        }
         state.error = null;
       })
       .addCase(login.rejected, (state, action) => {
