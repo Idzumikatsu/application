@@ -136,8 +136,12 @@ public class AuthController {
 
             logger.info("Authentication successful for user: {}", user.getEmail());
 
+            // Generate refresh token
+            String refreshToken = jwtTokenUtil.generateRefreshToken(userDetails);
+            
             return ResponseEntity.ok(new JwtResponseDto(
                     jwt,
+                    refreshToken,
                     user.getId(),
                     user.getFirstName(),
                     user.getLastName(),

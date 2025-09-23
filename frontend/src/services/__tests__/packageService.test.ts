@@ -88,7 +88,7 @@ describe('PackageService', () => {
   // Student packages management
   describe('Student packages management', () => {
     it('should get student packages', async () => {
-      mockedHttpClient.get.mockResolvedValue(mockResponse);
+      mockedHttpClient.get.mockResolvedValueOnce(mockResponse);
 
       const result = await packageService.getStudentPackages(123);
 

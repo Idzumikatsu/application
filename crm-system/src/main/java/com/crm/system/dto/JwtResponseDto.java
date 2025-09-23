@@ -2,6 +2,7 @@ package com.crm.system.dto;
 
 public class JwtResponseDto {
     private String token;
+    private String refreshToken;
     private String type = "Bearer";
     private Long id;
     private String firstName;
@@ -10,12 +11,13 @@ public class JwtResponseDto {
     private String role;
     private Long expiresIn;
 
-    public JwtResponseDto(String token, Long id, String firstName, String lastName, String email, String role) {
-        this(token, id, firstName, lastName, email, role, null);
+    public JwtResponseDto(String token, String refreshToken, Long id, String firstName, String lastName, String email, String role) {
+        this(token, refreshToken, id, firstName, lastName, email, role, null);
     }
 
-    public JwtResponseDto(String token, Long id, String firstName, String lastName, String email, String role, Long expiresIn) {
+    public JwtResponseDto(String token, String refreshToken, Long id, String firstName, String lastName, String email, String role, Long expiresIn) {
         this.token = token;
+        this.refreshToken = refreshToken;
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -30,6 +32,14 @@ public class JwtResponseDto {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     public String getType() {

@@ -237,6 +237,7 @@ services:
       - "traefik.http.routers.loki.entrypoints=websecure"
       - "traefik.http.routers.loki.tls.certresolver=letsencrypt"
       - "traefik.http.services.loki.loadbalancer.server.port=3100"
+    user: "0:0"
 
   promtail:
     image: grafana/promtail:2.9.1

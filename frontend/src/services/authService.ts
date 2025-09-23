@@ -55,7 +55,15 @@ class AuthService {
     try {
       const refreshToken = this.getRefreshToken();
       if (!refreshToken) {
-        throw new Error('No refresh token available');
+        // Если refresh токен отсутствует, возвращаем текущий токен
+        const token = this.getToken();
+        if (!token) {
+          throw new Error('No token available');
+        }
+        return {
+          token,
+          refreshToken: '',
+        };
       }
 
       const response = await httpClient.post('/auth/refresh', { refreshToken });
@@ -98,11 +106,11 @@ class AuthService {
     }
   }
 
-  private getToken(): string | undefined {
+  public getToken(): string | undefined {
     return localStorage.getItem('token') || undefined;
   }
 
-  private setToken(token: string): void {
+  public setToken(token: string): void {
     localStorage.setItem('token', token);
   }
 
@@ -119,11 +127,11 @@ class AuthService {
     localStorage.removeItem('refreshToken');
   }
 
-  public async getValidToken(): Promise<string> {
+  public async getValidToken(): Promise<string | null> {
     const token = this.getToken();
     
     if (!token) {
-      throw new Error('Нет токена аутентификации');
+      return null;
     }
 
     // Проверяем, истек ли токен
@@ -133,9 +141,9 @@ class AuthService {
         const { token: newToken } = await this.refreshToken();
         return newToken;
       } catch (error) {
-        // Если обновить не удалось, выходим из системы
-        this.logout();
-        throw new Error('Сессия истекла. Пожалуйста, войдите снова.');
+        // Если обновить не удалось, очищаем токены и возвращаем null
+        this.clearTokens();
+        return null;
       }
     }
 

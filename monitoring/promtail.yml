@@ -10,7 +10,6 @@ clients:
 
 scrape_configs:
   - job_name: system
-    entry_parser: raw
     static_configs:
       - targets:
           - localhost
@@ -19,7 +18,6 @@ scrape_configs:
           __path__: /var/log/*log
 
   - job_name: admin-panel-backend
-    entry_parser: raw
     static_configs:
       - targets:
           - localhost
@@ -29,7 +27,6 @@ scrape_configs:
           __path__: /var/log/admin-panel/backend.log
 
   - job_name: admin-panel-frontend
-    entry_parser: raw
     static_configs:
       - targets:
           - localhost
@@ -39,7 +36,6 @@ scrape_configs:
           __path__: /var/log/admin-panel/frontend.log
 
   - job_name: postgres
-    entry_parser: raw
     static_configs:
       - targets:
           - localhost
@@ -49,7 +45,6 @@ scrape_configs:
           __path__: /var/log/postgresql/*.log
 
   - job_name: traefik
-    entry_parser: raw
     static_configs:
       - targets:
           - localhost
