@@ -1,16 +1,8 @@
-import axios from 'axios';
+import { unauthenticatedClient as apiClient } from './httpClient';
+import { User } from '../types';
 
-// API Base URL - используем текущий домен
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
-
-// Создаем экземпляр axios с дефолтными настройками
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+// Используем неаутентифицированный клиент из httpClient для аутентификационных запросов
+// Это предотвращает конфликты с интерцепторами авторизации
 
 // Функция для получения токена из localStorage
 const getToken = () => {
@@ -87,7 +79,7 @@ apiClient.interceptors.response.use(
       if (refreshToken) {
         try {
           console.log('Attempting token refresh...');
-          const response = await axios.post(`${API_BASE_URL}/api/auth/refresh`, {
+          const response = await apiClient.post('/api/auth/refresh', {
             refreshToken: refreshToken,
           });
 
@@ -99,7 +91,7 @@ apiClient.interceptors.response.use(
 
             // Повторяем оригинальный запрос с новым токеном
             originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-            return axios(originalRequest);
+            return apiClient(originalRequest);
           }
         } catch (refreshError: any) {
           console.error('Token refresh failed:', refreshError.response?.data || refreshError.message);
@@ -181,7 +173,7 @@ export const authService = {
       }
 
       console.log('Refreshing token...');
-      const response = await axios.post<RefreshResponse>(`${API_BASE_URL}/api/auth/refresh`, {
+      const response = await apiClient.post<RefreshResponse>('/api/auth/refresh', {
         refreshToken: refreshToken,
       });
 
@@ -232,25 +224,26 @@ export const authService = {
   },
 
   // Получение текущего пользователя
-  getCurrentUser(): any {
-    const token = getToken();
-    if (!token) {
-      return null;
-    }
-
+  // Получение текущего пользователя
+  async getCurrentUser(): Promise<User> {
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.user || payload.sub || null;
-    } catch (error) {
-      console.error('Error parsing user from token:', error);
-      return null;
+      const response = await apiClient.get<User>('/api/users/me');
+      return response.data;
+    } catch (error: any) {
+      console.error('Error getting current user:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.message || 'Failed to get user');
     }
   },
 
   // Проверка роли пользователя
-  hasRole(role: string): boolean {
-    const user = this.getCurrentUser();
-    return user && user.roles && user.roles.includes(role);
+  async hasRole(role: string): Promise<boolean> {
+    try {
+      const user = await this.getCurrentUser();
+      return user && user.role === role;
+    } catch (error) {
+      console.error('Error checking user role:', error);
+      return false;
+    }
   },
 
   // Дополнительные методы для совместимости

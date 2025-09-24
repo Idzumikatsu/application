@@ -8,6 +8,14 @@ const httpClient: AxiosInstance = axios.create({
   },
 });
 
+// Create an unauthenticated client for auth requests that shouldn't use auth interceptors
+const unauthenticatedClient: AxiosInstance = axios.create({
+  baseURL: '/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 // Request interceptor to add auth token
 httpClient.interceptors.request.use(
   async (config) => {
@@ -59,3 +67,4 @@ httpClient.interceptors.response.use(
 );
 
 export default httpClient;
+export { unauthenticatedClient };

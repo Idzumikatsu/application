@@ -4,7 +4,33 @@ import httpClient from '../httpClient';
 import authService from '../authService';
 import { LoginRequest, User, UserRole } from '../../types';
 
-vi.mock('../httpClient');
+vi.mock('../httpClient', () => {
+  // Create a more complete mock that mimics axios behavior
+  const createMockClient = () => ({
+    post: vi.fn(),
+    get: vi.fn(),
+    interceptors: {
+      request: {
+        use: vi.fn(),
+      },
+      response: {
+        use: vi.fn(),
+      },
+    },
+    defaults: {
+      headers: {
+        common: {}
+      }
+    }
+  });
+
+  const mockClient = createMockClient();
+  
+  return {
+    default: mockClient,
+    unauthenticatedClient: mockClient,
+  };
+});
 
 // Typing for mocked httpClient methods
 const mockedHttpClient = {
@@ -27,11 +53,15 @@ describe('AuthService', () => {
       const mockApiResponse = {
         data: {
           token: 'test-token',
-          id: 1,
-          firstName: 'Test',
-          lastName: 'User',
-          email: 'test@example.com',
-          role: 'ADMIN'
+          accessToken: 'test-token',
+          refreshToken: 'refresh-test-token',
+          tokenType: 'Bearer',
+          user: {
+            id: 1,
+            username: 'testuser',
+            email: 'test@example.com',
+            roles: ['ADMIN']
+          }
         },
         status: 200,
         statusText: 'OK',
@@ -50,16 +80,17 @@ describe('AuthService', () => {
 
       const result = await authService.login(credentials);
 
-      expect(httpClient.post).toHaveBeenCalledWith('/auth/login', credentials);
+      expect(mockedHttpClient.post).toHaveBeenCalledWith('/api/auth/login', credentials);
       expect(result).toEqual({
         token: 'test-token',
+        accessToken: 'test-token',
+        refreshToken: 'refresh-test-token',
+        tokenType: 'Bearer',
         user: {
           id: 1,
-          firstName: 'Test',
-          lastName: 'User',
+          username: 'testuser',
           email: 'test@example.com',
-          role: 'ADMIN',
-          isActive: true
+          roles: ['ADMIN']
         }
       });
     });
@@ -92,7 +123,7 @@ describe('AuthService', () => {
 
       const result = await authService.validateToken();
 
-      expect(httpClient.get).toHaveBeenCalledWith('/auth/validate');
+      expect(mockedHttpClient.get).toHaveBeenCalledWith('/api/auth/validate');
       expect(result).toBe(true);
     });
 
@@ -127,7 +158,7 @@ describe('AuthService', () => {
 
       const result = await authService.getCurrentUser();
 
-      expect(httpClient.get).toHaveBeenCalledWith('/users/me');
+      expect(mockedHttpClient.get).toHaveBeenCalledWith('/api/users/me');
       expect(result).toEqual(mockUser);
     });
 
@@ -139,12 +170,23 @@ describe('AuthService', () => {
   });
 
   describe('logout', () => {
-    it('should remove token from localStorage', () => {
-      localStorage.setItem('token', 'test-token');
+    it('should remove token from localStorage', async () => {
+      localStorage.setItem('accessToken', 'test-token');
+      
+      // Mock the logout API call to resolve immediately
+      mockedHttpClient.post.mockResolvedValue({
+        data: {},
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {
+          headers: { 'Content-Type': 'application/json' } as any,
+        },
+      });
 
-      authService.logout();
+      await authService.logout();
 
-      expect(localStorage.getItem('token')).toBeNull();
+      expect(localStorage.getItem('accessToken')).toBeNull();
     });
   });
 
@@ -164,14 +206,14 @@ describe('AuthService', () => {
 
     it('should return true for valid token', () => {
       const validToken = createTestToken(Date.now() + 3600000);
-      localStorage.setItem('token', validToken);
+      localStorage.setItem('accessToken', validToken);
 
       const result = authService.isAuthenticated();
       expect(result).toBe(true);
     });
 
     it('should return false for invalid token format', () => {
-      localStorage.setItem('token', 'invalid-token-format');
+      localStorage.setItem('accessToken', 'invalid-token-format');
       const result = authService.isAuthenticated();
       expect(result).toBe(false);
     });

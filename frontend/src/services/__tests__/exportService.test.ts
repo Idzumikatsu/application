@@ -238,7 +238,7 @@ describe('ExportService', () => {
 
       const result = await exportService.downloadExport('export-123');
 
-      expect(httpClient.get).toHaveBeenCalledWith('/export/download/export-123', {
+      expect(mockedHttpClient.get).toHaveBeenCalledWith('/export/download/export-123', {
         responseType: 'blob'
       });
       expect(result).toBe(mockBlob);
@@ -263,7 +263,7 @@ describe('ExportService', () => {
 
       const result = await exportService.getExportHistory();
 
-      expect(httpClient.get).toHaveBeenCalledWith('/export/history');
+      expect(mockedHttpClient.get).toHaveBeenCalledWith('/export/history');
       expect(result).toEqual(mockHistory);
     });
   });
@@ -283,7 +283,7 @@ describe('ExportService', () => {
 
       await exportService.deleteExport('export-123');
 
-      expect(httpClient.delete).toHaveBeenCalledWith('/export/export-123');
+      expect(mockedHttpClient.delete).toHaveBeenCalledWith('/export/export-123');
     });
   });
 
