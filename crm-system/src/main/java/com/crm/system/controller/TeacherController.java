@@ -8,6 +8,7 @@ import com.crm.system.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -17,7 +18,6 @@ import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/admin")
 public class TeacherController {
 
     @Autowired
@@ -26,9 +26,10 @@ public class TeacherController {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    @GetMapping("/teachers")
+    // Manager-level operations for teachers
+    @GetMapping("/managers/teachers")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<List<UserDto>> getAllTeachers() {
+    public ResponseEntity<List<UserDto>> getAllTeachersManager() {
         System.out.println("=== TeacherController: getAllTeachers called ===");
         List<User> teachers = userService.findByRole(UserRole.TEACHER);
         System.out.println("=== TeacherController: Found " + teachers.size() + " teachers ===");
@@ -37,9 +38,9 @@ public class TeacherController {
         return ResponseEntity.ok(teacherDtos);
     }
 
-    @PostMapping("/teachers")
+    @PostMapping("/managers/teachers")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> createTeacher(@Valid @RequestBody UserDto userDto) {
+    public ResponseEntity<?> createTeacherManager(@Valid @RequestBody UserDto userDto) {
         if (userService.existsByEmail(userDto.getEmail())) {
             return ResponseEntity.badRequest().body(new MessageDto("Error: Email is already taken!"));
         }
@@ -59,9 +60,9 @@ public class TeacherController {
         return ResponseEntity.ok(new MessageDto("Teacher created successfully!"));
     }
 
-    @PutMapping("/teachers/{id}")
+    @PutMapping("/managers/teachers/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> updateTeacher(@PathVariable Long id, @Valid @RequestBody UserDto userDto) {
+    public ResponseEntity<?> updateTeacherManager(@PathVariable Long id, @Valid @RequestBody UserDto userDto) {
         User user = userService.getById(id);
 
         user.setFirstName(userDto.getFirstName());
@@ -76,16 +77,16 @@ public class TeacherController {
         return ResponseEntity.ok(new MessageDto("Teacher updated successfully!"));
     }
 
-    @DeleteMapping("/teachers/{id}")
+    @DeleteMapping("/managers/teachers/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteTeacher(@PathVariable Long id) {
+    public ResponseEntity<?> deleteTeacherManager(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.ok(new MessageDto("Teacher deleted successfully!"));
     }
 
-    @PostMapping("/teachers/{id}/reset-password")
+    @PostMapping("/managers/teachers/{id}/reset-password")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> resetTeacherPassword(@PathVariable Long id) {
+    public ResponseEntity<?> resetTeacherPasswordManager(@PathVariable Long id) {
         User user = userService.getById(id);
         // In a real application, you would send an email with a password reset link
         user.setPasswordHash(passwordEncoder.encode("temporary")); // Set temporary password
@@ -93,6 +94,49 @@ public class TeacherController {
         return ResponseEntity.ok(new MessageDto("Password reset email sent!"));
     }
 
+    // Teacher self-management endpoints
+    @GetMapping("/teachers/me")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<UserDto> getCurrentTeacher(Authentication authentication) {
+        String email = authentication.getName();
+        User teacher = userService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Teacher not found with email: " + email));
+        return ResponseEntity.ok(convertToDto(teacher));
+    }
+
+    @PutMapping("/teachers/me")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<UserDto> updateCurrentTeacher(Authentication authentication, @Valid @RequestBody UserDto userDto) {
+        String email = authentication.getName();
+        User teacher = userService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Teacher not found with email: " + email));
+
+        teacher.setFirstName(userDto.getFirstName());
+        teacher.setLastName(userDto.getLastName());
+        teacher.setEmail(userDto.getEmail());
+        teacher.setPhone(userDto.getPhone());
+        teacher.setTelegramUsername(userDto.getTelegramUsername());
+
+        User updatedTeacher = userService.updateUser(teacher);
+        return ResponseEntity.ok(convertToDto(updatedTeacher));
+    }
+
+    @GetMapping("/teachers/{id}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or (hasRole('TEACHER') and #id == authentication.principal.id)")
+    public ResponseEntity<UserDto> getTeacherById(@PathVariable Long id) {
+        User teacher = userService.getById(id);
+        return ResponseEntity.ok(convertToDto(teacher));
+    }
+
+    @GetMapping("/teachers")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<List<UserDto>> getTeachersForTeacher() {
+        // Teachers can see a list of other teachers
+        List<User> teachers = userService.findByRole(UserRole.TEACHER);
+        List<UserDto> teacherDtos = teachers.stream().map(this::convertToDto).collect(Collectors.toList());
+        return ResponseEntity.ok(teacherDtos);
+    }
+    
     private UserDto convertToDto(User user) {
         UserDto userDto = new UserDto();
         userDto.setId(user.getId());

@@ -59,58 +59,7 @@ public class AdminController {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    // Manager management endpoints
-    @GetMapping("/managers")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserDto>> getAllManagers() {
-        List<User> managers = userService.findByRole(UserRole.MANAGER);
-        List<UserDto> managerDtos = managers.stream().map(this::convertToDto).collect(Collectors.toList());
-        return ResponseEntity.ok(managerDtos);
-    }
-
-    @PostMapping("/managers")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> createManager(@Valid @RequestBody UserDto userDto) {
-        if (userService.existsByEmail(userDto.getEmail())) {
-            return ResponseEntity.badRequest().body(new MessageDto("Error: Email is already taken!"));
-        }
-
-        User user = new User();
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
-        user.setEmail(userDto.getEmail());
-        user.setPasswordHash(passwordEncoder.encode(userDto.getEmail())); // Temporary password
-        user.setRole(UserRole.MANAGER);
-        user.setIsActive(userDto.getIsActive() != null ? userDto.getIsActive() : true);
-
-        User savedUser = userService.saveUser(user);
-
-        return ResponseEntity.ok(new MessageDto("Manager created successfully!"));
-    }
-
-    @PutMapping("/managers/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateManager(@PathVariable Long id, @Valid @RequestBody UserDto userDto) {
-        User user = userService.getById(id);
-
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
-        user.setEmail(userDto.getEmail());
-        user.setPhone(userDto.getPhone());
-        user.setTelegramUsername(userDto.getTelegramUsername());
-        user.setIsActive(userDto.getIsActive());
-
-        userService.updateUser(user);
-
-        return ResponseEntity.ok(new MessageDto("Manager updated successfully!"));
-    }
-
-    @DeleteMapping("/managers/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteManager(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return ResponseEntity.ok(new MessageDto("Manager deleted successfully!"));
-    }
+    
 
     // Teacher management endpoints (duplicated from TeacherController for admin access)
     // Note: These endpoints have been removed to avoid conflicts with TeacherController
