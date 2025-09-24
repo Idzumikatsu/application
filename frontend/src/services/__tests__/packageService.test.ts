@@ -1,8 +1,8 @@
 import * as React from 'react'; // Wait, no, this is JS file, but TS.
 
-import { vi } from 'vitest';
+import { vi, type MockedFunction } from 'vitest';
 import { default as httpClient } from '../httpClient';
-import type { AxiosResponse } from 'axios';
+import type { AxiosResponse, AxiosRequestConfig } from 'axios';
 import { AxiosHeaders } from 'axios';
 
 vi.mock('../httpClient', () => ({
@@ -14,7 +14,13 @@ vi.mock('../httpClient', () => ({
   }
 }));
 
-const mockedHttpClient = vi.mocked(httpClient);
+// Typing for mocked httpClient methods
+const mockedHttpClient = {
+  get: vi.mocked(httpClient.get) as MockedFunction<(url: string, config?: AxiosRequestConfig) => Promise<AxiosResponse>>,
+  post: vi.mocked(httpClient.post) as MockedFunction<(url: string, data?: any, config?: AxiosRequestConfig) => Promise<AxiosResponse>>,
+  put: vi.mocked(httpClient.put) as MockedFunction<(url: string, data?: any, config?: AxiosRequestConfig) => Promise<AxiosResponse>>,
+  delete: vi.mocked(httpClient.delete) as MockedFunction<(url: string, config?: AxiosRequestConfig) => Promise<AxiosResponse>>,
+};
 
 import packageService from '../packageService';
 import {

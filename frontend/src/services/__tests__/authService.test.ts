@@ -1,9 +1,16 @@
-import { vi, Mock } from 'vitest';
+import { vi, type MockedFunction } from 'vitest';
+import type { AxiosResponse, AxiosRequestConfig } from 'axios';
 import httpClient from '../httpClient';
 import authService from '../authService';
 import { LoginRequest, User, UserRole } from '../../types';
 
 vi.mock('../httpClient');
+
+// Typing for mocked httpClient methods
+const mockedHttpClient = {
+  post: vi.mocked(httpClient.post) as MockedFunction<(url: string, data?: any, config?: AxiosRequestConfig) => Promise<AxiosResponse>>,
+  get: vi.mocked(httpClient.get) as MockedFunction<(url: string, config?: AxiosRequestConfig) => Promise<AxiosResponse>>,
+};
 
 describe('AuthService', () => {
   beforeEach(() => {
@@ -25,10 +32,16 @@ describe('AuthService', () => {
           lastName: 'User',
           email: 'test@example.com',
           role: 'ADMIN'
-        }
+        },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {
+          headers: { 'Content-Type': 'application/json' } as any,
+        },
       };
 
-      (httpClient.post as jest.MockedFunction<typeof httpClient.post>).mockResolvedValue(mockApiResponse);
+      mockedHttpClient.post.mockResolvedValue(mockApiResponse);
 
       const credentials: LoginRequest = {
         email: 'test@example.com',
@@ -53,7 +66,7 @@ describe('AuthService', () => {
 
     it('should handle login error', async () => {
       const error = new Error('Login failed');
-      (httpClient.post as jest.MockedFunction<typeof httpClient.post>).mockRejectedValue(error);
+      mockedHttpClient.post.mockRejectedValue(error);
 
       const credentials: LoginRequest = {
         email: 'test@example.com',
@@ -66,8 +79,16 @@ describe('AuthService', () => {
 
   describe('validateToken', () => {
     it('should return true for valid token', async () => {
-      const mockResponse = { data: { valid: true } };
-      (httpClient.get as jest.MockedFunction<typeof httpClient.get>).mockResolvedValue(mockResponse);
+      const mockResponse = {
+        data: { valid: true },
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {
+          headers: { 'Content-Type': 'application/json' } as any,
+        },
+      };
+      mockedHttpClient.get.mockResolvedValue(mockResponse);
 
       const result = await authService.validateToken();
 
@@ -76,7 +97,7 @@ describe('AuthService', () => {
     });
 
     it('should return false when validation fails', async () => {
-      (httpClient.get as jest.MockedFunction<typeof httpClient.get>).mockRejectedValue(new Error('Invalid token'));
+      mockedHttpClient.get.mockRejectedValue(new Error('Invalid token'));
 
       const result = await authService.validateToken();
       expect(result).toBe(false);
@@ -93,8 +114,16 @@ describe('AuthService', () => {
         role: UserRole.ADMIN,
         isActive: true
       } as User;
-      const mockResponse = { data: mockUser };
-      (httpClient.get as jest.MockedFunction<typeof httpClient.get>).mockResolvedValue(mockResponse);
+      const mockResponse = {
+        data: mockUser,
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: {
+          headers: { 'Content-Type': 'application/json' } as any,
+        },
+      };
+      mockedHttpClient.get.mockResolvedValue(mockResponse);
 
       const result = await authService.getCurrentUser();
 
@@ -103,7 +132,7 @@ describe('AuthService', () => {
     });
 
     it('should handle get current user error', async () => {
-      (httpClient.get as jest.MockedFunction<typeof httpClient.get>).mockRejectedValue(new Error('Failed to get user'));
+      mockedHttpClient.get.mockRejectedValue(new Error('Failed to get user'));
 
       await expect(authService.getCurrentUser()).rejects.toThrow('Failed to get user');
     });

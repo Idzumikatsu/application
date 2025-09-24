@@ -1,5 +1,5 @@
-import { vi } from 'vitest';
-import type { AxiosResponse } from 'axios';
+import { vi, type MockedFunction } from 'vitest';
+import type { AxiosResponse, AxiosRequestConfig } from 'axios';
 import exportService from '../exportService';
 import { default as httpClient } from '../httpClient'; // Import for mocking
 import { ExportOptions, ExportResult, Student, FilterCriteria, SortCriteria } from '../../types';
@@ -13,7 +13,12 @@ vi.mock('../httpClient', () => ({
   }
 }));
 
-const mockedHttpClient = vi.mocked(httpClient);
+// Typing for mocked httpClient methods
+const mockedHttpClient = {
+  post: vi.mocked(httpClient.post) as MockedFunction<(url: string, data?: any, config?: AxiosRequestConfig) => Promise<AxiosResponse>>,
+  get: vi.mocked(httpClient.get) as MockedFunction<(url: string, config?: AxiosRequestConfig) => Promise<AxiosResponse>>,
+  delete: vi.mocked(httpClient.delete) as MockedFunction<(url: string, config?: AxiosRequestConfig) => Promise<AxiosResponse>>,
+};
 
 describe('ExportService', () => {
   beforeEach(() => {
