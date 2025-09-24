@@ -39,10 +39,10 @@ public class WebSecurityConfig {
         this.userDetailsService = userDetailsService;
     }
 
-    // @Bean
-    // public PasswordEncoder passwordEncoder() {
-    //     return NoOpPasswordEncoder.getInstance();
-    // }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return NoOpPasswordEncoder.getInstance();
+    }
 
     @Bean
     public AuthenticationManager authenticationManager(

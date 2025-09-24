@@ -17,9 +17,6 @@ public class UserService {
     private UserRepository userRepository;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
     private EmailGatewayService emailGatewayService;
 
     public Optional<User> findByEmail(String email) {
@@ -39,6 +36,17 @@ public class UserService {
     }
 
     public User createUser(String firstName, String lastName, String email, String password, UserRole role) {
+        User user = new User(firstName, lastName, email, password, role);
+        User savedUser = userRepository.save(user);
+        try {
+            emailGatewayService.sendWelcomeEmail(savedUser, password);
+        } catch (Exception ex) {
+            // Ошибка отправки письма не должна блокировать создание пользователя
+        }
+        return savedUser;
+    }
+
+    public User createUser(String firstName, String lastName, String email, String password, UserRole role, org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         User user = new User(firstName, lastName, email, passwordEncoder.encode(password), role);
         User savedUser = userRepository.save(user);
         try {

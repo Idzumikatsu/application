@@ -65,6 +65,7 @@ http:
         - web
       service: frontend
       middlewares:
+        - frontend-spa
         - redirect-https
       priority: 15
 
@@ -100,11 +101,38 @@ http:
       middlewares:
         - redirect-https
 
+    prometheus:
+      rule: "Host(`prometheus.crm-synergy.ru`)"
+      entryPoints:
+        - web
+      service: prometheus
+      # Temporarily disabled HTTPS due to rate limits
+
+    grafana:
+      rule: "Host(`grafana.crm-synergy.ru`)"
+      entryPoints:
+        - web
+      service: grafana
+      # Temporarily disabled HTTPS due to rate limits
+
+    loki:
+      rule: "Host(`loki.crm-synergy.ru`)"
+      entryPoints:
+        - web
+      service: loki
+      # Temporarily disabled HTTPS due to rate limits
+
   middlewares:
     redirect-https:
       redirectScheme:
         scheme: https
         permanent: true
+
+    frontend-spa:
+      redirectRegex:
+        regex: "^https?://(.*)/[^/]+$"
+        replacement: "https://$1/"
+        permanent: false
 
   services:
     traefik:
@@ -131,6 +159,21 @@ http:
       loadBalancer:
         servers:
           - url: "http://telegram-service:8082"
+
+    prometheus:
+      loadBalancer:
+        servers:
+          - url: "http://prometheus:9090"
+
+    grafana:
+      loadBalancer:
+        servers:
+          - url: "http://grafana:3000"
+
+    loki:
+      loadBalancer:
+        servers:
+          - url: "http://loki:3100"
 
 # Removed strip prefix middleware to keep `/api` segment for backend routes
 # End of file
