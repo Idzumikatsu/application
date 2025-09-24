@@ -1,202 +1,259 @@
-import httpClient from './httpClient';
-import { LoginRequest, LoginResponse, User } from '../types';
+import axios from 'axios';
 
-class AuthService {
-  public async login(credentials: LoginRequest): Promise<LoginResponse> {
+// API Base URL - используем текущий домен
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+
+// Создаем экземпляр axios с дефолтными настройками
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Функция для получения токена из localStorage
+const getToken = () => {
+  try {
+    const token = localStorage.getItem('accessToken');
+    return token;
+  } catch (error) {
+    console.error('Error getting token:', error);
+    return null;
+  }
+};
+
+// Функция для сохранения токенов
+const saveTokens = (accessToken: string, refreshToken?: string) => {
+  try {
+    localStorage.setItem('accessToken', accessToken);
+    if (refreshToken) {
+      localStorage.setItem('refreshToken', refreshToken);
+    }
+    // Обновляем заголовок Authorization для всех последующих запросов
+    apiClient.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+  } catch (error) {
+    console.error('Error saving tokens:', error);
+  }
+};
+
+// Функция для очистки токенов
+const clearTokens = () => {
+  try {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    delete apiClient.defaults.headers.common['Authorization'];
+  } catch (error) {
+    console.error('Error clearing tokens:', error);
+  }
+};
+
+// Функция для получения refresh токена
+const getRefreshToken = () => {
+  try {
+    return localStorage.getItem('refreshToken');
+  } catch (error) {
+    console.error('Error getting refresh token:', error);
+    return null;
+  }
+};
+
+// Интерцептор для добавления токена к запросам
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Интерцептор для обработки ошибок ответа
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Проверяем, что это 401 ошибка и не запрос на refresh
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      const refreshToken = getRefreshToken();
+
+      if (refreshToken) {
+        try {
+          console.log('Attempting token refresh...');
+          const response = await axios.post(`${API_BASE_URL}/api/auth/refresh`, {
+            refreshToken: refreshToken,
+          });
+
+          const { accessToken, refreshToken: newRefreshToken } = response.data;
+
+          if (accessToken) {
+            console.log('Token refreshed successfully');
+            saveTokens(accessToken, newRefreshToken);
+
+            // Повторяем оригинальный запрос с новым токеном
+            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+            return axios(originalRequest);
+          }
+        } catch (refreshError: any) {
+          console.error('Token refresh failed:', refreshError.response?.data || refreshError.message);
+
+          // Если refresh не удался, очищаем токены и перенаправляем на логин
+          clearTokens();
+          window.location.href = '/login';
+          return Promise.reject(refreshError);
+        }
+      } else {
+        console.log('No refresh token available');
+        clearTokens();
+        window.location.href = '/login';
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+// Типы для аутентификации
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  accessToken: string;
+  refreshToken?: string;
+  tokenType: string;
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    roles: string[];
+  };
+}
+
+export interface RefreshRequest {
+  refreshToken: string;
+}
+
+export interface RefreshResponse {
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+}
+
+// Сервисы аутентификации
+export const authService = {
+  // Логин пользователя
+  async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
-      const response = await httpClient.post('/auth/login', credentials);
-      const data = response.data as any;
+      console.log('Attempting login with credentials:', credentials.username);
+      const response = await apiClient.post<LoginResponse>('/api/auth/login', credentials);
 
-      if (!data.token || !data.id || !data.email || !data.role) {
-        throw new Error('Некорректный ответ от сервера: отсутствуют данные для аутентификации');
+      const { accessToken, refreshToken } = response.data;
+
+      if (accessToken) {
+        console.log('Login successful, saving tokens');
+        saveTokens(accessToken, refreshToken);
       }
 
-      // Сохраняем токены
-      this.setToken(data.token);
-      if (data.refreshToken) {
-        this.setRefreshToken(data.refreshToken);
-      }
-
-      return {
-        token: data.token,
-        user: {
-          id: data.id,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          role: data.role,
-          isActive: true,
-        },
-      };
-    } catch (error: any) {
-      throw new Error(`Login failed: ${error.message}`);
-    }
-  }
-
-  public async validateToken(): Promise<boolean> {
-    try {
-      const response = await httpClient.get<{ valid: boolean }>('/auth/validate');
-      return response.data.valid;
-    } catch {
-      return false;
-    }
-  }
-
-  public async getCurrentUser(): Promise<User> {
-    try {
-      const response = await httpClient.get<User>('/users/me');
       return response.data;
     } catch (error: any) {
-      throw new Error(`Failed to fetch current user: ${error.message}`);
+      console.error('Login failed:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.message || 'Login failed');
     }
-  }
+  },
 
-  public async refreshToken(): Promise<{ token: string; refreshToken: string }> {
+  // Обновление токенов
+  async refreshToken(): Promise<RefreshResponse> {
     try {
-      const refreshToken = this.getRefreshToken();
+      const refreshToken = getRefreshToken();
+
       if (!refreshToken) {
-        // Если refresh токен отсутствует, возвращаем текущий токен
-        const token = this.getToken();
-        if (!token) {
-          throw new Error('No token available');
-        }
-        return {
-          token,
-          refreshToken: '',
-        };
+        throw new Error('No refresh token available');
       }
 
-      const response = await httpClient.post('/auth/refresh', { refreshToken });
-      const data = response.data as any;
+      console.log('Refreshing token...');
+      const response = await axios.post<RefreshResponse>(`${API_BASE_URL}/api/auth/refresh`, {
+        refreshToken: refreshToken,
+      });
 
-      if (!data.token || !data.refreshToken) {
-        throw new Error('Некорректный ответ от сервера при обновлении токена');
+      const { accessToken, refreshToken: newRefreshToken } = response.data;
+
+      if (accessToken && newRefreshToken) {
+        console.log('Token refreshed successfully');
+        saveTokens(accessToken, newRefreshToken);
       }
 
-      // Обновляем токены
-      this.setToken(data.token);
-      this.setRefreshToken(data.refreshToken);
-
-      return {
-        token: data.token,
-        refreshToken: data.refreshToken,
-      };
+      return response.data;
     } catch (error: any) {
-      // Если refresh токен недействителен, очищаем все токены
-      this.clearTokens();
-      throw new Error(`Token refresh failed: ${error.message}`);
+      console.error('Token refresh failed:', error.response?.data || error.message);
+      clearTokens();
+      throw new Error('Token refresh failed');
     }
-  }
+  },
 
-  public logout(): void {
-    this.clearTokens();
-  }
-
-  public isAuthenticated(): boolean {
-    const token = this.getToken();
-    return !!token && !this.isTokenExpired(token);
-  }
-
-  private isTokenExpired(token: string): boolean {
+  // Логаут
+  async logout(): Promise<void> {
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.exp * 1000 < Date.now();
-    } catch {
-      return true;
+      await apiClient.post('/api/auth/logout');
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      clearTokens();
+      window.location.href = '/login';
     }
-  }
+  },
 
-  public getToken(): string | undefined {
-    return localStorage.getItem('token') || undefined;
-  }
+  // Проверка валидности токена
+  isAuthenticated(): boolean {
+    const token = getToken();
+    if (!token) {
+      return false;
+    }
 
-  public setToken(token: string): void {
-    localStorage.setItem('token', token);
-  }
+    try {
+      // Декодируем JWT токен для проверки срока действия
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Date.now() / 1000;
 
-  private getRefreshToken(): string | undefined {
-    return localStorage.getItem('refreshToken') || undefined;
-  }
+      return payload.exp > currentTime;
+    } catch (error) {
+      console.error('Error parsing token:', error);
+      return false;
+    }
+  },
 
-  private setRefreshToken(refreshToken: string): void {
-    localStorage.setItem('refreshToken', refreshToken);
-  }
-
-  private clearTokens(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-  }
-
-  public async getValidToken(): Promise<string | null> {
-    const token = this.getToken();
-    
+  // Получение текущего пользователя
+  getCurrentUser(): any {
+    const token = getToken();
     if (!token) {
       return null;
     }
 
-    // Проверяем, истек ли токен
-    if (this.isTokenExpired(token)) {
-      try {
-        // Пытаемся обновить токен
-        const { token: newToken } = await this.refreshToken();
-        return newToken;
-      } catch (error) {
-        // Если обновить не удалось, очищаем токены и возвращаем null
-        this.clearTokens();
-        return null;
-      }
-    }
-
-    return token;
-  }
-
-  public getUserRole(): string | null {
     try {
-      const token = this.getToken();
-      if (!token) return null;
-      
       const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.role || null;
-    } catch {
+      return payload.user || payload.sub || null;
+    } catch (error) {
+      console.error('Error parsing user from token:', error);
       return null;
     }
-  }
+  },
 
-  public getUserId(): number | null {
-    try {
-      const token = this.getToken();
-      if (!token) return null;
-      
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.userId || null;
-    } catch {
-      return null;
-    }
-  }
+  // Проверка роли пользователя
+  hasRole(role: string): boolean {
+    const user = this.getCurrentUser();
+    return user && user.roles && user.roles.includes(role);
+  },
 
-  public getEmail(): string | null {
-    try {
-      const token = this.getToken();
-      if (!token) return null;
-      
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.sub || null;
-    } catch {
-      return null;
-    }
-  }
+  // API client для использования в других сервисах
+  getApiClient: () => apiClient,
+};
 
-  public getTokenExpiration(): Date | null {
-    try {
-      const token = this.getToken();
-      if (!token) return null;
-      
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return new Date(payload.exp * 1000);
-    } catch {
-      return null;
-    }
-  }
-}
-
-export default new AuthService();
+export default authService;
