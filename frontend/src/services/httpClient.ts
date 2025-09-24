@@ -57,12 +57,14 @@ httpClient.interceptors.response.use(
         return httpClient(originalRequest);
       } catch (refreshError) {
         // If refresh fails, redirect to login
+        console.error('Token refresh failed, logging out user:', refreshError);
         authService.logout();
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     } else if (error.response?.status === 401 && originalRequest._retry) {
       // If 401 error occurs after retry attempt, force logout
+      console.error('401 error after retry, logging out user');
       authService.logout();
       window.location.href = '/login';
       return Promise.reject(error);

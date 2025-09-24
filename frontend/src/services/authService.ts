@@ -132,6 +132,8 @@ export const authService = {
       const refreshToken = getRefreshToken();
 
       if (!refreshToken) {
+        // Если refresh токен недоступен, очищаем все токены и выбрасываем ошибку
+        clearTokens();
         throw new Error('No refresh token available');
       }
 
@@ -143,6 +145,10 @@ export const authService = {
       if (response.data.token && response.data.refreshToken) {
         console.log('Token refreshed successfully');
         saveTokens(response.data.token, response.data.refreshToken);
+      } else {
+        // Если сервер не вернул новые токены, очищаем существующие
+        clearTokens();
+        throw new Error('Invalid refresh response');
       }
 
       // Маппим ответ в нужный формат
@@ -154,7 +160,7 @@ export const authService = {
     } catch (error: any) {
       console.error('Token refresh failed:', error.response?.data || error.message);
       clearTokens();
-      throw new Error('Token refresh failed');
+      throw new Error('Token refresh failed: ' + (error.response?.data?.message || error.message));
     }
   },
 
@@ -247,6 +253,16 @@ export const authService = {
   async getValidToken(): Promise<string | null> {
     if (this.isAuthenticated()) {
       return this.getToken();
+    }
+    // Если токен не валиден, но есть refresh токен, пробуем обновить
+    if (getRefreshToken()) {
+      try {
+        await this.refreshToken();
+        return this.getToken();
+      } catch (error) {
+        console.error('Failed to refresh token:', error);
+        return null;
+      }
     }
     return null;
   },

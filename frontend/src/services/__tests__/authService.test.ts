@@ -131,6 +131,18 @@ describe('AuthService', () => {
       const result = await authService.validateToken();
       expect(result).toBe(false);
     });
+
+    it('should return valid token when authenticated', async () => {
+      localStorage.setItem('accessToken', createTestToken(Date.now() + 3600000)); // Valid token
+      const result = await authService.getValidToken();
+      expect(result).toBe(localStorage.getItem('accessToken'));
+    });
+
+    it('should return null when not authenticated and no refresh token', async () => {
+      localStorage.clear(); // Clear all tokens
+      const result = await authService.getValidToken();
+      expect(result).toBeNull();
+    });
   });
 
   describe('getCurrentUser', () => {
