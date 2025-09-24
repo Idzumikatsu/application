@@ -106,6 +106,11 @@ apiClient.interceptors.response.use(
         clearTokens();
         window.location.href = '/login';
       }
+    } else if (error.response?.status === 401 && originalRequest._retry) {
+      // Если ошибка 401 произошла после попытки повторного запроса, очищаем токены и перенаправляем на логин
+      clearTokens();
+      window.location.href = '/login';
+      return Promise.reject(error);
     }
 
     return Promise.reject(error);

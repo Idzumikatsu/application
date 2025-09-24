@@ -59,6 +59,11 @@ export const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.error = null;
+      // Clear tokens from localStorage
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      // Remove authorization header from httpClient
+      delete (window as any).apiClient.defaults.headers.common['Authorization'];
     },
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;

@@ -98,6 +98,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           autoFocus
           value={credentials.email}
           onChange={handleChange}
+          error={!!(credentials.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(credentials.email))}
+          helperText={credentials.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(credentials.email) ? 'Введите корректный email' : ''}
         />
         <TextField
           margin="normal"
@@ -110,13 +112,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           autoComplete="current-password"
           value={credentials.password}
           onChange={handleChange}
+          error={!!(credentials.password && credentials.password.length < 6)}
+          helperText={credentials.password && credentials.password.length < 6 ? 'Пароль должен содержать не менее 6 символов' : ''}
         />
         <Button
           type="submit"
           fullWidth
           variant="contained"
           sx={{ mt: 3, mb: 2 }}
-          disabled={loading}
+          disabled={loading || !credentials.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(credentials.email) || !credentials.password || credentials.password.length < 6}
         >
           {loading ? <CircularProgress size={24} /> : 'Войти'}
         </Button>

@@ -99,11 +99,11 @@ const AdminStats: React.FC<AdminStatsProps> = ({ stats, loading, error, onRefres
     <Box sx={{ p: 3 }}>
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%' }}>
+          <Card sx={{ height: '100%', cursor: 'pointer' }} onClick={() => window.location.hash = '#/admin/students'}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <People sx={{ fontSize: 40, color: 'primary.main', mr: 2 }} />
-                <Typography variant="h5">{stats.totalStudents}</Typography>
+                <Typography variant="h5">{safeStats.totalStudents}</Typography>
               </Box>
               <Typography variant="h6">Всего студентов</Typography>
             </CardContent>
@@ -111,11 +111,11 @@ const AdminStats: React.FC<AdminStatsProps> = ({ stats, loading, error, onRefres
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%' }}>
+          <Card sx={{ height: '100%', cursor: 'pointer' }} onClick={() => window.location.hash = '#/admin/teachers'}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <School sx={{ fontSize: 40, color: 'secondary.main', mr: 2 }} />
-                <Typography variant="h5">{stats.totalTeachers}</Typography>
+                <Typography variant="h5">{safeStats.totalTeachers}</Typography>
               </Box>
               <Typography variant="h6">Всего преподавателей</Typography>
             </CardContent>
@@ -123,11 +123,11 @@ const AdminStats: React.FC<AdminStatsProps> = ({ stats, loading, error, onRefres
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%' }}>
+          <Card sx={{ height: '100%', cursor: 'pointer' }} onClick={() => window.location.hash = '#/admin/managers'}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <People sx={{ fontSize: 40, color: 'info.main', mr: 2 }} />
-                <Typography variant="h5">{stats.totalManagers}</Typography>
+                <Typography variant="h5">{safeStats.totalManagers}</Typography>
               </Box>
               <Typography variant="h6">Всего менеджеров</Typography>
             </CardContent>
@@ -135,11 +135,11 @@ const AdminStats: React.FC<AdminStatsProps> = ({ stats, loading, error, onRefres
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%' }}>
+          <Card sx={{ height: '100%', cursor: 'pointer' }} onClick={() => window.location.hash = '#/admin/lessons'}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <Event sx={{ fontSize: 40, color: 'warning.main', mr: 2 }} />
-                <Typography variant="h5">{stats.lessonsToday}</Typography>
+                <Typography variant="h5">{safeStats.lessonsToday}</Typography>
               </Box>
               <Typography variant="h6">Уроков сегодня</Typography>
             </CardContent>

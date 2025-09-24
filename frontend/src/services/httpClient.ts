@@ -36,7 +36,7 @@ httpClient.interceptors.request.use(
 
 // Response interceptor to handle auth errors
 httpClient.interceptors.response.use(
-  (response: AxiosResponse) => response,
+ (response: AxiosResponse) => response,
   async (error) => {
     const originalRequest = error.config;
 
@@ -60,6 +60,11 @@ httpClient.interceptors.response.use(
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }
+    } else if (error.response?.status === 401 && originalRequest._retry) {
+      // If 401 error occurs after retry attempt, force logout
+      authService.logout();
+      window.location.href = '/login';
+      return Promise.reject(error);
     }
 
     return Promise.reject(error);

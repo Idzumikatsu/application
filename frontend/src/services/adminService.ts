@@ -125,7 +125,7 @@ class AdminService {
   public async getAllTeachers(): Promise<any[]> {
     logInfo('Fetching all teachers');
     try {
-      const response = await httpClient.get('/managers/teachers');
+      const response = await httpClient.get('/api/managers/teachers');
       logInfo('Teachers fetched successfully');
       return response.data as any[];
     } catch (error) {
