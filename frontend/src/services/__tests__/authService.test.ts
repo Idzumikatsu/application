@@ -53,15 +53,13 @@ describe('AuthService', () => {
       const mockApiResponse = {
         data: {
           token: 'test-token',
-          accessToken: 'test-token',
           refreshToken: 'refresh-test-token',
-          tokenType: 'Bearer',
-          user: {
-            id: 1,
-            username: 'testuser',
-            email: 'test@example.com',
-            roles: ['ADMIN']
-          }
+          type: 'Bearer',
+          id: 1,
+          firstName: 'testuser',
+          lastName: 'User',
+          email: 'test@example.com',
+          role: 'ADMIN'
         },
         status: 200,
         statusText: 'OK',
@@ -88,9 +86,9 @@ describe('AuthService', () => {
         tokenType: 'Bearer',
         user: {
           id: 1,
-          username: 'testuser',
+          username: 'testuser', // firstName is used as username
           email: 'test@example.com',
-          roles: ['ADMIN']
+          roles: ['ADMIN'] // role is converted to array
         }
       });
     });

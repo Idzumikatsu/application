@@ -109,9 +109,9 @@ export const authService = {
       }
 
       return {
-        ...response.data,
         token: accessToken,
         accessToken: accessToken,
+        refreshToken: refreshToken,
         tokenType: response.data.type,
         user: {
           id: id,
