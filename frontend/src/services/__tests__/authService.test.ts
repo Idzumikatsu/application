@@ -28,7 +28,7 @@ describe('AuthService', () => {
         }
       };
 
-      (httpClient.post as unknown as Mock).mockResolvedValue(mockApiResponse);
+      (httpClient.post as jest.MockedFunction<typeof httpClient.post>).mockResolvedValue(mockApiResponse);
 
       const credentials: LoginRequest = {
         email: 'test@example.com',
@@ -53,7 +53,7 @@ describe('AuthService', () => {
 
     it('should handle login error', async () => {
       const error = new Error('Login failed');
-      (httpClient.post as unknown as Mock).mockRejectedValue(error);
+      (httpClient.post as jest.MockedFunction<typeof httpClient.post>).mockRejectedValue(error);
 
       const credentials: LoginRequest = {
         email: 'test@example.com',
@@ -67,7 +67,7 @@ describe('AuthService', () => {
   describe('validateToken', () => {
     it('should return true for valid token', async () => {
       const mockResponse = { data: { valid: true } };
-      (httpClient.get as unknown as Mock).mockResolvedValue(mockResponse);
+      (httpClient.get as jest.MockedFunction<typeof httpClient.get>).mockResolvedValue(mockResponse);
 
       const result = await authService.validateToken();
 
@@ -76,7 +76,7 @@ describe('AuthService', () => {
     });
 
     it('should return false when validation fails', async () => {
-      (httpClient.get as unknown as Mock).mockRejectedValue(new Error('Invalid token'));
+      (httpClient.get as jest.MockedFunction<typeof httpClient.get>).mockRejectedValue(new Error('Invalid token'));
 
       const result = await authService.validateToken();
       expect(result).toBe(false);
@@ -94,7 +94,7 @@ describe('AuthService', () => {
         isActive: true
       } as User;
       const mockResponse = { data: mockUser };
-      (httpClient.get as unknown as Mock).mockResolvedValue(mockResponse);
+      (httpClient.get as jest.MockedFunction<typeof httpClient.get>).mockResolvedValue(mockResponse);
 
       const result = await authService.getCurrentUser();
 
@@ -103,7 +103,7 @@ describe('AuthService', () => {
     });
 
     it('should handle get current user error', async () => {
-      (httpClient.get as unknown as Mock).mockRejectedValue(new Error('Failed to get user'));
+      (httpClient.get as jest.MockedFunction<typeof httpClient.get>).mockRejectedValue(new Error('Failed to get user'));
 
       await expect(authService.getCurrentUser()).rejects.toThrow('Failed to get user');
     });

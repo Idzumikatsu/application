@@ -122,11 +122,12 @@ apiClient.interceptors.response.use(
 
 // Типы для аутентификации
 export interface LoginRequest {
-  username: string;
+  email: string;
   password: string;
 }
 
 export interface LoginResponse {
+  token: string;
   accessToken: string;
   refreshToken?: string;
   tokenType: string;
@@ -153,14 +154,14 @@ export const authService = {
   // Логин пользователя
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
-      console.log('Attempting login with credentials:', credentials.username);
+      console.log('Attempting login with credentials:', credentials.email);
       const response = await apiClient.post<LoginResponse>('/api/auth/login', credentials);
 
-      const { accessToken, refreshToken } = response.data;
+      const { accessToken, refreshToken, token } = response.data;
 
-      if (accessToken) {
+      if (accessToken || token) {
         console.log('Login successful, saving tokens');
-        saveTokens(accessToken, refreshToken);
+        saveTokens(accessToken || token, refreshToken);
       }
 
       return response.data;
@@ -250,6 +251,31 @@ export const authService = {
   hasRole(role: string): boolean {
     const user = this.getCurrentUser();
     return user && user.roles && user.roles.includes(role);
+  },
+
+  // Дополнительные методы для совместимости
+  getToken(): string | null {
+    return getToken();
+  },
+
+  setToken(token: string): void {
+    saveTokens(token);
+  },
+
+  async validateToken(): Promise<boolean> {
+    try {
+      await apiClient.get('/api/auth/validate');
+      return true;
+    } catch (error) {
+      return false;
+    }
+  },
+
+  async getValidToken(): Promise<string | null> {
+    if (this.isAuthenticated()) {
+      return this.getToken();
+    }
+    return null;
   },
 
   // API client для использования в других сервисах

@@ -14,6 +14,11 @@ import { loginStart, loginSuccess, loginFailure } from '../../store/authSlice';
 import AuthService from '../../services/authService';
 import { LoginRequest } from '../../types';
 import { RootState } from '../../store';
+import { UserRole } from '../../types';
+
+interface LoginFormProps {
+  onLoginSuccess?: () => void;
+}
 
 interface LoginFormProps {
   onLoginSuccess?: () => void;
@@ -42,8 +47,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     
     try {
       const response = await AuthService.login(credentials);
-      dispatch(loginSuccess({ user: response.user, token: response.token }));
-      AuthService.setToken(response.token);
+      dispatch(loginSuccess({ 
+        user: {
+          id: response.user.id,
+          firstName: response.user.username || '',
+          lastName: '', // Not available in response
+          email: response.user.email,
+          role: response.user.roles && response.user.roles.length > 0 ? 
+                (response.user.roles[0] as UserRole) : UserRole.STUDENT,
+          isActive: true // Not available in response, assuming active
+        }, 
+        token: response.token || response.accessToken 
+      }));
       
       if (onLoginSuccess) {
         onLoginSuccess();
