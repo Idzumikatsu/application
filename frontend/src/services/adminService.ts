@@ -64,7 +64,7 @@ class AdminService {
   public async getAllManagers(): Promise<any[]> {
     logInfo('Fetching all managers');
     try {
-      const response = await httpClient.get('/admin/managers');
+      const response = await httpClient.get('/api/managers/managers');
       logInfo('Managers fetched successfully');
       return response.data as any[];
     } catch (error) {
@@ -76,7 +76,7 @@ class AdminService {
   public async createManager(managerData: any) {
     logInfo('Creating manager', managerData);
     try {
-      const response = await httpClient.post('/admin/managers', managerData);
+      const response = await httpClient.post('/api/managers/managers', managerData);
       logInfo('Manager created successfully', response.data);
       return response.data;
     } catch (error) {
@@ -88,7 +88,7 @@ class AdminService {
   public async updateManager(id: number, managerData: any) {
     logInfo(`Updating manager ${id}`, managerData);
     try {
-      const response = await httpClient.put(`/admin/managers/${id}`, managerData);
+      const response = await httpClient.put(`/api/managers/managers/${id}`, managerData);
       logInfo(`Manager ${id} updated successfully`, response.data);
       return response.data;
     } catch (error) {
@@ -100,7 +100,7 @@ class AdminService {
   public async deleteManager(id: number) {
     logInfo(`Deleting manager ${id}`);
     try {
-      const response = await httpClient.delete(`/admin/managers/${id}`);
+      const response = await httpClient.delete(`/api/managers/managers/${id}`);
       logInfo(`Manager ${id} deleted successfully`);
       return response.data;
     } catch (error) {
@@ -112,7 +112,7 @@ class AdminService {
   public async resetManagerPassword(id: number) {
     logInfo(`Resetting password for manager ${id}`);
     try {
-      const response = await httpClient.post(`/admin/managers/${id}/reset-password`);
+      const response = await httpClient.post(`/api/managers/managers/${id}/reset-password`);
       logInfo(`Password reset for manager ${id} successful`);
       return response.data;
     } catch (error) {
@@ -125,7 +125,7 @@ class AdminService {
   public async getAllTeachers(): Promise<any[]> {
     logInfo('Fetching all teachers');
     try {
-      const response = await httpClient.get('/admin/teachers');
+      const response = await httpClient.get('/managers/teachers');
       logInfo('Teachers fetched successfully');
       return response.data as any[];
     } catch (error) {
@@ -137,7 +137,7 @@ class AdminService {
   public async createTeacher(teacherData: any) {
     logInfo('Creating teacher', teacherData);
     try {
-      const response = await httpClient.post('/admin/teachers', teacherData);
+      const response = await httpClient.post('/managers/teachers', teacherData);
       logInfo('Teacher created successfully', response.data);
       return response.data;
     } catch (error) {
@@ -149,7 +149,7 @@ class AdminService {
   public async updateTeacher(id: number, teacherData: any) {
     logInfo(`Updating teacher ${id}`, teacherData);
     try {
-      const response = await httpClient.put(`/admin/teachers/${id}`, teacherData);
+      const response = await httpClient.put(`/managers/teachers/${id}`, teacherData);
       logInfo(`Teacher ${id} updated successfully`, response.data);
       return response.data;
     } catch (error) {
@@ -161,7 +161,7 @@ class AdminService {
   public async deleteTeacher(id: number) {
     logInfo(`Deleting teacher ${id}`);
     try {
-      const response = await httpClient.delete(`/admin/teachers/${id}`);
+      const response = await httpClient.delete(`/managers/teachers/${id}`);
       logInfo(`Teacher ${id} deleted successfully`);
       return response.data;
     } catch (error) {
@@ -173,7 +173,7 @@ class AdminService {
   public async resetTeacherPassword(id: number) {
     logInfo(`Resetting password for teacher ${id}`);
     try {
-      const response = await httpClient.post(`/admin/teachers/${id}/reset-password`);
+      const response = await httpClient.post(`/managers/teachers/${id}/reset-password`);
       logInfo(`Password reset for teacher ${id} successful`);
       return response.data;
     } catch (error) {
@@ -186,7 +186,7 @@ class AdminService {
   public async getAllStudents(): Promise<any> {
     logInfo('Fetching all students');
     try {
-      const response = await httpClient.get('/admin/students');
+      const response = await httpClient.get('/api/managers/students');
       logInfo('Students fetched successfully');
       return response.data;
     } catch (error) {
@@ -198,7 +198,7 @@ class AdminService {
   public async createStudent(studentData: any) {
     logInfo('Creating student', studentData);
     try {
-      const response = await httpClient.post('/admin/students', studentData);
+      const response = await httpClient.post('/api/managers/students', studentData);
       logInfo('Student created successfully', response.data);
       return response.data;
     } catch (error) {
@@ -210,7 +210,7 @@ class AdminService {
   public async updateStudent(id: number, studentData: any) {
     logInfo(`Updating student ${id}`, studentData);
     try {
-      const response = await httpClient.put(`/admin/students/${id}`, studentData);
+      const response = await httpClient.put(`/api/managers/students/${id}`, studentData);
       logInfo(`Student ${id} updated successfully`, response.data);
       return response.data;
     } catch (error) {
@@ -222,7 +222,7 @@ class AdminService {
   public async deleteStudent(id: number) {
     logInfo(`Deleting student ${id}`);
     try {
-      const response = await httpClient.delete(`/admin/students/${id}`);
+      const response = await httpClient.delete(`/api/managers/students/${id}`);
       logInfo(`Student ${id} deleted successfully`);
       return response.data;
     } catch (error) {
@@ -234,7 +234,7 @@ class AdminService {
   public async resetStudentPassword(id: number) {
     logInfo(`Resetting password for student ${id}`);
     try {
-      const response = await httpClient.post(`/admin/students/${id}/reset-password`);
+      const response = await httpClient.post(`/api/managers/students/${id}/reset-password`);
       logInfo(`Password reset for student ${id} successful`);
       return response.data;
     } catch (error) {
