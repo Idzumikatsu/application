@@ -1,5 +1,5 @@
-import { unauthenticatedClient as apiClient } from './httpClient';
-import { User } from '../types';
+import { unauthenticatedClient as apiClient, default as httpClient } from './httpClient';
+import { User, UserRole } from '../types';
 
 // Используем неаутентифицированный клиент из httpClient для аутентификационных запросов
 // Это предотвращает конфликты с интерцепторами авторизации
@@ -22,8 +22,6 @@ const saveTokens = (accessToken: string, refreshToken?: string) => {
     if (refreshToken) {
       localStorage.setItem('refreshToken', refreshToken);
     }
-    // Обновляем заголовок Authorization для всех последующих запросов
-    apiClient.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
   } catch (error) {
     console.error('Error saving tokens:', error);
   }
@@ -34,7 +32,6 @@ const clearTokens = () => {
   try {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-    delete apiClient.defaults.headers.common['Authorization'];
   } catch (error) {
     console.error('Error clearing tokens:', error);
   }
@@ -50,72 +47,7 @@ const getRefreshToken = () => {
   }
 };
 
-// Интерцептор для добавления токена к запросам
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = getToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Интерцептор для обработки ошибок ответа
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    // Проверяем, что это 401 ошибка и не запрос на refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      const refreshToken = getRefreshToken();
-
-      if (refreshToken) {
-        try {
-          console.log('Attempting token refresh...');
-          const response = await apiClient.post('/api/auth/refresh', {
-            refreshToken: refreshToken,
-          });
-
-          const { accessToken, refreshToken: newRefreshToken } = response.data;
-
-          if (accessToken) {
-            console.log('Token refreshed successfully');
-            saveTokens(accessToken, newRefreshToken);
-
-            // Повторяем оригинальный запрос с новым токеном
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-            return apiClient(originalRequest);
-          }
-        } catch (refreshError: any) {
-          console.error('Token refresh failed:', refreshError.response?.data || refreshError.message);
-
-          // Если refresh не удался, очищаем токены и перенаправляем на логин
-          clearTokens();
-          window.location.href = '/login';
-          return Promise.reject(refreshError);
-        }
-      } else {
-        console.log('No refresh token available');
-        clearTokens();
-        window.location.href = '/login';
-      }
-    } else if (error.response?.status === 401 && originalRequest._retry) {
-      // Если ошибка 401 произошла после попытки повторного запроса, очищаем токены и перенаправляем на логин
-      clearTokens();
-      window.location.href = '/login';
-      return Promise.reject(error);
-    }
-
-    return Promise.reject(error);
-  }
-);
+// Интерцепторы теперь находятся только в httpClient.ts, чтобы избежать дублирования
 
 // Типы для аутентификации
 export interface LoginRequest {
@@ -123,6 +55,20 @@ export interface LoginRequest {
   password: string;
 }
 
+// Основной интерфейс для ответа от сервера
+export interface LoginResponseFromServer {
+  token: string;
+  refreshToken?: string;
+  type: string;
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  expiresIn?: number;
+}
+
+// Интерфейс для использования во всем приложении
 export interface LoginResponse {
   token: string;
   accessToken: string;
@@ -136,6 +82,7 @@ export interface LoginResponse {
   };
 }
 
+// Интерфейс для запроса обновления токена
 export interface RefreshRequest {
   refreshToken: string;
 }
@@ -152,16 +99,27 @@ export const authService = {
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
       console.log('Attempting login with credentials:', credentials.email);
-      const response = await apiClient.post<LoginResponse>('/api/auth/login', credentials);
+      const response = await apiClient.post<LoginResponseFromServer>('/api/auth/login', credentials);
 
-      const { accessToken, refreshToken, token } = response.data;
+      const { token: accessToken, refreshToken, id, firstName, lastName, email, role } = response.data;
 
-      if (accessToken || token) {
+      if (accessToken) {
         console.log('Login successful, saving tokens');
-        saveTokens(accessToken || token, refreshToken);
+        saveTokens(accessToken, refreshToken);
       }
 
-      return response.data;
+      return {
+        ...response.data,
+        token: accessToken,
+        accessToken: accessToken,
+        tokenType: response.data.type,
+        user: {
+          id: id,
+          username: firstName, // For compatibility with existing code
+          email: email,
+          roles: [role] // Convert single role to array for compatibility
+        }
+      };
     } catch (error: any) {
       console.error('Login failed:', error.response?.data || error.message);
       throw new Error(error.response?.data?.message || 'Login failed');
@@ -178,18 +136,21 @@ export const authService = {
       }
 
       console.log('Refreshing token...');
-      const response = await apiClient.post<RefreshResponse>('/api/auth/refresh', {
+      const response = await apiClient.post('/api/auth/refresh', {
         refreshToken: refreshToken,
       });
 
-      const { accessToken, refreshToken: newRefreshToken } = response.data;
-
-      if (accessToken && newRefreshToken) {
+      if (response.data.token && response.data.refreshToken) {
         console.log('Token refreshed successfully');
-        saveTokens(accessToken, newRefreshToken);
+        saveTokens(response.data.token, response.data.refreshToken);
       }
 
-      return response.data;
+      // Маппим ответ в нужный формат
+      return {
+        accessToken: response.data.token,
+        refreshToken: response.data.refreshToken,
+        tokenType: 'Bearer'
+      };
     } catch (error: any) {
       console.error('Token refresh failed:', error.response?.data || error.message);
       clearTokens();
@@ -229,11 +190,24 @@ export const authService = {
   },
 
   // Получение текущего пользователя
-  // Получение текущего пользователя
   async getCurrentUser(): Promise<User> {
     try {
-      const response = await apiClient.get<User>('/api/users/me');
-      return response.data;
+      const response = await httpClient.get('/api/users/me');
+      // Маппим ответ сервера к интерфейсу User
+      const userData = response.data;
+      return {
+        id: userData.id,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        phone: userData.phone,
+        telegramUsername: userData.telegramUsername,
+        telegramChatId: undefined, // Не возвращается из /api/users/me
+        role: userData.role as UserRole, // Приводим к UserRole enum
+        isActive: userData.isActive,
+        dateOfBirth: undefined, // Не возвращается из /api/users/me
+        token: undefined // Не возвращается из /api/users/me
+      };
     } catch (error: any) {
       console.error('Error getting current user:', error.response?.data || error.message);
       throw new Error(error.response?.data?.message || 'Failed to get user');
@@ -244,7 +218,8 @@ export const authService = {
   async hasRole(role: string): Promise<boolean> {
     try {
       const user = await this.getCurrentUser();
-      return user && user.role === role;
+      // Сравниваем строковое значение роли
+      return user && user.role && user.role.toString() === role;
     } catch (error) {
       console.error('Error checking user role:', error);
       return false;
@@ -277,7 +252,7 @@ export const authService = {
   },
 
   // API client для использования в других сервисах
-  getApiClient: () => apiClient,
+  getApiClient: () => httpClient,
 };
 
 export default authService;

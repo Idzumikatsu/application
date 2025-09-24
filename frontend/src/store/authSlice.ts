@@ -63,7 +63,7 @@ export const authSlice = createSlice({
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       // Remove authorization header from httpClient
-      delete (window as any).apiClient.defaults.headers.common['Authorization'];
+      // Authorization header is now handled in httpClient.ts
     },
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
@@ -104,6 +104,7 @@ export const authSlice = createSlice({
         if (payload.user) {
           state.user = payload.user;
         } else {
+          // Handle flat response from API
           state.user = {
             id: payload.id || 0,
             firstName: payload.firstName || '',

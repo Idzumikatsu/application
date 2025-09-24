@@ -1,6 +1,7 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import authService from './authService';
 
+// Create the main HTTP client
 const httpClient: AxiosInstance = axios.create({
   baseURL: '/api',
   headers: {
@@ -36,7 +37,7 @@ httpClient.interceptors.request.use(
 
 // Response interceptor to handle auth errors
 httpClient.interceptors.response.use(
- (response: AxiosResponse) => response,
+  (response: AxiosResponse) => response,
   async (error) => {
     const originalRequest = error.config;
 
@@ -71,5 +72,6 @@ httpClient.interceptors.response.use(
   }
 );
 
+// Export the clients
 export default httpClient;
 export { unauthenticatedClient };

@@ -20,9 +20,6 @@ interface LoginFormProps {
   onLoginSuccess?: () => void;
 }
 
-interface LoginFormProps {
-  onLoginSuccess?: () => void;
-}
 
 const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [credentials, setCredentials] = useState<LoginRequest>({
@@ -47,17 +44,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     
     try {
       const response = await AuthService.login(credentials);
-      dispatch(loginSuccess({ 
+      dispatch(loginSuccess({
         user: {
           id: response.user.id,
-          firstName: response.user.username || '',
+          firstName: response.user.username || response.user.email.split('@')[0] || '',
           lastName: '', // Not available in response
           email: response.user.email,
-          role: response.user.roles && response.user.roles.length > 0 ? 
+          role: response.user.roles && response.user.roles.length > 0 ?
                 (response.user.roles[0] as UserRole) : UserRole.STUDENT,
           isActive: true // Not available in response, assuming active
-        }, 
-        token: response.token || response.accessToken 
+        },
+        token: response.token || response.accessToken
       }));
       
       if (onLoginSuccess) {
