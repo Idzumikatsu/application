@@ -16,7 +16,7 @@ class AdminService {
   public async getDashboardStats(): Promise<DashboardStats> {
     logInfo('Fetching dashboard stats');
     try {
-      const response = await httpClient.get('/admin/dashboard/stats');
+      const response = await httpClient.get('/api/admin/dashboard/stats');
       logInfo('Dashboard stats fetched successfully');
 
       // Transform API response to match DashboardStats interface
@@ -51,7 +51,7 @@ class AdminService {
   public async getStudentsEndingSoon() {
     logInfo('Fetching students ending soon');
     try {
-      const response = await httpClient.get('/admin/dashboard/students-ending-soon');
+      const response = await httpClient.get('/api/admin/dashboard/students-ending-soon');
       logInfo('Students ending soon fetched successfully');
       return response.data;
     } catch (error) {
@@ -64,7 +64,7 @@ class AdminService {
   public async getAllManagers(): Promise<any[]> {
     logInfo('Fetching all managers');
     try {
-      const response = await httpClient.get('/api/managers/managers');
+      const response = await httpClient.get('/managers/managers');
       logInfo('Managers fetched successfully');
       return response.data as any[];
     } catch (error) {
@@ -76,7 +76,7 @@ class AdminService {
   public async createManager(managerData: any) {
     logInfo('Creating manager', managerData);
     try {
-      const response = await httpClient.post('/api/managers/managers', managerData);
+      const response = await httpClient.post('/managers/managers', managerData);
       logInfo('Manager created successfully', response.data);
       return response.data;
     } catch (error) {
@@ -88,7 +88,7 @@ class AdminService {
   public async updateManager(id: number, managerData: any) {
     logInfo(`Updating manager ${id}`, managerData);
     try {
-      const response = await httpClient.put(`/api/managers/managers/${id}`, managerData);
+      const response = await httpClient.put(`/managers/managers/${id}`, managerData);
       logInfo(`Manager ${id} updated successfully`, response.data);
       return response.data;
     } catch (error) {
@@ -100,7 +100,7 @@ class AdminService {
   public async deleteManager(id: number) {
     logInfo(`Deleting manager ${id}`);
     try {
-      const response = await httpClient.delete(`/api/managers/managers/${id}`);
+      const response = await httpClient.delete(`/managers/managers/${id}`);
       logInfo(`Manager ${id} deleted successfully`);
       return response.data;
     } catch (error) {
@@ -112,7 +112,7 @@ class AdminService {
   public async resetManagerPassword(id: number) {
     logInfo(`Resetting password for manager ${id}`);
     try {
-      const response = await httpClient.post(`/api/managers/managers/${id}/reset-password`);
+      const response = await httpClient.post(`/managers/managers/${id}/reset-password`);
       logInfo(`Password reset for manager ${id} successful`);
       return response.data;
     } catch (error) {
@@ -122,10 +122,10 @@ class AdminService {
   }
 
   // Teacher management
-  public async getAllTeachers(): Promise<any[]> {
+ public async getAllTeachers(): Promise<any[]> {
     logInfo('Fetching all teachers');
     try {
-      const response = await httpClient.get('/api/managers/teachers');
+      const response = await httpClient.get('/managers/teachers');
       logInfo('Teachers fetched successfully');
       return response.data as any[];
     } catch (error) {
@@ -146,29 +146,29 @@ class AdminService {
     }
   }
 
-  public async updateTeacher(id: number, teacherData: any) {
-    logInfo(`Updating teacher ${id}`, teacherData);
-    try {
-      const response = await httpClient.put(`/managers/teachers/${id}`, teacherData);
-      logInfo(`Teacher ${id} updated successfully`, response.data);
-      return response.data;
-    } catch (error) {
-      logError(`Failed to update teacher ${id}`, error);
-      throw error;
-    }
-  }
+   public async updateTeacher(id: number, teacherData: any) {
+     logInfo(`Updating teacher ${id}`, teacherData);
+     try {
+       const response = await httpClient.put(`/managers/teachers/${id}`, teacherData);
+       logInfo(`Teacher ${id} updated successfully`, response.data);
+       return response.data;
+     } catch (error) {
+       logError(`Failed to update teacher ${id}`, error);
+       throw error;
+     }
+   }
 
-  public async deleteTeacher(id: number) {
-    logInfo(`Deleting teacher ${id}`);
-    try {
-      const response = await httpClient.delete(`/managers/teachers/${id}`);
-      logInfo(`Teacher ${id} deleted successfully`);
-      return response.data;
-    } catch (error) {
-      logError(`Failed to delete teacher ${id}`, error);
-      throw error;
-    }
-  }
+   public async deleteTeacher(id: number) {
+     logInfo(`Deleting teacher ${id}`);
+     try {
+       const response = await httpClient.delete(`/managers/teachers/${id}`);
+       logInfo(`Teacher ${id} deleted successfully`);
+       return response.data;
+     } catch (error) {
+       logError(`Failed to delete teacher ${id}`, error);
+       throw error;
+     }
+   }
 
   public async resetTeacherPassword(id: number) {
     logInfo(`Resetting password for teacher ${id}`);
@@ -186,7 +186,7 @@ class AdminService {
   public async getAllStudents(): Promise<any> {
     logInfo('Fetching all students');
     try {
-      const response = await httpClient.get('/api/managers/students');
+      const response = await httpClient.get('/managers/students');
       logInfo('Students fetched successfully');
       return response.data;
     } catch (error) {
@@ -198,7 +198,7 @@ class AdminService {
   public async createStudent(studentData: any) {
     logInfo('Creating student', studentData);
     try {
-      const response = await httpClient.post('/api/managers/students', studentData);
+      const response = await httpClient.post('/managers/students', studentData);
       logInfo('Student created successfully', response.data);
       return response.data;
     } catch (error) {
@@ -210,7 +210,7 @@ class AdminService {
   public async updateStudent(id: number, studentData: any) {
     logInfo(`Updating student ${id}`, studentData);
     try {
-      const response = await httpClient.put(`/api/managers/students/${id}`, studentData);
+      const response = await httpClient.put(`/managers/students/${id}`, studentData);
       logInfo(`Student ${id} updated successfully`, response.data);
       return response.data;
     } catch (error) {
@@ -222,7 +222,7 @@ class AdminService {
   public async deleteStudent(id: number) {
     logInfo(`Deleting student ${id}`);
     try {
-      const response = await httpClient.delete(`/api/managers/students/${id}`);
+      const response = await httpClient.delete(`/managers/students/${id}`);
       logInfo(`Student ${id} deleted successfully`);
       return response.data;
     } catch (error) {
@@ -234,7 +234,7 @@ class AdminService {
   public async resetStudentPassword(id: number) {
     logInfo(`Resetting password for student ${id}`);
     try {
-      const response = await httpClient.post(`/api/managers/students/${id}/reset-password`);
+      const response = await httpClient.post(`/managers/students/${id}/reset-password`);
       logInfo(`Password reset for student ${id} successful`);
       return response.data;
     } catch (error) {
@@ -251,7 +251,7 @@ class AdminService {
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
       
-      const response = await httpClient.get(`/admin/reports/students?${params.toString()}`, {
+      const response = await httpClient.get(`/api/admin/reports/students?${params.toString()}`, {
         responseType: 'blob'
       });
       logInfo('Students report generated successfully');
@@ -269,7 +269,7 @@ class AdminService {
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
       
-      const response = await httpClient.get(`/admin/reports/teachers?${params.toString()}`, {
+      const response = await httpClient.get(`/api/admin/reports/teachers?${params.toString()}`, {
         responseType: 'blob'
       });
       logInfo('Teachers report generated successfully');
@@ -287,7 +287,7 @@ class AdminService {
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
       
-      const response = await httpClient.get(`/admin/reports/lessons?${params.toString()}`, {
+      const response = await httpClient.get(`/api/admin/reports/lessons?${params.toString()}`, {
         responseType: 'blob'
       });
       logInfo('Lessons report generated successfully');
