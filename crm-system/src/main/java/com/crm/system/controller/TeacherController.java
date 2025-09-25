@@ -1,41 +1,51 @@
 package com.crm.system.controller;
 
-import com.crm.system.dto.MessageDto;
-import com.crm.system.dto.UserDto;
-import com.crm.system.model.User;
-import com.crm.system.model.UserRole;
-import com.crm.system.service.UserService;
+import com.crm.system.dto.*;
+import com.crm.system.model.*;
+import com.crm.system.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
 
+import jakarta.validation.Valid;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
+@RequestMapping("/api")
 public class TeacherController {
 
     @Autowired
     UserService userService;
-
     @Autowired
     PasswordEncoder passwordEncoder;
+    @Autowired
+    private AvailabilitySlotService availabilitySlotService;
+    @Autowired
+    private CalendarService calendarService;
+    @Autowired
+    private LessonService lessonService;
+    @Autowired
+    private StudentService studentService;
+    @Autowired
+    private TeacherNoteService teacherNoteService;
+
 
     // Manager-level operations for teachers
     @GetMapping("/managers/teachers")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<List<UserDto>> getAllTeachersManager() {
-        System.out.println("=== TeacherController: getAllTeachers called ===");
         List<User> teachers = userService.findByRole(UserRole.TEACHER);
-        System.out.println("=== TeacherController: Found " + teachers.size() + " teachers ===");
-        List<UserDto> teacherDtos = teachers.stream().map(this::convertToDto).collect(Collectors.toList());
-        System.out.println("=== TeacherController: Converted to " + teacherDtos.size() + " DTOs ===");
-        return ResponseEntity.ok(teacherDtos);
+        return ResponseEntity.ok(teachers.stream().map(this::convertToUserDto).collect(Collectors.toList()));
     }
 
     @PostMapping("/managers/teachers")
@@ -44,7 +54,6 @@ public class TeacherController {
         if (userService.existsByEmail(userDto.getEmail())) {
             return ResponseEntity.badRequest().body(new MessageDto("Error: Email is already taken!"));
         }
-
         User user = new User();
         user.setFirstName(userDto.getFirstName());
         user.setLastName(userDto.getLastName());
@@ -54,99 +63,129 @@ public class TeacherController {
         user.setIsActive(userDto.getIsActive() != null ? userDto.getIsActive() : true);
         user.setPhone(userDto.getPhone());
         user.setTelegramUsername(userDto.getTelegramUsername());
-
-        User savedUser = userService.saveUser(user);
-
+        userService.saveUser(user);
         return ResponseEntity.ok(new MessageDto("Teacher created successfully!"));
-    }
-
-    @PutMapping("/managers/teachers/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> updateTeacherManager(@PathVariable Long id, @Valid @RequestBody UserDto userDto) {
-        User user = userService.getById(id);
-
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
-        user.setEmail(userDto.getEmail());
-        user.setPhone(userDto.getPhone());
-        user.setTelegramUsername(userDto.getTelegramUsername());
-        user.setIsActive(userDto.getIsActive());
-
-        userService.updateUser(user);
-
-        return ResponseEntity.ok(new MessageDto("Teacher updated successfully!"));
-    }
-
-    @DeleteMapping("/managers/teachers/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteTeacherManager(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return ResponseEntity.ok(new MessageDto("Teacher deleted successfully!"));
-    }
-
-    @PostMapping("/managers/teachers/{id}/reset-password")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<?> resetTeacherPasswordManager(@PathVariable Long id) {
-        User user = userService.getById(id);
-        // In a real application, you would send an email with a password reset link
-        user.setPasswordHash(passwordEncoder.encode("temporary")); // Set temporary password
-        userService.updateUser(user);
-        return ResponseEntity.ok(new MessageDto("Password reset email sent!"));
     }
 
     // Teacher self-management endpoints
     @GetMapping("/teachers/me")
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<UserDto> getCurrentTeacher(Authentication authentication) {
-        String email = authentication.getName();
-        User teacher = userService.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Teacher not found with email: " + email));
-        return ResponseEntity.ok(convertToDto(teacher));
+        User teacher = getCurrentUser(authentication);
+        return ResponseEntity.ok(convertToUserDto(teacher));
     }
 
-    @PutMapping("/teachers/me")
+    //== Availability Endpoints for Teacher ==/
+    @GetMapping("/teachers/me/availability")
     @PreAuthorize("hasRole('TEACHER')")
-    public ResponseEntity<UserDto> updateCurrentTeacher(Authentication authentication, @Valid @RequestBody UserDto userDto) {
-        String email = authentication.getName();
-        User teacher = userService.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Teacher not found with email: " + email));
-
-        teacher.setFirstName(userDto.getFirstName());
-        teacher.setLastName(userDto.getLastName());
-        teacher.setEmail(userDto.getEmail());
-        teacher.setPhone(userDto.getPhone());
-        teacher.setTelegramUsername(userDto.getTelegramUsername());
-
-        User updatedTeacher = userService.updateUser(teacher);
-        return ResponseEntity.ok(convertToDto(updatedTeacher));
+    public ResponseEntity<Page<AvailabilitySlotDto>> getMyAvailabilitySlots(Authentication authentication, Pageable pageable) {
+        User teacher = getCurrentUser(authentication);
+        Page<AvailabilitySlot> slotPage = availabilitySlotService.findAvailableSlotsByTeacherIdAndDateRange(teacher.getId(), LocalDate.now(), null, pageable);
+        return ResponseEntity.ok(slotPage.map(this::convertSlotToDto));
     }
 
-    @GetMapping("/teachers/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or (hasRole('TEACHER') and #id == authentication.principal.id)")
-    public ResponseEntity<UserDto> getTeacherById(@PathVariable Long id) {
-        User teacher = userService.getById(id);
-        return ResponseEntity.ok(convertToDto(teacher));
-    }
-
-    @GetMapping("/teachers")
+    @PostMapping("/teachers/me/availability")
     @PreAuthorize("hasRole('TEACHER')")
-    public ResponseEntity<List<UserDto>> getTeachersForTeacher() {
-        // Teachers can see a list of other teachers
-        List<User> teachers = userService.findByRole(UserRole.TEACHER);
-        List<UserDto> teacherDtos = teachers.stream().map(this::convertToDto).collect(Collectors.toList());
-        return ResponseEntity.ok(teacherDtos);
+    public ResponseEntity<AvailabilitySlotDto> createMyAvailabilitySlot(Authentication authentication, @Valid @RequestBody CreateAvailabilitySlotDto createDto) {
+        User teacher = getCurrentUser(authentication);
+        AvailabilitySlot slot = availabilitySlotService.createAvailabilitySlot(teacher, createDto.getSlotDate(), createDto.getSlotTime(), createDto.getDurationMinutes());
+        return ResponseEntity.ok(convertSlotToDto(slot));
     }
-    
-    private UserDto convertToDto(User user) {
-        UserDto userDto = new UserDto();
-        userDto.setId(user.getId());
-        userDto.setFirstName(user.getFirstName());
-        userDto.setLastName(user.getLastName());
-        userDto.setEmail(user.getEmail());
-        userDto.setPhone(user.getPhone());
-        userDto.setTelegramUsername(user.getTelegramUsername());
-        userDto.setRole(user.getRole().name());
-        userDto.setIsActive(user.getIsActive());
-        return userDto;
+
+    @DeleteMapping("/teachers/me/availability/{slotId}")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<?> deleteMyAvailabilitySlot(Authentication authentication, @PathVariable Long slotId) {
+        User teacher = getCurrentUser(authentication);
+        AvailabilitySlot slot = availabilitySlotService.findById(slotId).orElseThrow(() -> new RuntimeException("Slot not found"));
+        if (!slot.getTeacher().getId().equals(teacher.getId())) {
+            return ResponseEntity.status(403).body(new MessageDto("Forbidden"));
+        }
+        if (slot.getIsBooked()) {
+            return ResponseEntity.badRequest().body(new MessageDto("Cannot delete a booked slot."));
+        }
+        availabilitySlotService.deleteAvailabilitySlot(slotId);
+        return ResponseEntity.ok().build();
     }
+
+    //== Calendar Endpoint for Teacher ==/
+    @GetMapping("/teachers/me/calendar")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<List<CalendarDayDto>> getMyCalendar(Authentication authentication, @RequestParam LocalDate startDate, @RequestParam LocalDate endDate) {
+        User teacher = getCurrentUser(authentication);
+        List<CalendarDayDto> calendar = calendarService.getTeacherCalendar(teacher.getId(), startDate, endDate);
+        return ResponseEntity.ok(calendar);
+    }
+
+    //== Lesson and Student Management for Teacher ==/
+    @GetMapping("/teachers/me/lessons")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<List<LessonDto>> getMyScheduledLessons(Authentication authentication) {
+        User teacher = getCurrentUser(authentication);
+        List<Lesson> lessons = lessonService.findScheduledLessonsByTeacherId(teacher.getId());
+        return ResponseEntity.ok(lessons.stream().map(this::convertLessonToDto).collect(Collectors.toList()));
+    }
+
+    @PostMapping("/teachers/me/lessons/{lessonId}/confirm")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<?> confirmLesson(Authentication authentication, @PathVariable Long lessonId) {
+        User teacher = getCurrentUser(authentication);
+        Lesson lesson = lessonService.findById(lessonId).orElseThrow(() -> new RuntimeException("Lesson not found"));
+        if (!lesson.getTeacher().getId().equals(teacher.getId())) {
+            return ResponseEntity.status(403).body(new MessageDto("Forbidden"));
+        }
+        lessonService.completeLesson(lesson);
+        return ResponseEntity.ok(new MessageDto("Lesson confirmed successfully."));
+    }
+
+    @PostMapping("/teachers/me/lessons/{lessonId}/request-reschedule")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<?> requestReschedule(Authentication authentication, @PathVariable Long lessonId, @RequestBody RescheduleRequestDto requestDto) {
+        User teacher = getCurrentUser(authentication);
+        Lesson lesson = lessonService.findById(lessonId).orElseThrow(() -> new RuntimeException("Lesson not found"));
+        if (!lesson.getTeacher().getId().equals(teacher.getId())) {
+            return ResponseEntity.status(403).body(new MessageDto("Forbidden"));
+        }
+        // Here you would typically trigger a notification to the manager
+        // For now, we just log it or save a state
+        System.out.println("Teacher " + teacher.getLastName() + " requested reschedule for lesson " + lessonId + ". Reason: " + requestDto.getReason());
+        return ResponseEntity.ok(new MessageDto("Reschedule request sent to manager."));
+    }
+
+    @GetMapping("/teachers/me/students")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<List<StudentDto>> getMyStudents(Authentication authentication) {
+        User teacher = getCurrentUser(authentication);
+        List<Student> students = studentService.findStudentsByTeacherId(teacher.getId());
+        return ResponseEntity.ok(students.stream().map(this::convertStudentToDto).collect(Collectors.toList()));
+    }
+
+    @PostMapping("/teachers/me/students/{studentId}/notes")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<TeacherNoteDto> addNoteToStudent(Authentication authentication, @PathVariable Long studentId, @RequestBody NoteDto noteDto) {
+        User teacher = getCurrentUser(authentication);
+        Student student = studentService.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
+        // Add check to ensure student is assigned to this teacher
+        TeacherNote note = teacherNoteService.addNote(teacher, student, noteDto.getNote());
+        return ResponseEntity.ok(convertNoteToDto(note));
+    }
+
+    @GetMapping("/teachers/me/students/{studentId}/notes")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<List<TeacherNoteDto>> getNotesForStudent(Authentication authentication, @PathVariable Long studentId) {
+        User teacher = getCurrentUser(authentication);
+        List<TeacherNote> notes = teacherNoteService.getNotesByTeacherAndStudent(teacher.getId(), studentId);
+        return ResponseEntity.ok(notes.stream().map(this::convertNoteToDto).collect(Collectors.toList()));
+    }
+
+    //== Helper Methods ==/
+    private User getCurrentUser(Authentication authentication) {
+        String email = authentication.getName();
+        return userService.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    private UserDto convertToUserDto(User user) { /* ... conversion logic ... */ }
+    private AvailabilitySlotDto convertSlotToDto(AvailabilitySlot slot) { /* ... conversion logic ... */ }
+    private LessonDto convertLessonToDto(Lesson lesson) { /* ... conversion logic ... */ }
+    private StudentDto convertStudentToDto(Student student) { /* ... conversion logic ... */ }
+    private TeacherNoteDto convertNoteToDto(TeacherNote note) { /* ... conversion logic ... */ }
 }

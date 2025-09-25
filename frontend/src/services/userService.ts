@@ -5,7 +5,7 @@ class UserService {
   // User management - corrected endpoints
   public async getAllUsers(): Promise<User[]> {
     try {
-      const response = await httpClient.get<User[]>('/admin/manage-users'); // backend: /api/admin/manage-users
+      const response = await httpClient.get<User[]>('/admin/manage-users');
       return response.data;
     } catch (error: any) {
       throw new Error(`Failed to fetch users: ${error.message}`);
@@ -59,7 +59,7 @@ class UserService {
 
   public async getStudentById(id: number): Promise<Student> {
     try {
-      const response = await httpClient.get<Student>(`/students/${id}`);
+      const response = await httpClient.get<Student>(`/managers/students/${id}`);
       return response.data;
     } catch (error: any) {
       throw new Error(`Failed to fetch student with id ${id}: ${error.message}`);
@@ -77,7 +77,7 @@ class UserService {
 
   public async updateStudent(id: number, studentData: Partial<Student>): Promise<Student> {
     try {
-      const response = await httpClient.put<Student>(`/students/${id}`, studentData);
+      const response = await httpClient.put<Student>(`/managers/students/${id}`, studentData);
       return response.data;
     } catch (error: any) {
       throw new Error(`Failed to update student with id ${id}: ${error.message}`);
@@ -86,7 +86,7 @@ class UserService {
 
   public async deleteStudent(id: number): Promise<void> {
     try {
-      await httpClient.delete(`/students/${id}`);
+      await httpClient.delete(`/managers/students/${id}`);
     } catch (error: any) {
       throw new Error(`Failed to delete student with id ${id}: ${error.message}`);
     }
@@ -104,7 +104,7 @@ class UserService {
 
   public async getTeacherById(id: number): Promise<User> {
     try {
-      const response = await httpClient.get<User>(`/teachers/${id}`);
+      const response = await httpClient.get<User>(`/managers/teachers/${id}`);
       return response.data;
     } catch (error: any) {
       throw new Error(`Failed to fetch teacher with id ${id}: ${error.message}`);
@@ -122,7 +122,7 @@ class UserService {
 
   public async updateTeacher(id: number, teacherData: Partial<User>): Promise<User> {
     try {
-      const response = await httpClient.put<User>(`/teachers/${id}`, teacherData);
+      const response = await httpClient.put<User>(`/managers/teachers/${id}`, teacherData);
       return response.data;
     } catch (error: any) {
       throw new Error(`Failed to update teacher with id ${id}: ${error.message}`);
@@ -131,7 +131,7 @@ class UserService {
 
   public async deleteTeacher(id: number): Promise<void> {
     try {
-      await httpClient.delete(`/teachers/${id}`);
+      await httpClient.delete(`/managers/teachers/${id}`);
     } catch (error: any) {
       throw new Error(`Failed to delete teacher with id ${id}: ${error.message}`);
     }
@@ -140,7 +140,7 @@ class UserService {
   // Lesson packages
   public async getStudentPackages(studentId: number): Promise<LessonPackage[]> {
     try {
-      const response = await httpClient.get<LessonPackage[]>(`/students/${studentId}/lesson-packages`);
+      const response = await httpClient.get<LessonPackage[]>(`/managers/students/${studentId}/lesson-packages`);
       return response.data;
     } catch (error: any) {
       throw new Error(`Failed to fetch lesson packages for student ${studentId}: ${error.message}`);
@@ -158,7 +158,7 @@ class UserService {
 
   public async updateLessonPackage(packageId: number, packageData: Partial<LessonPackage>): Promise<LessonPackage> {
     try {
-      const response = await httpClient.put<LessonPackage>(`/lesson-packages/${packageId}`, packageData);
+      const response = await httpClient.put<LessonPackage>(`/managers/lesson-packages/${packageId}`, packageData);
       return response.data;
     } catch (error: any) {
       throw new Error(`Failed to update lesson package with id ${packageId}: ${error.message}`);
@@ -167,7 +167,7 @@ class UserService {
 
   public async deleteLessonPackage(packageId: number): Promise<void> {
     try {
-      await httpClient.delete(`/lesson-packages/${packageId}`);
+      await httpClient.delete(`/managers/lesson-packages/${packageId}`);
     } catch (error: any) {
       throw new Error(`Failed to delete lesson package with id ${packageId}: ${error.message}`);
     }
