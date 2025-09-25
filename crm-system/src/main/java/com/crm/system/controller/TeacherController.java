@@ -155,7 +155,7 @@ public class TeacherController {
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<List<StudentDto>> getMyStudents(Authentication authentication) {
         User teacher = getCurrentUser(authentication);
-        List<Student> students = studentService.findStudentsByTeacherId(teacher.getId());
+        List<Student> students = studentService.findByAssignedTeacher(teacher);
         return ResponseEntity.ok(students.stream().map(this::convertStudentToDto).collect(Collectors.toList()));
     }
 
@@ -183,9 +183,65 @@ public class TeacherController {
         return userService.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    private UserDto convertToUserDto(User user) { /* ... conversion logic ... */ }
-    private AvailabilitySlotDto convertSlotToDto(AvailabilitySlot slot) { /* ... conversion logic ... */ }
-    private LessonDto convertLessonToDto(Lesson lesson) { /* ... conversion logic ... */ }
-    private StudentDto convertStudentToDto(Student student) { /* ... conversion logic ... */ }
-    private TeacherNoteDto convertNoteToDto(TeacherNote note) { /* ... conversion logic ... */ }
+    private UserDto convertToUserDto(User user) {
+        UserDto dto = new UserDto();
+        dto.setId(user.getId());
+        dto.setFirstName(user.getFirstName());
+        dto.setLastName(user.getLastName());
+        dto.setEmail(user.getEmail());
+        dto.setPhone(user.getPhone());
+        dto.setTelegramUsername(user.getTelegramUsername());
+        dto.setRole(user.getRole() != null ? user.getRole().toString() : null);
+        dto.setIsActive(user.getIsActive());
+        return dto;
+    }
+    
+    private AvailabilitySlotDto convertSlotToDto(AvailabilitySlot slot) {
+        AvailabilitySlotDto dto = new AvailabilitySlotDto();
+        dto.setId(slot.getId());
+        dto.setSlotDate(slot.getSlotDate());
+        dto.setSlotTime(slot.getSlotTime());
+        dto.setDurationMinutes(slot.getDurationMinutes());
+        dto.setIsBooked(slot.getIsBooked());
+        return dto;
+    }
+    
+    private LessonDto convertLessonToDto(Lesson lesson) {
+        LessonDto dto = new LessonDto();
+        dto.setId(lesson.getId());
+        dto.setStudentId(lesson.getStudent().getId());
+        dto.setTeacherId(lesson.getTeacher().getId());
+        dto.setScheduledDate(lesson.getScheduledDate());
+        dto.setScheduledTime(lesson.getScheduledTime());
+        dto.setStatus(lesson.getStatus());
+        dto.setDurationMinutes(lesson.getDurationMinutes());
+        dto.setCancellationReason(lesson.getCancellationReason());
+        dto.setCancelledBy(lesson.getCancelledBy());
+        dto.setNotes(lesson.getNotes());
+        dto.setConfirmedByTeacher(lesson.getConfirmedByTeacher());
+        return dto;
+    }
+    
+    private StudentDto convertStudentToDto(Student student) {
+        StudentDto dto = new StudentDto();
+        dto.setId(student.getId());
+        dto.setFirstName(student.getFirstName());
+        dto.setLastName(student.getLastName());
+        dto.setEmail(student.getEmail());
+        dto.setPhone(student.getPhone());
+        dto.setTelegramUsername(student.getTelegramUsername());
+        dto.setAssignedTeacherId(student.getAssignedTeacher() != null ? student.getAssignedTeacher().getId() : null);
+        return dto;
+    }
+    
+    private TeacherNoteDto convertNoteToDto(TeacherNote note) {
+        TeacherNoteDto dto = new TeacherNoteDto();
+        dto.setId(note.getId());
+        dto.setTeacherId(note.getTeacher().getId());
+        dto.setStudentId(note.getStudent().getId());
+        dto.setNote(note.getNote());
+        dto.setCreatedAt(note.getCreatedAt());
+        dto.setUpdatedAt(note.getUpdatedAt());
+        return dto;
+    }
 }

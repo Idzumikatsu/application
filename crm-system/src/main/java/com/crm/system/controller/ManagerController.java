@@ -194,7 +194,7 @@ public class ManagerController {
         // This is a simplified example. In a real app, the service would handle the logic
         // of changing status, checking rules, etc.
         lesson.setStatus(statusUpdate.getStatus());
-        if (statusUpdate.getStatus() == Lesson.Status.CANCELLED) {
+        if (statusUpdate.getStatus() == Lesson.LessonStatus.CANCELLED) {
             lesson.setCancellationReason(statusUpdate.getReason());
             lesson.setCancelledBy(Lesson.CancelledBy.MANAGER);
         }
